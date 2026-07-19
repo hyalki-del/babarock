@@ -113,22 +113,24 @@
         saveBtn.addEventListener('click', pushToDatabase);
 
         // Sayfa açıldığında sunucudan en güncel veriyi çek
-        async function fetchDatabase() {
-            showLoading("En güncel takvim verileri yükleniyor...");
-            try {
-                const res = await fetch(DATABASE_URL);
-                const data = await res.json();
-                Object.keys(serverData).forEach(k => { 
-                    serverData[k] = data[k] || []; 
-                });
-                // Değişiklikleri sıfırla, sunucu verisiyle eşitle
-                localChanges = JSON.parse(JSON.stringify(serverData));
-            } catch (e) { 
-                alert("Veritabanı bağlantı hatası! Lütfen Google Script linkinizi kontrol edin."); 
-            }
-            hideLoading();
-            render();
-        }
+        async function pushToDatabase() {
+    showLoading("Değişiklikler Google E-Tabloya kaydediliyor...");
+    try {
+        // Güvenli ve doğrulanabilir veri gönderimi
+        const response = await fetch(DATABASE_URL, {
+            method: 'POST',
+            body: JSON.stringify({ name: currentUser, busyDates: localChanges[currentUser] })
+        });
+        
+        // Veritabanındaki son durumu doğrulamak için sunucudan tekrar çek
+        await fetchDatabase();
+        alert("Tebrikler! Takviminiz başarıyla güncellendi ve kaydedildi.");
+    } catch (e) { 
+        console.error(e);
+        alert("Kayıt sırasında bir bağlantı hatası oluştu."); 
+    }
+    hideLoading();
+}
 
         // Kullanıcı "Kaydet ve Güncelle" butonuna basınca çalışır
         async function pushToDatabase() {
