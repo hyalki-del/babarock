@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baba Rock - Welcome</title>
+    <!-- Font Awesome for clean, scalable icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Base Reset & Theme Styling */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #121212;
+            /* Subtle radial gradient to match the dark texture vignette of the logo */
+            background: radial-gradient(circle, #1a1a1a 0%, #0a0a0a 100%);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Container Card */
+        .welcome-container {
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            background: rgba(20, 20, 20, 0.6);
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 68, 0, 0.1);
+            backdrop-filter: blur(8px);
+        }
+
+        /* Logo Area */
+        .logo-wrapper {
+            margin-bottom: 40px;
+        }
+
+        .logo-img {
+            max-width: 280px;
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 0 15px rgba(255, 68, 0, 0.3));
+        }
+
+        /* Navigation Links Layout */
+        .links-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .nav-button {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            background: #1e1e1e;
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 16px 24px;
+            color: #e0e0e0;
+            text-decoration: none;
+            font-size: 1.15rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-button i {
+            font-size: 1.5rem;
+            margin-right: 20px;
+            width: 30px;
+            text-align: center;
+            color: #ff4500; /* Fiery orange accent color matching the logo theme */
+            transition: transform 0.3s ease;
+        }
+
+        /* Hover States for Interactive Elements */
+        .nav-button:hover {
+            color: #ffffff;
+            background: #252525;
+            border-color: #ff4500;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 68, 0, 0.20);
+        }
+
+        .nav-button:hover i {
+            transform: scale(1.15);
+        }
+
+        .nav-button:active {
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="welcome-container">
+        <!-- Top Logo -->
+        <div class="logo-wrapper">
+            <!-- Replace 'logo.jpg' with the actual path to your Baba Rock image file -->
+            <img src="logo.jpg" alt="Baba Rock Logo" class="logo-img">
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="links-grid">
+            <!-- Calendar Link -->
+            <a href="https://hyalki-del.github.io/babarock/takvim.html" class="nav-button" target="_blank" rel="noopener">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Takvim</span>
+            </a>
+
+            <!-- Playlist Link -->
+            <a href="https://www.ultimate-guitar.com/user/playlist/view?id=31887695" class="nav-button" target="_blank" rel="noopener">
+                <i class="fa-solid fa-music"></i>
+                <span>Playlist</span>
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
