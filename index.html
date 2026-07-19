@@ -1,40 +1,253 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Band Calendar</title>
+    <title>Grup Uygunluk Matrisi</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #000000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .apple-blur { backdrop-filter: blur(20px); background-color: rgba(28, 28, 30, 0.7); }
+        .apple-card { background-color: #1c1c1e; border: 1px solid rgba(255, 255, 255, 0.05); }
+    </style>
 </head>
-<body class="bg-gray-950 text-gray-100 p-4 md:p-8 min-h-screen font-sans">
-    <div class="max-w-5xl mx-auto space-y-6">
-        <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-800 pb-5 gap-4">
+<body class="text-[#f5f5f7] p-4 md:p-8 min-h-screen">
+    <div class="max-w-6xl mx-auto space-y-6">
+        
+        <!-- Apple Tarzı Header -->
+        <header class="apple-card rounded-2xl p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm">
             <div>
-                <h1 class="text-2xl font-bold tracking-tight text-white">Band Sync Matrix (Live Cloud)</h1>
-                <p class="text-gray-400 text-sm">Tap dates to toggle busy slots. Changes sync across all devices.</p>
+                <h1 class="text-2xl font-semibold tracking-tight text-white">Sahne Senkronizasyonu</h1>
+                <p class="text-[#86868b] text-sm mt-1">Meşgul olduğunuz günleri seçin. Değişikliklerin kaydedilmesi için aşağıdaki butona basın.</p>
             </div>
-            <div class="flex items-center gap-4">
+            
+            <div class="flex flex-wrap items-center gap-3">
                 <div class="flex items-center gap-2">
-                    <label class="text-sm font-medium text-gray-300 whitespace-nowrap">Acting As:</label>
-                    <select id="userSelect" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm font-semibold text-white focus:outline-none">
-                        <option value="alex">Alex (Vocals)</option>
-                        <option value="ben">Ben (Guitar)</option>
-                        <option value="chloe">Chloe (Bass)</option>
-                        <option value="dan">Dan (Drums)</option>
-                        <option value="eva">Eva (Keys)</option>
+                    <span class="text-sm font-medium text-[#86868b]">Kullanıcı:</span>
+                    <select id="userSelect" class="bg-[#2c2c2e] border border-rgba(255,255,255,0.1) rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer">
+                        <option value="serkan">Serkan (Vokal)</option>
+                        <option value="ilker">Ilker (Gitar)</option>
+                        <option value="hasan">Hasan (Bas)</option>
+                        <option value="osman">Osman (Davul)</option>
+                        <option value="oguzhan">Oğuzhan (Klavye)</option>
                     </select>
                 </div>
+                
+                <!-- Kaydet ve Güncelle Butonu -->
+                <button id="saveBtn" class="bg-[#0071e3] hover:bg-[#0077ed] text-white text-sm px-5 py-2.5 rounded-xl font-medium tracking-wide transition-all shadow-md flex items-center gap-2 disabled:opacity-40">
+                    Kaydet ve Güncelle
+                </button>
             </div>
         </header>
 
+        <!-- Ana Arayüz Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <main class="lg:col-span-3 bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-2xl relative">
-                <div id="loadingOverlay" class="absolute inset-0 bg-gray-900/80 flex items-center justify-center font-semibold text-blue-400 rounded-xl">Syncing database data...</div>
-                <div class="text-center mb-6"><h2 class="text-xl font-bold text-white tracking-wide">July 2026</h2></div>
-                <div class="grid grid-cols-7 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                    <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+            
+            <!-- Sonsuz Takvim Alanı -->
+            <main class="lg:col-span-3 apple-card rounded-2xl p-6 shadow-xl relative">
+                <!-- Yükleniyor / Senkronizasyon Ekranı -->
+                <div id="loadingOverlay" class="absolute inset-0 rounded-2xl bg-black/80 flex flex-col items-center justify-center font-medium text-[#0071e3] z-50 gap-2">
+                    <div class="animate-spin rounded-full h-8 w-8 border-2 border-[#0071e3] border-t-transparent"></div>
+                    <span id="loadingText" class="text-sm text-[#86868b] mt-2">Veriler senkronize ediliyor...</span>
                 </div>
+
+                <!-- Sonsuz Takvim Navigasyonu -->
+                <div class="flex items-center justify-between mb-6">
+                    <button id="prevMonth" class="bg-[#2c2c2e] hover:bg-[#3a3a3c] p-2.5 rounded-xl text-white transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <h2 id="currentMonthYear" class="text-lg font-semibold tracking-wide text-white">Temmuz 2026</h2>
+                    <button id="nextMonth" class="bg-[#2c2c2e] hover:bg-[#3a3a3c] p-2.5 rounded-xl text-white transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+
+                <!-- Gün İsimleri -->
+                <div class="grid grid-cols-7 text-center text-xs font-medium text-[#86868b] uppercase tracking-wider mb-4">
+                    <div>Paz</div><div>Pzt</div><div>Sal</div><div>Çar</div><div>Per</div><div>Cum</div><div>Cmt</div>
+                </div>
+                
+                <!-- Takvim Gün Matrisi -->
                 <div id="calendarGrid" class="grid grid-cols-7 gap-2"></div>
+            </main>
+
+            <!-- Sağ Panel: Durum Listesi -->
+            <aside class="space-y-4">
+                <div class="apple-card rounded-2xl p-5 shadow-xl">
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-[#86868b] mb-4">Grup Üyeleri Durumu</h3>
+                    <div id="rosterList" class="space-y-3"></div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        // GOOGLE APP SCRIPT WEB URL'INIZI AŞAĞIDAKİ ALANA YAPIŞTIRIN
+        const DATABASE_URL = "https://script.google.com/macros/s/AKfycbxc8y2Y7EWBRLZB_SycmxAcqN6m6FSJhTNB24iJwm9wDkgEaC_WQCSWbMszZs8kwxEc/exec";
+
+        const membersInfo = {
+            serkan: { name: 'Serkan', color: 'bg-[#ff3b30]', text: 'text-[#ff3b30]' },
+            ilker: { name: 'İlker', color: 'bg-[#0071e3]', text: 'text-[#0071e3]' },
+            hasan: { name: 'Hasan', color: 'bg-[#34c759]', text: 'text-[#34c759]' },
+            osman: { name: 'Osman', color: 'bg-[#ff9500]', text: 'text-[#ff9500]' },
+            oguzhan: { name: 'Oğuzhan', color: 'bg-[#af52de]', text: 'text-[#af52de]' }
+        };
+
+        // Sunucudan gelen kalıcı veriler ve kullanıcının cihazda yaptığı geçici değişiklikler
+        let serverData = { serkan: [], ilker: [], hasan: [], osman: [], oguzhan: [] };
+        let localChanges = { serkan: [], ilker: [], hasan: [], osman: [], oguzhan: [] };
+        
+        let currentUser = 'serkan';
+        
+        // Sonsuz takvim için başlangıç tarihi (Şu anki zaman)
+        let currentDate = new Date(2026, 6, 1); // Temmuz 2026 başlangıç
+
+        const userSelect = document.getElementById('userSelect');
+        const saveBtn = document.getElementById('saveBtn');
+        const prevMonthBtn = document.getElementById('prevMonth');
+        const nextMonthBtn = document.getElementById('nextMonth');
+
+        userSelect.addEventListener('change', (e) => { currentUser = e.target.value; render(); });
+        prevMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); render(); });
+        nextMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); render(); });
+        saveBtn.addEventListener('click', pushToDatabase);
+
+        // Sayfa açıldığında sunucudan en güncel veriyi çek
+        async function fetchDatabase() {
+            showLoading("En güncel takvim verileri yükleniyor...");
+            try {
+                const res = await fetch(DATABASE_URL);
+                const data = await res.json();
+                Object.keys(serverData).forEach(k => { 
+                    serverData[k] = data[k] || []; 
+                });
+                // Değişiklikleri sıfırla, sunucu verisiyle eşitle
+                localChanges = JSON.parse(JSON.stringify(serverData));
+            } catch (e) { 
+                alert("Veritabanı bağlantı hatası! Lütfen Google Script linkinizi kontrol edin."); 
+            }
+            hideLoading();
+            render();
+        }
+
+        // Kullanıcı "Kaydet ve Güncelle" butonuna basınca çalışır
+        async function pushToDatabase() {
+            showLoading("Değişiklikler Google E-Tabloya kaydediliyor...");
+            try {
+                await fetch(DATABASE_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ name: currentUser, busyDates: localChanges[currentUser] })
+                });
+                
+                // Başarılı kabul edip verileri eşitle
+                serverData[currentUser] = [...localChanges[currentUser]];
+                alert("Tebrikler! Takviminiz başarıyla güncellendi.");
+            } catch (e) { 
+                alert("Kayıt sırasında bir hata oluştu."); 
+            }
+            hideLoading();
+            render();
+        }
+
+        function toggleDate(dateStr) {
+            const list = localChanges[currentUser];
+            const idx = list.indexOf(dateStr);
+            if (idx > -1) list.splice(idx, 1); // Seçimi kaldır
+            else list.push(dateStr); // Seçim ekle
+            
+            render();
+        }
+
+        function showLoading(text) {
+            document.getElementById('loadingText').innerText = text;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function render() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            // Türkçe Ay İsimleri
+            const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+            document.getElementById('currentMonthYear').innerText = `${monthNames[month]} ${year}`;
+
+            // Ayın ilk gününün haftanın hangi günü olduğu ve ayın toplam gün sayısı
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+
+            // Boşlukları doldur (Hafta Pazar günü ile başlar)
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'bg-transparent min-h-[75px]';
+                grid.appendChild(emptyCell);
+            }
+
+            // Günleri çiz
+            for (let day = 1; day <= totalDays; day++) {
+                // Tarih formatı standardı: YYYY-MM-DD
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                const busyMembers = Object.keys(localChanges).filter(k => localChanges[k].includes(dateStr));
+                const isCurrentBusy = localChanges[currentUser].includes(dateStr);
+                const isFree = busyMembers.length === 0;
+
+                const btn = document.createElement('button');
+                btn.className = `min-h-[80px] flex flex-col justify-between p-2.5 rounded-xl border text-left transition-all duration-200 ${
+                    isCurrentBusy 
+                    ? 'border-[#ff3b30]/40 bg-[#ff3b30]/10 hover:bg-[#ff3b30]/15' 
+                    : isFree 
+                    ? 'border-transparent bg-[#1c1c1e] hover:bg-[#2c2c2e]' 
+                    : 'border-transparent bg-[#2c2c2e] hover:bg-[#3a3a3c]'
+                }`;
+                btn.onclick = () => toggleDate(dateStr);
+
+                btn.innerHTML = `
+                    <span class="text-sm font-semibold ${isFree ? 'text-[#34c759]' : 'text-gray-400'}">${day}</span>
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        ${busyMembers.map(k => `<span class="text-[9px] px-1.5 py-0.5 rounded-md font-bold text-white uppercase ${membersInfo[k].color}">${membersInfo[k].name[0]}</span>`).join('')}
+                    </div>
+                `;
+                grid.appendChild(btn);
+            }
+
+            // Sağdaki Roster/Durum panelini güncelle
+            const roster = document.getElementById('rosterList');
+            roster.innerHTML = Object.keys(localChanges).map(k => `
+                <div class="flex items-center justify-between text-xs bg-[#2c2c2e]/50 p-3 rounded-xl border border-white/5">
+                    <div class="flex items-center gap-2.5">
+                        <span class="h-2 w-2 rounded-full ${membersInfo[k].color}"></span>
+                        <span class="font-medium text-[#f5f5f7]">${membersInfo[k].name}</span>
+                    </div>
+                    <span class="font-mono text-[#86868b] bg-black/40 px-2 py-0.5 rounded-md">${localChanges[k].length} meşgul gün</span>
+                </div>
+            `).join('');
+            
+            // Kaydedilmemiş değişiklik kontrolü (Değişiklik varsa butonu parlat)
+            const hasChanges = JSON.stringify(serverData[currentUser]) !== JSON.stringify(localChanges[currentUser]);
+            if(hasChanges) {
+                saveBtn.classList.remove('bg-[#0071e3]');
+                saveBtn.classList.add('bg-[#34c759]', 'scale-[1.02]');
+                saveBtn.innerText = "Değişiklikleri Kaydet";
+            } else {
+                saveBtn.classList.remove('bg-[#34c759]', 'scale-[1.02]');
+                saveBtn.classList.add('bg-[#0071e3]');
+                saveBtn.innerText = "Kaydet ve Güncelle";
+            }
+        }
+
+        // Başlangıçta veritabanını yükle
+        fetchDatabase();
+    </script>
+</body>
+</html>                <div id="calendarGrid" class="grid grid-cols-7 gap-2"></div>
             </main>
 
             <aside class="space-y-4">
