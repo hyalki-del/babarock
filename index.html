@@ -108,6 +108,101 @@
     <div class="welcome-container">
         <!-- Top Logo -->
         <div class="logo-wrapper">
+            <!-- Replace 'logo.jpg' with the actual path to your Baba Rock image file -->
+            <img src="9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg" alt="Baba Rock Logo" class="logo-img">
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="links-grid">
+            <!-- Calendar Link -->
+            <a href="https://hyalki-del.github.io/babarock/takvim.html" class="nav-button" target="_blank" rel="noopener">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Takvim</span>
+            </a>
+
+            <!-- Playlist Link -->
+            <a href="https://www.ultimate-guitar.com/user/playlist/view?id=31887695" class="nav-button" target="_blank" rel="noopener">
+                <i class="fa-solid fa-music"></i>
+                <span>Playlist</span>
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 68, 0, 0.1);
+            backdrop-filter: blur(8px);
+        }
+
+        /* Logo Area */
+        .logo-wrapper {
+            margin-bottom: 40px;
+        }
+
+        .logo-img {
+            max-width: 280px;
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 0 15px rgba(255, 68, 0, 0.3));
+        }
+
+        /* Navigation Links Layout */
+        .links-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .nav-button {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            background: #1e1e1e;
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 16px 24px;
+            color: #e0e0e0;
+            text-decoration: none;
+            font-size: 1.15rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-button i {
+            font-size: 1.5rem;
+            margin-right: 20px;
+            width: 30px;
+            text-align: center;
+            color: #ff4500; /* Fiery orange accent color matching the logo theme */
+            transition: transform 0.3s ease;
+        }
+
+        /* Hover States for Interactive Elements */
+        .nav-button:hover {
+            color: #ffffff;
+            background: #252525;
+            border-color: #ff4500;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 68, 0, 0.20);
+        }
+
+        .nav-button:hover i {
+            transform: scale(1.15);
+        }
+
+        .nav-button:active {
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="welcome-container">
+        <!-- Top Logo -->
+        <div class="logo-wrapper">
             <!-- Replace 'https://github.com/hyalki-del/babarock/commit/00897faba0d2591e39ecbc1bdafe28b860487600#diff-c9a3b6f11e12e77a6397c7a085494d3f87a2425cefc2dfd0bf7d8d610d6e8453' with the actual path to your Baba Rock image file -->
             <img src="https://github.com/hyalki-del/babarock/commit/00897faba0d2591e39ecbc1bdafe28b860487600#diff-c9a3b6f11e12e77a6397c7a085494d3f87a2425cefc2dfd0bf7d8d610d6e8453" alt="Baba Rock Logo" class="logo-img">
         </div>
