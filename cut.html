@@ -37,6 +37,86 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
+        /* Logo Wrapper to anchor the LED lights to the exact logo width */
+        .logo-container {
+            position: relative;
+            display: inline-block;
+            padding: 12px 0; /* Creates distinct space for top/bottom strips */
+            margin-bottom: 20px;
+        }
+
+        /* Logo styling placeholder */
+        .logo {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #ffffff;
+            padding: 0 10px; /* Optional side breathing room */
+        }
+
+        /* Knight Rider LED Strips */
+        .led-strip {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #1a0000; /* Dark track for unlit LEDs */
+            overflow: hidden;
+            border-radius: 2px;
+        }
+
+        .led-strip.top {
+            top: 0;
+        }
+
+        .led-strip.bottom {
+            bottom: 0;
+        }
+
+        /* The moving red scanner fluidly gliding back and forth */
+        .led-strip::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -30%;
+            height: 100%;
+            width: 30%; /* Width of the scanning pulse */
+            background: linear-gradient(to right, transparent, #ff0000 50%, transparent);
+            box-shadow: 0 0 8px #ff0000, 0 0 4px #ff0000;
+            animation: knightRiderScanner 1.4s infinite ease-in-out alternate;
+        }
+
+        /* Scanner Back-and-Forth Animation */
+        @keyframes knightRiderScanner {
+            0% {
+                left: -30%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="welcome-card">
+        <!-- The wrapper dynamically calculates the width based on the logo's inner content -->
+        <div class="logo-container">
+            <div class="led-strip top"></div>
+            
+            <!-- Replace text with your <img> tag if needed; display:block ensures proper tracking -->
+            <div class="logo">BABA ROCK</div>
+            
+            <div class="led-strip bottom"></div>
+        </div>
+    </div>
+
+</body>
+</html>            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
         /* Logo Wrapper to anchor the LED lights */
         .logo-container {
             position: relative;
