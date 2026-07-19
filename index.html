@@ -3,30 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Band Availability Calendar</title>
+    <title>Live Band Calendar</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-950 text-gray-100 p-4 md:p-8 min-h-screen font-sans">
     <div class="max-w-5xl mx-auto space-y-6">
         <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-800 pb-5 gap-4">
             <div>
-                <h1 class="text-2xl font-bold tracking-tight text-white">Band Sync Matrix</h1>
-                <p class="text-gray-400 text-sm">Select your name to toggle your busy dates.</p>
+                <h1 class="text-2xl font-bold tracking-tight text-white">Band Sync Matrix (Live Cloud)</h1>
+                <p class="text-gray-400 text-sm">Tap dates to toggle busy slots. Changes sync across all devices.</p>
             </div>
-            <div class="flex items-center gap-3">
-                <label class="text-sm font-medium text-gray-300 whitespace-nowrap">Acting As:</label>
-                <select id="userSelect" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="alex">Alex (Vocals)</option>
-                    <option value="ben">Ben (Guitar)</option>
-                    <option value="chloe">Chloe (Bass)</option>
-                    <option value="dan">Dan (Drums)</option>
-                    <option value="eva">Eva (Keys)</option>
-                </select>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-medium text-gray-300 whitespace-nowrap">Acting As:</label>
+                    <select id="userSelect" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm font-semibold text-white focus:outline-none">
+                        <option value="alex">Alex (Vocals)</option>
+                        <option value="ben">Ben (Guitar)</option>
+                        <option value="chloe">Chloe (Bass)</option>
+                        <option value="dan">Dan (Drums)</option>
+                        <option value="eva">Eva (Keys)</option>
+                    </select>
+                </div>
             </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <main class="lg:col-span-3 bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-2xl">
+            <main class="lg:col-span-3 bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-2xl relative">
+                <div id="loadingOverlay" class="absolute inset-0 bg-gray-900/80 flex items-center justify-center font-semibold text-blue-400 rounded-xl">Syncing database data...</div>
                 <div class="text-center mb-6"><h2 class="text-xl font-bold text-white tracking-wide">July 2026</h2></div>
                 <div class="grid grid-cols-7 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                     <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
@@ -36,7 +39,7 @@
 
             <aside class="space-y-4">
                 <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-xl">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Band Roster Status</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Live Roster Sync</h3>
                     <div id="rosterList" class="space-y-2"></div>
                 </div>
             </aside>
@@ -44,31 +47,55 @@
     </div>
 
     <script>
-        const bandData = {
-            alex: { name: 'Alex', color: 'bg-red-500', busy: [10, 11, 20] },
-            ben: { name: 'Ben', color: 'bg-blue-500', busy: [11, 12, 25] },
-            chloe: { name: 'Chloe', color: 'bg-green-500', busy: [20, 21] },
-            dan: { name: 'Dan', color: 'bg-amber-500', busy: [11, 27] },
-            eva: { name: 'Eva', color: 'bg-purple-500', busy: [20, 28] }
+        // PASTE YOUR WEB APP URL INSIDE THE QUOTES BELOW:
+        const DATABASE_URL = "https://script.google.com/macros/s/AKfycby5LcL_GG_KtovRdfPMJYujkLP25O5pJly84857U0elN_vU25tDwQtqTiNaX2UYUytE/exec";
+
+        const membersInfo = {
+            alex: { name: 'Alex', color: 'bg-red-500' },
+            ben: { name: 'Ben', color: 'bg-blue-500' },
+            chloe: { name: 'Chloe', color: 'bg-green-500' },
+            dan: { name: 'Dan', color: 'bg-amber-500' },
+            eva: { name: 'Eva', color: 'bg-purple-500' }
         };
 
+        let serverBusyData = { alex: [], ben: [], chloe: [], dan: [], eva: [] };
         let currentUser = 'alex';
-        const userSelect = document.getElementById('userSelect');
-        userSelect.addEventListener('change', (e) => { currentUser = e.target.value; render(); });
 
-        function toggleDate(day) {
-            const list = bandData[currentUser].busy;
-            const index = list.indexOf(day);
-            if (index > -1) list.splice(index, 1);
-            else list.push(day);
+        document.getElementById('userSelect').addEventListener('change', (e) => { currentUser = e.target.value; render(); });
+
+        async function fetchDatabase() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            try {
+                const res = await fetch(DATABASE_URL);
+                const data = await res.json();
+                Object.keys(serverBusyData).forEach(k => { serverBusyData[k] = data[k] || []; });
+            } catch (e) { console.error("Database connection issue", e); }
+            document.getElementById('loadingOverlay').style.display = 'none';
             render();
+        }
+
+        async function toggleDate(day) {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            try {
+                await fetch(DATABASE_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ name: currentUser, day: day })
+                });
+                // Optimistic local update so UI responds instantly
+                const idx = serverBusyData[currentUser].indexOf(day);
+                if (idx > -1) serverBusyData[currentUser].splice(idx, 1);
+                else serverBusyData[currentUser].push(day);
+            } catch (e) { console.error("Failed to sync change", e); }
+            
+            // Re-fetch to guarantee absolute synchronization with Google Sheets
+            setTimeout(fetchDatabase, 800);
         }
 
         function render() {
             const grid = document.getElementById('calendarGrid');
             grid.innerHTML = '';
             
-            // July 2026 starts on Wednesday (3 empty slots)
             for (let i = 0; i < 3; i++) {
                 const emptyCell = document.createElement('div');
                 emptyCell.className = 'bg-gray-900/20 min-h-[90px]';
@@ -76,8 +103,8 @@
             }
 
             for (let day = 1; day <= 31; day++) {
-                const busyMembers = Object.keys(bandData).filter(k => bandData[k].busy.includes(day));
-                const isCurrentBusy = bandData[currentUser].busy.includes(day);
+                const busyMembers = Object.keys(serverBusyData).filter(k => serverBusyData[k].includes(day));
+                const isCurrentBusy = serverBusyData[currentUser].includes(day);
                 const isFree = busyMembers.length === 0;
 
                 const btn = document.createElement('button');
@@ -89,24 +116,26 @@
                 btn.innerHTML = `
                     <span class="text-sm font-bold ${isFree ? 'text-emerald-400' : 'text-gray-400'}">${day}</span>
                     <div class="flex flex-wrap gap-1 mt-2">
-                        ${busyMembers.map(k => `<span class="text-[9px] px-1.5 py-0.5 rounded font-black text-white uppercase ${bandData[k].color}">${bandData[k].name[0]}</span>`).join('')}
+                        ${busyMembers.map(k => `<span class="text-[9px] px-1.5 py-0.5 rounded font-black text-white uppercase ${membersInfo[k].color}">${membersInfo[k].name[0]}</span>`).join('')}
                     </div>
                 `;
                 grid.appendChild(btn);
             }
 
             const roster = document.getElementById('rosterList');
-            roster.innerHTML = Object.keys(bandData).map(k => `
+            roster.innerHTML = Object.keys(serverBusyData).map(k => `
                 <div class="flex items-center justify-between text-xs bg-gray-950 p-2.5 rounded-lg border border-gray-800">
                     <div class="flex items-center gap-2">
-                        <span class="h-2 w-2 rounded-full ${bandData[k].color}"></span>
-                        <span class="font-medium text-gray-300">${bandData[k].name}</span>
+                        <span class="h-2 w-2 rounded-full ${membersInfo[k].color}"></span>
+                        <span class="font-medium text-gray-300">${membersInfo[k].name}</span>
                     </div>
-                    <span class="font-mono text-gray-500">${bandData[k].busy.length} busy days</span>
+                    <span class="font-mono text-gray-500">${serverBusyData[k].length} busy days</span>
                 </div>
             `).join('');
         }
-        render();
+
+        // Initialize connection on load
+        fetchDatabase();
     </script>
 </body>
 </html>
