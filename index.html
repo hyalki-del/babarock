@@ -94,11 +94,11 @@
         nextMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); render(); });
         saveBtn.addEventListener('click', pushToDatabase);
 
-        // Tarih temizleme ve standartlaştırma yardımcı fonksiyonu
-        function formatGoogleDate(dStr) {
+        function fixDateFormat(dStr) {
             if (!dStr) return "";
             let clean = String(dStr).trim();
-            // Eğer Google amca veriyi "Sun Jul 19 2026..." gibi uzun gönderdiyse ayıkla
+            
+            // Eğer Google tarihi uzun bir metin yaptıysa ("Mon Jul 20 2026...") ayıkla
             if (clean.includes(" ") && clean.length > 10) {
                 try {
                     let d = new Date(clean);
@@ -107,10 +107,17 @@
                     }
                 } catch(e){}
             }
-            // "2026-7-19" formatını "2026-07-19" haline getir
-            let parts = clean.split("-");
-            if (parts.length === 3) {
-                return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
+            
+            // Eğer bölgesel Türkçe formatta geldiyse ("20.07.2026") düzelt
+            if (clean.includes(".")) {
+                let p = clean.split(".");
+                if (p.length === 3) return `${p[2]}-${String(p[1]).padStart(2, '0')}-${String(p[0]).padStart(2, '0')}`;
+            }
+            
+            // Eğer standart formattaysa eksik sıfırları tamamla ("2026-7-9" -> "2026-07-09")
+            if (clean.includes("-")) {
+                let p = clean.split("-");
+                if (p.length === 3) return `${p[0]}-${String(p[1]).padStart(2, '0')}-${String(p[2]).padStart(2, '0')}`;
             }
             return clean;
         }
@@ -121,7 +128,7 @@
                 const res = await fetch(DATABASE_URL, { redirect: 'follow' });
                 const data = await res.json();
                 Object.keys(serverData).forEach(k => { 
-                    serverData[k] = (data[k] || []).map(d => formatGoogleDate(d)).filter(Boolean); 
+                    serverData[k] = (data[k] || []).map(d => fixDateFormat(d)).filter(Boolean); 
                 });
                 localChanges = JSON.parse(JSON.stringify(serverData));
             } catch (e) { 
@@ -159,7 +166,6 @@
 
         function showLoading(text) {
             document.getElementById('loadingText').innerText = text;
-            document.getElementById('loadingOverlay').style.style.display = 'flex'; // Hata düzeltme
             document.getElementById('loadingOverlay').style.display = 'flex';
         }
 
