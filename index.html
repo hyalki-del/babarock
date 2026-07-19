@@ -13,11 +13,10 @@
 <body class="text-[#f5f5f7] p-4 md:p-8 min-h-screen">
     <div class="max-w-6xl mx-auto space-y-6">
         
-        <!-- Apple Tarzı Üst Başlık -->
         <header class="apple-card rounded-2xl p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm">
             <div>
                 <h1 class="text-2xl font-semibold tracking-tight text-white">Sahne Senkronizasyonu</h1>
-                <p class="text-[#86868b] text-sm mt-1">Meşgul olduğunuz günleri seçin. Değişikliklerin kaydedilmesi için "Kaydet ve Güncelle" butonuna basın.</p>
+                <p class="text-[#86868b] text-sm mt-1">Meşgul olduğunuz günleri seçin. Kaydedilmesi için "Kaydet ve Güncelle" butonuna basın.</p>
             </div>
             
             <div class="flex flex-wrap items-center gap-3">
@@ -31,26 +30,19 @@
                         <option value="oguzhan">Oğuzhan (Klavye)</option>
                     </select>
                 </div>
-                
-                <!-- Kaydet ve Güncelle Butonu -->
                 <button id="saveBtn" class="bg-[#0071e3] hover:bg-[#0077ed] text-white text-sm px-5 py-2.5 rounded-xl font-medium tracking-wide transition-all shadow-md flex items-center gap-2">
                     Kaydet ve Güncelle
                 </button>
             </div>
         </header>
 
-        <!-- Ana Panel Grid Yapısı -->
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            
-            <!-- Sonsuz Takvim Alanı -->
             <main class="lg:col-span-3 apple-card rounded-2xl p-6 shadow-xl relative">
-                <!-- Senkronizasyon Perdesi -->
                 <div id="loadingOverlay" class="absolute inset-0 rounded-2xl bg-black/80 flex flex-col items-center justify-center font-medium text-[#0071e3] z-50 gap-2">
                     <div class="animate-spin rounded-full h-8 w-8 border-2 border-[#0071e3] border-t-transparent"></div>
                     <span id="loadingText" class="text-sm text-[#86868b] mt-2">Veriler senkronize ediliyor...</span>
                 </div>
 
-                <!-- Ay Değiştirme Navigasyonu -->
                 <div class="flex items-center justify-between mb-6">
                     <button id="prevMonth" class="bg-[#2c2c2e] hover:bg-[#3a3a3c] p-2.5 rounded-xl text-white transition-all">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
@@ -61,16 +53,12 @@
                     </button>
                 </div>
 
-                <!-- Gün Başlıkları -->
                 <div class="grid grid-cols-7 text-center text-xs font-medium text-[#86868b] uppercase tracking-wider mb-4">
                     <div>Paz</div><div>Pzt</div><div>Sal</div><div>Çar</div><div>Per</div><div>Cum</div><div>Cmt</div>
                 </div>
-                
-                <!-- Takvim Kutuları -->
                 <div id="calendarGrid" class="grid grid-cols-7 gap-2"></div>
             </main>
 
-            <!-- Sağ Panel: Grup Üyeleri Durum Listesi -->
             <aside class="space-y-4">
                 <div class="apple-card rounded-2xl p-5 shadow-xl">
                     <h3 class="text-xs font-semibold uppercase tracking-wider text-[#86868b] mb-4">Grup Üyeleri Durumu</h3>
@@ -81,7 +69,6 @@
     </div>
 
     <script>
-        // Sizin oluşturduğunuz canlı Google Veritabanı linki
         const DATABASE_URL = "https://script.google.com/macros/s/AKfycbxCDuxGmC8qh20F1MAErwd8fBCloXXSkDJYxLxlvna_z8fNmaTsc3haJAkz_Pmk2qdR/exec";
 
         const membersInfo = {
@@ -95,7 +82,6 @@
         let serverData = { serkan: [], ilker: [], hasan: [], osman: [], oguzhan: [] };
         let localChanges = { serkan: [], ilker: [], hasan: [], osman: [], oguzhan: [] };
         let currentUser = 'serkan';
-        
         let currentDate = new Date(2026, 6, 1);
 
         const userSelect = document.getElementById('userSelect');
@@ -108,19 +94,39 @@
         nextMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); render(); });
         saveBtn.addEventListener('click', pushToDatabase);
 
+        // Tarih temizleme ve standartlaştırma yardımcı fonksiyonu
+        function formatGoogleDate(dStr) {
+            if (!dStr) return "";
+            let clean = String(dStr).trim();
+            // Eğer Google amca veriyi "Sun Jul 19 2026..." gibi uzun gönderdiyse ayıkla
+            if (clean.includes(" ") && clean.length > 10) {
+                try {
+                    let d = new Date(clean);
+                    if (!isNaN(d.getTime())) {
+                        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    }
+                } catch(e){}
+            }
+            // "2026-7-19" formatını "2026-07-19" haline getir
+            let parts = clean.split("-");
+            if (parts.length === 3) {
+                return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
+            }
+            return clean;
+        }
+
         async function fetchDatabase() {
             showLoading("En güncel takvim verileri yükleniyor...");
             try {
                 const res = await fetch(DATABASE_URL, { redirect: 'follow' });
                 const data = await res.json();
                 Object.keys(serverData).forEach(k => { 
-                    // Gelen verileri tamamen metin tabanlı temiz bir diziye dönüştürüyoruz
-                    serverData[k] = (data[k] || []).map(d => String(d).trim()); 
+                    serverData[k] = (data[k] || []).map(d => formatGoogleDate(d)).filter(Boolean); 
                 });
                 localChanges = JSON.parse(JSON.stringify(serverData));
             } catch (e) { 
                 console.error(e);
-                alert("Veritabanı bağlantı hatası!"); 
+                alert("Veritabanı senkronizasyon hatası!"); 
             }
             hideLoading();
             render();
@@ -134,9 +140,8 @@
                     redirect: 'follow',
                     body: JSON.stringify({ name: currentUser, busyDates: localChanges[currentUser] })
                 });
-                
                 await fetchDatabase();
-                alert("Tebrikler! Takviminiz başarıyla güncellendi ve buluta kaydedildi.");
+                alert("Tebrikler! Takviminiz başarıyla güncellendi.");
             } catch (e) { 
                 console.error(e);
                 alert("Kayıt sırasında bir hata oluştu."); 
@@ -149,12 +154,12 @@
             const idx = list.indexOf(dateStr);
             if (idx > -1) list.splice(idx, 1);
             else list.push(dateStr);
-            
             render();
         }
 
         function showLoading(text) {
             document.getElementById('loadingText').innerText = text;
+            document.getElementById('loadingOverlay').style.style.display = 'flex'; // Hata düzeltme
             document.getElementById('loadingOverlay').style.display = 'flex';
         }
 
@@ -182,16 +187,10 @@
             }
 
             for (let day = 1; day <= totalDays; day++) {
-                // E-tablodaki olası format farklarını (07 yerine 7 gelmesi gibi) sıfırlayan akıllı format eşitlemesi:
-                const dateStrClean = `${year}-${month + 1}-${day}`;
-                const dateStrZero = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dateTarget = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 
-                // İki formatı da kontrol et ve eşleşmeyi yakala
-                const busyMembers = Object.keys(localChanges).filter(k => 
-                    localChanges[k].includes(dateStrClean) || localChanges[k].includes(dateStrZero)
-                );
-                
-                const isCurrentBusy = localChanges[currentUser].includes(dateStrClean) || localChanges[currentUser].includes(dateStrZero);
+                const busyMembers = Object.keys(localChanges).filter(k => localChanges[k].includes(dateTarget));
+                const isCurrentBusy = localChanges[currentUser].includes(dateTarget);
                 const isFree = busyMembers.length === 0;
 
                 const btn = document.createElement('button');
@@ -202,8 +201,7 @@
                     ? 'border-transparent bg-[#1c1c1e] hover:bg-[#2c2c2e]' 
                     : 'border-transparent bg-[#2c2c2e] hover:bg-[#3a3a3c]'
                 }`;
-                // Tıklayınca standart sıfırlı formatı gönder
-                btn.onclick = () => toggleDate(dateStrZero);
+                btn.onclick = () => toggleDate(dateTarget);
 
                 btn.innerHTML = `
                     <span class="text-sm font-semibold ${isFree ? 'text-[#34c759]' : 'text-gray-400'}">${day}</span>
@@ -227,12 +225,10 @@
             
             const hasChanges = JSON.stringify(serverData[currentUser]) !== JSON.stringify(localChanges[currentUser]);
             if(hasChanges) {
-                saveBtn.classList.remove('bg-[#0071e3]');
-                saveBtn.classList.add('bg-[#34c759]', 'scale-[1.02]');
+                saveBtn.className = "bg-[#34c759] hover:bg-[#30b753] text-white text-sm px-5 py-2.5 rounded-xl font-medium tracking-wide transition-all shadow-md flex items-center gap-2 scale-[1.02]";
                 saveBtn.innerText = "Değişiklikleri Kaydet";
             } else {
-                saveBtn.classList.remove('bg-[#34c759]', 'scale-[1.02]');
-                saveBtn.classList.add('bg-[#0071e3]');
+                saveBtn.className = "bg-[#0071e3] hover:bg-[#0077ed] text-white text-sm px-5 py-2.5 rounded-xl font-medium tracking-wide transition-all shadow-md flex items-center gap-2";
                 saveBtn.innerText = "Kaydet ve Güncelle";
             }
         }
