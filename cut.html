@@ -24,17 +24,112 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
-            overflow-x: hidden; /* Prevents horizontal scroll from glowing blur */
         }
 
-        /* Knight Rider LED Strip Base Styles */
-        .led-strip {
-            position: fixed;
+        /* Container Card - Strict Single Column Constraints */
+        .welcome-card {
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+            background: #121212;
+            padding: 40px 25px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Logo Wrapper to Bound the LED Strips */
+        .logo-container {
+            position: relative;
+            padding: 20px 0;
+            margin-bottom: 25px;
+            display: inline-block;
+            width: 100%;
+        }
+
+        /* Shared LED Track Styles */
+        .led-track {
+            position: absolute;
             left: 0;
             width: 100%;
-            height: 6px;
-            background: #110000; /* Dark background for the housing */
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+            height: 3px;
+            background: #222; /* Dark physical strip track */
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
+        }
+
+        .led-track.top {
+            top: 0;
+        }
+
+        .led-track.bottom {
+            bottom: 0;
+        }
+
+        /* Knight Rider Fluid Laser Scanner Effect */
+        .led-scanner {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 60px; /* Length of the laser pulse */
+            background: radial-gradient(circle, #ff0000 20%, rgba(255, 0, 0, 0.7) 60%, transparent 100%);
+            box-shadow: 0 0 12px #ff0000, 0 0 4px #ff0000;
+            animation: knightRiderSweep 2s ease-in-out infinite;
+        }
+
+        /* Offset the bottom animation slightly for a dynamic alternating look */
+        .led-track.bottom .led-scanner {
+            animation-delay: -0.5s; 
+        }
+
+        @keyframes knightRiderSweep {
+            0% {
+                left: -60px;
+            }
+            50% {
+                left: 100%;
+            }
+            100% {
+                left: -60px;
+            }
+        }
+
+        /* Placeholder logo styling for demonstration */
+        .logo-placeholder {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="welcome-card">
+        <!-- Logo Area with Contextual Lights -->
+        <div class="logo-container">
+            <div class="led-track top">
+                <div class="led-scanner"></div>
+            </div>
+            
+            <div class="logo-placeholder">
+                <i class="fa-solid fa-guitar"></i> BABA ROCK
+            </div>
+            
+            <div class="led-track bottom">
+                <div class="led-scanner"></div>
+            </div>
+        </div>
+
+        <!-- Remaining Content Stays Untouched Below -->
+        <p style="color: #888; font-size: 0.95rem; line-height: 1.5;">
+            Welcome back. Choose an option below to manage your rig.
+        </p>
+    </div>
+
+</body>
+</html>            box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
             z-index: 9999;
         }
 
