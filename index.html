@@ -49,6 +49,156 @@
             width: 100%;
             height: auto;
             filter: drop-shadow(0 0 15px rgba(255, 68, 0, 0.3));
+            border-radius: 8px;
+        }
+
+        /* Navigation Links Layout */
+        .links-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .nav-button {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            background: #1e1e1e;
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 16px 24px;
+            color: #e0e0e0;
+            text-decoration: none;
+            font-size: 1.15rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-button i {
+            font-size: 1.5rem;
+            margin-right: 20px;
+            width: 30px;
+            text-align: center;
+            color: #ff4500; /* Fiery orange accent */
+            transition: transform 0.3s ease;
+        }
+
+        .nav-button:hover {
+            color: #ffffff;
+            background: #252525;
+            border-color: #ff4500;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 68, 0, 0.20);
+        }
+
+        .nav-button:hover i {
+            transform: scale(1.15);
+        }
+
+        /* Text Playlist Section */
+        .playlist-text-section {
+            margin-top: 25px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: left;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .playlist-title {
+            font-size: 1rem;
+            color: #ff4500;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .song-list {
+            list-style: none;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #ccc;
+        }
+
+        .song-list li {
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .song-list li:last-child {
+            border-bottom: none;
+        }
+
+        /* Scrollbar styling for the playlist text */
+        .playlist-text-section::-webkit-scrollbar {
+            width: 6px;
+        }
+        .playlist-text-section::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        .playlist-text-section::-webkit-scrollbar-thumb {
+            background: #ff4500;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="welcome-container">
+        <!-- Top Logo (Corrected to Raw GitHub Link) -->
+        <div class="logo-wrapper">
+            <img src="https://raw.githubusercontent.com/hyalki-del/babarock/fdadc576f78ada91ec1d1af3e1267aead5996463/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg" alt="Baba Rock Logo" class="logo-img">
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="links-grid">
+            <!-- Calendar Link -->
+            <a href="https://hyalki-del.github.io/babarock/takvim.html" class="nav-button" target="_blank" rel="noopener">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Takvim</span>
+            </a>
+        </div>
+
+        <!-- Embedded Text Playlist Section -->
+        <div class="playlist-text-section">
+            <div class="playlist-title">
+                <i class="fa-solid fa-music"></i> Current Playlist
+            </div>
+            <ul class="song-list">
+                <!-- Replace these lines below with your actual Ultimate Guitar song names -->
+                <li>1. AC/DC - Back In Black</li>
+                <li>2. Metallica - Enter Sandman</li>
+                <li>3. Iron Maiden - The Trooper</li>
+                <li>4. Black Sabbath - Paranoid</li>
+                <li>5. Deep Purple - Smoke on the Water</li>
+            </ul>
+        </div>
+    </div>
+
+</body>
+</html>            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 68, 0, 0.1);
+            backdrop-filter: blur(8px);
+        }
+
+        /* Logo Area */
+        .logo-wrapper {
+            margin-bottom: 35px;
+        }
+
+        .logo-img {
+            max-width: 280px;
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 0 15px rgba(255, 68, 0, 0.3));
         }
 
         /* Navigation Links Layout */
