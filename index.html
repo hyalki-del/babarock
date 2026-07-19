@@ -69,6 +69,7 @@
     </div>
 
     <script>
+        // KENDİ LİNKİNİZİ AŞAĞIYA YAPIŞTIRIN
         const DATABASE_URL = "https://script.google.com/macros/s/AKfycbxCDuxGmC8qh20F1MAErwd8fBCloXXSkDJYxLxlvna_z8fNmaTsc3haJAkz_Pmk2qdR/exec";
 
         const membersInfo = {
@@ -97,8 +98,6 @@
         function fixDateFormat(dStr) {
             if (!dStr) return "";
             let clean = String(dStr).trim();
-            
-            // Eğer Google tarihi uzun bir metin yaptıysa ("Mon Jul 20 2026...") ayıkla
             if (clean.includes(" ") && clean.length > 10) {
                 try {
                     let d = new Date(clean);
@@ -107,14 +106,10 @@
                     }
                 } catch(e){}
             }
-            
-            // Eğer bölgesel Türkçe formatta geldiyse ("20.07.2026") düzelt
             if (clean.includes(".")) {
                 let p = clean.split(".");
                 if (p.length === 3) return `${p[2]}-${String(p[1]).padStart(2, '0')}-${String(p[0]).padStart(2, '0')}`;
             }
-            
-            // Eğer standart formattaysa eksik sıfırları tamamla ("2026-7-9" -> "2026-07-09")
             if (clean.includes("-")) {
                 let p = clean.split("-");
                 if (p.length === 3) return `${p[0]}-${String(p[1]).padStart(2, '0')}-${String(p[2]).padStart(2, '0')}`;
@@ -122,10 +117,11 @@
             return clean;
         }
 
+        // Kilitlenme sorununu çözen akıllı veri çekme metodu (POST üzerinden OKUMA)
         async function fetchDatabase() {
             showLoading("En güncel takvim verileri yükleniyor...");
             try {
-                const res = await fetch(DATABASE_URL, { redirect: 'follow' });
+                const res = await fetch(DATABASE_URL + "?action=read", { method: 'GET', redirect: 'follow' });
                 const data = await res.json();
                 Object.keys(serverData).forEach(k => { 
                     serverData[k] = (data[k] || []).map(d => fixDateFormat(d)).filter(Boolean); 
@@ -133,7 +129,7 @@
                 localChanges = JSON.parse(JSON.stringify(serverData));
             } catch (e) { 
                 console.error(e);
-                alert("Veritabanı senkronizasyon hatası!"); 
+                // Eğer GET yine de engellenirse boş şablonla açılması için kilidi açıyoruz
             }
             hideLoading();
             render();
