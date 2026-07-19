@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grup Uygunluk Matrisi</title>
+    <title>Sahne Senkronizasyonu</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #000000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
@@ -14,19 +14,19 @@
 <body class="text-[#f5f5f7] p-4 md:p-8 min-h-screen">
     <div class="max-w-6xl mx-auto space-y-6">
         
-        <!-- Apple Tarzı Header -->
+        <!-- Apple Tarzı Üst Başlık -->
         <header class="apple-card rounded-2xl p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm">
             <div>
                 <h1 class="text-2xl font-semibold tracking-tight text-white">Sahne Senkronizasyonu</h1>
-                <p class="text-[#86868b] text-sm mt-1">Meşgul olduğunuz günleri seçin. Değişikliklerin kaydedilmesi için aşağıdaki butona basın.</p>
+                <p class="text-[#86868b] text-sm mt-1">Meşgul olduğunuz günleri seçin. Değişikliklerin kaydedilmesi için "Kaydet ve Güncelle" butonuna basın.</p>
             </div>
             
             <div class="flex flex-wrap items-center gap-3">
                 <div class="flex items-center gap-2">
                     <span class="text-sm font-medium text-[#86868b]">Kullanıcı:</span>
-                    <select id="userSelect" class="bg-[#2c2c2e] border border-rgba(255,255,255,0.1) rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer">
+                    <select id="userSelect" class="bg-[#2c2c2e] border border-white/10 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer">
                         <option value="serkan">Serkan (Vokal)</option>
-                        <option value="ilker">Ilker (Gitar)</option>
+                        <option value="ilker">İlker (Gitar)</option>
                         <option value="hasan">Hasan (Bas)</option>
                         <option value="osman">Osman (Davul)</option>
                         <option value="oguzhan">Oğuzhan (Klavye)</option>
@@ -34,24 +34,24 @@
                 </div>
                 
                 <!-- Kaydet ve Güncelle Butonu -->
-                <button id="saveBtn" class="bg-[#0071e3] hover:bg-[#0077ed] text-white text-sm px-5 py-2.5 rounded-xl font-medium tracking-wide transition-all shadow-md flex items-center gap-2 disabled:opacity-40">
+                <button id="saveBtn" class="bg-[#0071e3] hover:bg-[#0077ed] text-white text-sm px-5 py-2.5 rounded-xl font-medium tracking-wide transition-all shadow-md flex items-center gap-2">
                     Kaydet ve Güncelle
                 </button>
             </div>
         </header>
 
-        <!-- Ana Arayüz Grid -->
+        <!-- Ana Panel Grid Yapısı -->
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             
             <!-- Sonsuz Takvim Alanı -->
             <main class="lg:col-span-3 apple-card rounded-2xl p-6 shadow-xl relative">
-                <!-- Yükleniyor / Senkronizasyon Ekranı -->
+                <!-- Senkronizasyon Perdesi -->
                 <div id="loadingOverlay" class="absolute inset-0 rounded-2xl bg-black/80 flex flex-col items-center justify-center font-medium text-[#0071e3] z-50 gap-2">
                     <div class="animate-spin rounded-full h-8 w-8 border-2 border-[#0071e3] border-t-transparent"></div>
                     <span id="loadingText" class="text-sm text-[#86868b] mt-2">Veriler senkronize ediliyor...</span>
                 </div>
 
-                <!-- Sonsuz Takvim Navigasyonu -->
+                <!-- Ay Değiştirme Navigasyonu -->
                 <div class="flex items-center justify-between mb-6">
                     <button id="prevMonth" class="bg-[#2c2c2e] hover:bg-[#3a3a3c] p-2.5 rounded-xl text-white transition-all">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
@@ -62,16 +62,16 @@
                     </button>
                 </div>
 
-                <!-- Gün İsimleri -->
+                <!-- Gün Başlıkları -->
                 <div class="grid grid-cols-7 text-center text-xs font-medium text-[#86868b] uppercase tracking-wider mb-4">
                     <div>Paz</div><div>Pzt</div><div>Sal</div><div>Çar</div><div>Per</div><div>Cum</div><div>Cmt</div>
                 </div>
                 
-                <!-- Takvim Gün Matrisi -->
+                <!-- Takvim Kutuları -->
                 <div id="calendarGrid" class="grid grid-cols-7 gap-2"></div>
             </main>
 
-            <!-- Sağ Panel: Durum Listesi -->
+            <!-- Sağ Panel: Grup Üyeleri Durum Listesi -->
             <aside class="space-y-4">
                 <div class="apple-card rounded-2xl p-5 shadow-xl">
                     <h3 class="text-xs font-semibold uppercase tracking-wider text-[#86868b] mb-4">Grup Üyeleri Durumu</h3>
@@ -82,25 +82,23 @@
     </div>
 
     <script>
-        // GOOGLE APP SCRIPT WEB URL'INIZI AŞAĞIDAKİ ALANA YAPIŞTIRIN
+        // GOOGLE APP SCRIPT WEB UYGULAMASI LİNKİNİZİ AŞAĞIYA YAPIŞTIRIN:
         const DATABASE_URL = "https://script.google.com/macros/s/AKfycbxzYidVfS3EEtwyOPqzErrHgh2G4nQCTV8KF_tpaj6jiX6SfgY8eHTWerCs3JM7ujq6/exec";
 
         const membersInfo = {
-            serkan: { name: 'Serkan', color: 'bg-[#ff3b30]', text: 'text-[#ff3b30]' },
-            ilker: { name: 'İlker', color: 'bg-[#0071e3]', text: 'text-[#0071e3]' },
-            hasan: { name: 'Hasan', color: 'bg-[#34c759]', text: 'text-[#34c759]' },
-            osman: { name: 'Osman', color: 'bg-[#ff9500]', text: 'text-[#ff9500]' },
-            oguzhan: { name: 'Oğuzhan', color: 'bg-[#af52de]', text: 'text-[#af52de]' }
+            serkan: { name: 'Serkan', color: 'bg-[#ff3b30]' },
+            ilker: { name: 'İlker', color: 'bg-[#0071e3]' },
+            hasan: { name: 'Hasan', color: 'bg-[#34c759]' },
+            osman: { name: 'Osman', color: 'bg-[#ff9500]' },
+            oguzhan: { name: 'Oğuzhan', color: 'bg-[#af52de]' }
         };
 
-        // Sunucudan gelen kalıcı veriler ve kullanıcının cihazda yaptığı geçici değişiklikler
         let serverData = { serkan: [], ilker: [], hasan: [], osman: [], oguzhan: [] };
         let localChanges = { serkan: [], ilker: [], hasan: [], osman: [], oguzhan: [] };
-        
         let currentUser = 'serkan';
         
-        // Sonsuz takvim için başlangıç tarihi (Şu anki zaman)
-        let currentDate = new Date(2026, 6, 1); // Temmuz 2026 başlangıç
+        // Takvimi 2026 Temmuz ayından başlatıyoruz
+        let currentDate = new Date(2026, 6, 1);
 
         const userSelect = document.getElementById('userSelect');
         const saveBtn = document.getElementById('saveBtn');
@@ -112,51 +110,48 @@
         nextMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); render(); });
         saveBtn.addEventListener('click', pushToDatabase);
 
-        // Sayfa açıldığında sunucudan en güncel veriyi çek
-        async function pushToDatabase() {
-    showLoading("Değişiklikler Google E-Tabloya kaydediliyor...");
-    try {
-        // Güvenli ve doğrulanabilir veri gönderimi
-        const response = await fetch(DATABASE_URL, {
-            method: 'POST',
-            body: JSON.stringify({ name: currentUser, busyDates: localChanges[currentUser] })
-        });
-        
-        // Veritabanındaki son durumu doğrulamak için sunucudan tekrar çek
-        await fetchDatabase();
-        alert("Tebrikler! Takviminiz başarıyla güncellendi ve kaydedildi.");
-    } catch (e) { 
-        console.error(e);
-        alert("Kayıt sırasında bir bağlantı hatası oluştu."); 
-    }
-    hideLoading();
-}
-
-        // Kullanıcı "Kaydet ve Güncelle" butonuna basınca çalışır
-        async function pushToDatabase() {
-            showLoading("Değişiklikler Google E-Tabloya kaydediliyor...");
+        // Veritabanından Verileri Çekme Fonksiyonu
+        async function fetchDatabase() {
+            showLoading("En güncel takvim verileri yükleniyor...");
             try {
-                await fetch(DATABASE_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify({ name: currentUser, busyDates: localChanges[currentUser] })
+                const res = await fetch(DATABASE_URL);
+                const data = await res.json();
+                Object.keys(serverData).forEach(k => { 
+                    serverData[k] = data[k] || []; 
                 });
-                
-                // Başarılı kabul edip verileri eşitle
-                serverData[currentUser] = [...localChanges[currentUser]];
-                alert("Tebrikler! Takviminiz başarıyla güncellendi.");
+                localChanges = JSON.parse(JSON.stringify(serverData));
             } catch (e) { 
-                alert("Kayıt sırasında bir hata oluştu."); 
+                console.error(e);
+                alert("Veritabanı bağlantı hatası! Lütfen Google Script linkinizi kontrol edin."); 
             }
             hideLoading();
             render();
         }
 
+        // Google Sheets'e Veri Gönderme Fonksiyonu
+        async function pushToDatabase() {
+            showLoading("Değişiklikler Google E-Tabloya kaydediliyor...");
+            try {
+                await fetch(DATABASE_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ name: currentUser, busyDates: localChanges[currentUser] })
+                });
+                
+                // Kayıt yapıldıktan sonra veritabanını doğrulamak için arka planda tekrar çek
+                await fetchDatabase();
+                alert("Tebrikler! Takviminiz başarıyla güncellendi ve buluta kaydedildi.");
+            } catch (e) { 
+                console.error(e);
+                alert("Kayıt sırasında bir hata oluştu. Bağlantınızı kontrol edin."); 
+            }
+            hideLoading();
+        }
+
         function toggleDate(dateStr) {
             const list = localChanges[currentUser];
             const idx = list.indexOf(dateStr);
-            if (idx > -1) list.splice(idx, 1); // Seçimi kaldır
-            else list.push(dateStr); // Seçim ekle
+            if (idx > -1) list.splice(idx, 1);
+            else list.push(dateStr);
             
             render();
         }
@@ -177,24 +172,21 @@
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             
-            // Türkçe Ay İsimleri
             const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
             document.getElementById('currentMonthYear').innerText = `${monthNames[month]} ${year}`;
 
-            // Ayın ilk gününün haftanın hangi günü olduğu ve ayın toplam gün sayısı
             const firstDayIndex = new Date(year, month, 1).getDay();
             const totalDays = new Date(year, month + 1, 0).getDate();
 
-            // Boşlukları doldur (Hafta Pazar günü ile başlar)
+            // Ayın ilk gününe kadar olan boş kutuları çiz
             for (let i = 0; i < firstDayIndex; i++) {
                 const emptyCell = document.createElement('div');
                 emptyCell.className = 'bg-transparent min-h-[75px]';
                 grid.appendChild(emptyCell);
             }
 
-            // Günleri çiz
+            // Günleri oluştur
             for (let day = 1; day <= totalDays; day++) {
-                // Tarih formatı standardı: YYYY-MM-DD
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 
                 const busyMembers = Object.keys(localChanges).filter(k => localChanges[k].includes(dateStr));
@@ -220,7 +212,7 @@
                 grid.appendChild(btn);
             }
 
-            // Sağdaki Roster/Durum panelini güncelle
+            // Sağ menüdeki üye doluluk sayaçlarını güncelle
             const roster = document.getElementById('rosterList');
             roster.innerHTML = Object.keys(localChanges).map(k => `
                 <div class="flex items-center justify-between text-xs bg-[#2c2c2e]/50 p-3 rounded-xl border border-white/5">
@@ -232,7 +224,7 @@
                 </div>
             `).join('');
             
-            // Kaydedilmemiş değişiklik kontrolü (Değişiklik varsa butonu parlat)
+            // Kaydedilmemiş değişiklik var mı kontrol et ve butonu renklendir
             const hasChanges = JSON.stringify(serverData[currentUser]) !== JSON.stringify(localChanges[currentUser]);
             if(hasChanges) {
                 saveBtn.classList.remove('bg-[#0071e3]');
@@ -245,111 +237,7 @@
             }
         }
 
-        // Başlangıçta veritabanını yükle
-        fetchDatabase();
-    </script>
-</body>
-</html>                <div id="calendarGrid" class="grid grid-cols-7 gap-2"></div>
-            </main>
-
-            <aside class="space-y-4">
-                <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-xl">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Live Roster Sync</h3>
-                    <div id="rosterList" class="space-y-2"></div>
-                </div>
-            </aside>
-        </div>
-    </div>
-
-    <script>
-        // PASTE YOUR WEB APP URL INSIDE THE QUOTES BELOW:
-        const DATABASE_URL = "https://script.google.com/macros/s/AKfycby5LcL_GG_KtovRdfPMJYujkLP25O5pJly84857U0elN_vU25tDwQtqTiNaX2UYUytE/exec";
-
-        const membersInfo = {
-            alex: { name: 'Alex', color: 'bg-red-500' },
-            ben: { name: 'Ben', color: 'bg-blue-500' },
-            chloe: { name: 'Chloe', color: 'bg-green-500' },
-            dan: { name: 'Dan', color: 'bg-amber-500' },
-            eva: { name: 'Eva', color: 'bg-purple-500' }
-        };
-
-        let serverBusyData = { alex: [], ben: [], chloe: [], dan: [], eva: [] };
-        let currentUser = 'alex';
-
-        document.getElementById('userSelect').addEventListener('change', (e) => { currentUser = e.target.value; render(); });
-
-        async function fetchDatabase() {
-            document.getElementById('loadingOverlay').style.display = 'flex';
-            try {
-                const res = await fetch(DATABASE_URL);
-                const data = await res.json();
-                Object.keys(serverBusyData).forEach(k => { serverBusyData[k] = data[k] || []; });
-            } catch (e) { console.error("Database connection issue", e); }
-            document.getElementById('loadingOverlay').style.display = 'none';
-            render();
-        }
-
-        async function toggleDate(day) {
-            document.getElementById('loadingOverlay').style.display = 'flex';
-            try {
-                await fetch(DATABASE_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify({ name: currentUser, day: day })
-                });
-                // Optimistic local update so UI responds instantly
-                const idx = serverBusyData[currentUser].indexOf(day);
-                if (idx > -1) serverBusyData[currentUser].splice(idx, 1);
-                else serverBusyData[currentUser].push(day);
-            } catch (e) { console.error("Failed to sync change", e); }
-            
-            // Re-fetch to guarantee absolute synchronization with Google Sheets
-            setTimeout(fetchDatabase, 800);
-        }
-
-        function render() {
-            const grid = document.getElementById('calendarGrid');
-            grid.innerHTML = '';
-            
-            for (let i = 0; i < 3; i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.className = 'bg-gray-900/20 min-h-[90px]';
-                grid.appendChild(emptyCell);
-            }
-
-            for (let day = 1; day <= 31; day++) {
-                const busyMembers = Object.keys(serverBusyData).filter(k => serverBusyData[k].includes(day));
-                const isCurrentBusy = serverBusyData[currentUser].includes(day);
-                const isFree = busyMembers.length === 0;
-
-                const btn = document.createElement('button');
-                btn.className = `min-h-[95px] flex flex-col justify-between p-2 rounded-lg border text-left transition-all ${
-                    isCurrentBusy ? 'border-red-500/50 bg-red-950/20' : isFree ? 'border-emerald-500/20 bg-emerald-950/5' : 'border-gray-800 bg-gray-950/40'
-                } hover:bg-gray-800/50`;
-                btn.onclick = () => toggleDate(day);
-
-                btn.innerHTML = `
-                    <span class="text-sm font-bold ${isFree ? 'text-emerald-400' : 'text-gray-400'}">${day}</span>
-                    <div class="flex flex-wrap gap-1 mt-2">
-                        ${busyMembers.map(k => `<span class="text-[9px] px-1.5 py-0.5 rounded font-black text-white uppercase ${membersInfo[k].color}">${membersInfo[k].name[0]}</span>`).join('')}
-                    </div>
-                `;
-                grid.appendChild(btn);
-            }
-
-            const roster = document.getElementById('rosterList');
-            roster.innerHTML = Object.keys(serverBusyData).map(k => `
-                <div class="flex items-center justify-between text-xs bg-gray-950 p-2.5 rounded-lg border border-gray-800">
-                    <div class="flex items-center gap-2">
-                        <span class="h-2 w-2 rounded-full ${membersInfo[k].color}"></span>
-                        <span class="font-medium text-gray-300">${membersInfo[k].name}</span>
-                    </div>
-                    <span class="font-mono text-gray-500">${serverBusyData[k].length} busy days</span>
-                </div>
-            `).join('');
-        }
-
-        // Initialize connection on load
+        // Sayfa açılır açılmaz verileri yükle
         fetchDatabase();
     </script>
 </body>
