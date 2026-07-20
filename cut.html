@@ -27,7 +27,67 @@
             padding: 20px;
         }
 
-        /* Container Card - Strict Single Column Constraints */
+        /* Login Overlay Styling */
+        #loginOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0c0c0c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .login-card {
+            background: #121212;
+            padding: 35px 25px;
+            border-radius: 16px;
+            border: 1px solid #222222;
+            text-align: center;
+            max-width: 340px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: 2px solid #282828;
+            background: #1a1a1a;
+            color: #ffffff;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.25s ease;
+        }
+
+        .login-input:focus {
+            border-color: #ff4500;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            background: #ff4500;
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.25s ease;
+        }
+
+        .login-btn:hover {
+            background: #e03e00;
+        }
+
+        /* Container Card */
         .welcome-card {
             text-align: center;
             max-width: 420px;
@@ -35,6 +95,171 @@
             background: #121212;
             padding: 40px 25px;
             border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            border: 1px solid #222222;
+        }
+
+        /* Logo Configuration */
+        .logo-container {
+            margin-bottom: 35px;
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .logo-img {
+            max-width: 260px;
+            max-height: 280px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 12px;
+            display: block;
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        /* Interactive Navigation Setup */
+        .navigation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .action-button {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            background: #1a1a1a;
+            border: 2px solid #282828;
+            border-radius: 12px;
+            padding: 16px 20px;
+            color: #e5e5e5;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.25s ease;
+        }
+
+        .action-button i {
+            font-size: 1.4rem;
+            margin-right: 18px;
+            width: 28px;
+            text-align: center;
+            color: #ff4500;
+        }
+
+        .action-button:hover {
+            color: #ffffff;
+            background: #222222;
+            border-color: #ff4500;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 68, 0, 0.15);
+        }
+
+        .action-button:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Password Lock Screen -->
+    <div id="loginOverlay">
+        <div class="login-card">
+            <i class="fa-solid fa-lock" style="font-size: 2rem; color: #ff4500; margin-bottom: 15px;"></i>
+            <h2 style="margin-bottom: 15px; font-size: 1.2rem;">Giriş Yap</h2>
+            <input type="password" id="passInput" class="login-input" placeholder="Şifre Girin" autofocus>
+            <button onclick="checkPassword()" class="login-btn">Giriş</button>
+            <p id="errMsg" style="color: #ff3b30; font-size: 0.85rem; margin-top: 12px; display: none;">Hatalı şifre!</p>
+        </div>
+    </div>
+
+    <!-- Main Content (Hidden until unlocked) -->
+    <div class="welcome-card" id="mainContent" style="display: none;">
+        <div class="logo-container">
+            <img id="randomLogo" src="https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg" alt="Baba Rock Logo" class="logo-img">
+        </div>
+
+        <nav class="navigation-list">
+            <a href="https://hyalki-del.github.io/babarock/takvim.html" class="action-button" target="_blank" rel="noopener">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Takvim</span>
+            </a>
+
+            <a href="https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r" class="action-button" target="_blank" rel="noopener">
+                <i class="fa-solid fa-music"></i>
+                <span>Playlist</span>
+            </a>
+        </nav>
+    </div>
+
+    <script>
+        const SECRET_PASSWORD = "br";
+
+        function checkPassword() {
+            const input = document.getElementById("passInput").value;
+            if (input === SECRET_PASSWORD) {
+                document.getElementById("loginOverlay").style.display = "none";
+                document.getElementById("mainContent").style.display = "block";
+                startCarousel();
+            } else {
+                document.getElementById("errMsg").style.display = "block";
+            }
+        }
+
+        // Trigger login when pressing 'Enter' key
+        document.getElementById("passInput").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                checkPassword();
+            }
+        });
+
+        const images = [
+            "https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg",
+            "https://hyalki-del.github.io/babarock/b1.jpg",
+            "https://hyalki-del.github.io/babarock/b2.jpg",
+            "https://hyalki-del.github.io/babarock/b3.jpg",
+            "https://hyalki-del.github.io/babarock/b4.jpg",
+            "https://hyalki-del.github.io/babarock/b5.jpg",
+            "https://hyalki-del.github.io/babarock/b6.jpg",
+            "https://hyalki-del.github.io/babarock/b7.jpg"
+        ];
+
+        // Preload images
+        images.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+
+        const shuffledImages = [...images].sort(() => Math.random() - 0.5);
+
+        function startCarousel() {
+            let currentIndex = 0;
+            const logoImg = document.getElementById("randomLogo");
+
+            if (logoImg && shuffledImages.length > 0) {
+                logoImg.src = shuffledImages[currentIndex];
+
+                setInterval(() => {
+                    logoImg.style.opacity = "0";
+
+                    setTimeout(() => {
+                        currentIndex = (currentIndex + 1) % shuffledImages.length;
+                        logoImg.src = shuffledImages[currentIndex];
+                        logoImg.style.opacity = "1";
+                    }, 500);
+
+                }, 2500);
+            }
+        }
+    </script>
+
+</body>
+</html>            border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             border: 1px solid #222222;
         }
