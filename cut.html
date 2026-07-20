@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Baba Rock</title>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,6 +16,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -23,10 +24,21 @@
             background: radial-gradient(circle, #161616 0%, #070707 100%);
             color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            /* Fix for iOS Safari viewport height */
             min-height: 100vh;
+            min-height: 100dvh;
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -webkit-flex-direction: column;
             flex-direction: column;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
             align-items: center;
+            -webkit-box-pack: center;
+            -webkit-justify-content: center;
             justify-content: center;
             padding: 20px 10px;
         }
@@ -36,29 +48,38 @@
             max-width: 480px;
             width: 100%;
             background: #121212;
-            padding: 0 20px 25px 20px;
+            padding: 0 16px 20px 16px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             border: 1px solid #222222;
             overflow: hidden;
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -webkit-flex-direction: column;
             flex-direction: column;
         }
 
         /* LED Marquee Display */
         .led-banner {
-            width: calc(100% + 40px);
-            height: 70px;
+            width: calc(100% + 32px);
+            height: 65px;
             background-color: #020202;
             border-bottom: 2px solid #282828;
             box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9);
             overflow: hidden;
             position: relative;
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
             align-items: center;
-            margin-bottom: 20px;
-            margin-left: -20px;
-            margin-right: -20px;
+            margin-bottom: 16px;
+            margin-left: -16px;
+            margin-right: -16px;
         }
 
         .led-banner::after {
@@ -75,55 +96,79 @@
         }
 
         .led-track {
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
             white-space: nowrap;
+            width: -webkit-max-content;
             width: max-content;
+            -webkit-animation: marqueeSlide 18s linear infinite;
             animation: marqueeSlide 18s linear infinite;
         }
 
+        @-webkit-keyframes marqueeSlide {
+            0% { -webkit-transform: translateX(0); transform: translateX(0); }
+            100% { -webkit-transform: translateX(-50%); transform: translateX(-50%); }
+        }
+
         @keyframes marqueeSlide {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
+            0% { -webkit-transform: translateX(0); transform: translateX(0); }
+            100% { -webkit-transform: translateX(-50%); transform: translateX(-50%); }
         }
 
         .led-content {
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
             align-items: center;
-            gap: 25px;
-            padding-right: 25px;
+            gap: 20px;
+            padding-right: 20px;
             font-family: 'VT323', monospace;
-            font-size: 2.4rem;
+            font-size: 2.2rem;
             line-height: 1;
             color: #ff3300;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             text-transform: uppercase;
             text-shadow: 0 0 1px #ff3300;
             -webkit-font-smoothing: none;
         }
 
         .led-content i {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             color: #ffb700;
             text-shadow: 0 0 1px #ffb700;
         }
 
-        /* Two-Column Grid under LED Banner */
+        /* Two-Column Layout explicitly set via Flexbox for iOS WebKit consistency */
         .content-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
             gap: 12px;
             width: 100%;
-            height: 280px; /* Locked height so left image and right topics match perfectly */
+            height: 280px; /* Rigid container height */
         }
 
-        /* Left Column: Image Container */
+        /* Left Column */
         .logo-column {
+            -webkit-box-flex: 1;
+            -webkit-flex: 1;
+            flex: 1;
+            width: 50%;
             background: #181818;
             border: 1px solid #282828;
             border-radius: 12px;
             padding: 8px;
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
             align-items: center;
+            -webkit-box-pack: center;
+            -webkit-justify-content: center;
             justify-content: center;
             overflow: hidden;
             height: 100%;
@@ -132,9 +177,21 @@
         .logo-img {
             width: 100%;
             height: 100%;
+            -webkit-object-fit: cover;
             object-fit: cover;
             border-radius: 8px;
             display: block;
+        }
+
+        @-webkit-keyframes bulbFlicker {
+            0%   { opacity: 1;   -webkit-filter: brightness(1);   transform: scale(1); }
+            10%  { opacity: 0.3; -webkit-filter: brightness(0.4); transform: scale(0.99); }
+            20%  { opacity: 0.8; -webkit-filter: brightness(1.1); transform: scale(1.01); }
+            35%  { opacity: 0.1; -webkit-filter: brightness(0.2); transform: scale(0.98); }
+            50%  { opacity: 0.6; -webkit-filter: brightness(0.7); transform: scale(1); }
+            65%  { opacity: 0.2; -webkit-filter: brightness(0.3); transform: scale(0.99); }
+            80%  { opacity: 0.9; -webkit-filter: brightness(1.2); transform: scale(1.01); }
+            100% { opacity: 1;   -webkit-filter: brightness(1);   transform: scale(1); }
         }
 
         @keyframes bulbFlicker {
@@ -149,65 +206,72 @@
         }
 
         .bulb-buzz {
+            -webkit-animation: bulbFlicker 0.45s ease-in-out;
             animation: bulbFlicker 0.45s ease-in-out;
         }
 
-        /* Right Column: Navigation Buttons */
+        /* Right Column */
         .navigation-column {
+            -webkit-box-flex: 1;
+            -webkit-flex: 1;
+            flex: 1;
+            width: 50%;
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -webkit-flex-direction: column;
             flex-direction: column;
             gap: 8px;
             height: 100%;
         }
 
         .action-button {
+            display: -webkit-box;
+            display: -webkit-flex;
             display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
             align-items: center;
+            -webkit-box-pack: start;
+            -webkit-justify-content: flex-start;
             justify-content: flex-start;
             background: #1a1a1a;
             border: 1px solid #282828;
             border-radius: 10px;
-            padding: 0 12px;
+            padding: 0 10px;
             color: #e5e5e5;
             text-decoration: none;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
             letter-spacing: 0.3px;
-            transition: all 0.2s ease;
-            flex: 1; /* Automatically balances each of the 4 buttons to equal height */
+            transition: background 0.2s ease, border-color 0.2s ease;
+            -webkit-box-flex: 1;
+            -webkit-flex: 1;
+            flex: 1; /* Uniform expansion for iOS WebKit */
         }
 
         .action-button i {
             font-size: 1.1rem;
-            margin-right: 10px;
-            width: 20px;
+            margin-right: 8px;
+            width: 18px;
             text-align: center;
             color: #ff4500;
+            -webkit-flex-shrink: 0;
+            flex-shrink: 0;
         }
 
-        .action-button:hover {
+        .action-button span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .action-button:hover, .action-button:active {
             color: #ffffff;
             background: #222222;
             border-color: #ff4500;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(255, 68, 0, 0.15);
-        }
-
-        .action-button:active {
-            transform: translateY(0);
-        }
-
-        @media (max-width: 400px) {
-            .content-grid {
-                grid-template-columns: 1fr;
-                height: auto;
-            }
-            .logo-column {
-                height: 200px;
-            }
-            .action-button {
-                padding: 12px;
-            }
         }
     </style>
 </head>
@@ -234,9 +298,9 @@
             </div>
         </div>
 
-        <!-- Two-Column Grid directly under LED banner -->
+        <!-- Two-Column Layout -->
         <div class="content-grid">
-            <!-- Left Column: Shuffling Photos -->
+            <!-- Left Column: Photos -->
             <div class="logo-column">
                 <img id="randomLogo" src="https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg" alt="Baba Rock Logo" class="logo-img">
             </div>
