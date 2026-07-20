@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baba Rock - AI Music Advisor</title>
+    <title>Baba Rock</title>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- LED Dot Matrix Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap" rel="stylesheet">
     
     <style>
+        /* Base Reset & Dark Metal Theme Styling */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -21,304 +26,258 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 40px 20px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
         }
 
-        .advisor-card {
-            max-width: 520px;
+        /* Dotted LED Marquee Banner */
+        .led-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background-color: #050505;
+            border-bottom: 2px solid #1a1a1a;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(0, 0, 0, 0.9);
+            overflow: hidden;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Physical LED Grid Mesh Overlay */
+        .led-banner::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Creates 3px x 3px simulated physical LED matrix dots */
+            background-image: radial-gradient(circle, rgba(0, 0, 0, 0.75) 40%, transparent 45%);
+            background-size: 3px 3px;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .led-track {
+            display: flex;
+            white-space: nowrap;
+            width: max-content;
+            animation: marqueeSlide 18s linear infinite;
+        }
+
+        /* Seamless Scrolling Animation */
+        @keyframes marqueeSlide {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .led-content {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            padding-right: 25px;
+            font-family: 'Silkscreen', monospace;
+            font-size: 0.9rem;
+            color: #ff3300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 4px #ff3300, 0 0 10px rgba(255, 51, 0, 0.6);
+        }
+
+        .led-content i {
+            font-size: 0.85rem;
+            color: #ffaa00;
+            text-shadow: 0 0 4px #ffaa00;
+        }
+
+        /* Container Card */
+        .welcome-card {
+            text-align: center;
+            max-width: 420px;
             width: 100%;
             background: #121212;
-            padding: 30px 25px;
+            padding: 40px 25px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             border: 1px solid #222222;
+            margin: auto 0; /* Centers vertically within body flex box */
+            margin-top: 60px; /* Offset for top sticky LED banner */
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #222222;
-            padding-bottom: 15px;
-        }
-
-        .header h1 {
-            font-size: 1.4rem;
+        /* Logo Configuration */
+        .logo-container {
+            margin-bottom: 35px;
+            height: 280px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            color: #ffffff;
-        }
-
-        .header h1 i {
-            color: #ff4500;
-        }
-
-        .header p {
-            font-size: 0.85rem;
-            color: #888888;
-            margin-top: 6px;
-        }
-
-        /* Seed Banner */
-        .seed-box {
-            background: #1a1a1a;
-            border: 1px solid #282828;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .seed-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #ff4500;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .seed-title {
-            font-size: 1.05rem;
-            font-weight: 600;
-            color: #ffffff;
-        }
-
-        .seed-artist {
-            font-size: 0.85rem;
-            color: #a0a0a0;
-        }
-
-        /* Recommendation List */
-        .recommendations-title {
-            font-size: 0.9rem;
-            color: #888888;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .rec-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .rec-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #1a1a1a;
-            border: 1px solid #282828;
-            padding: 12px 16px;
-            border-radius: 10px;
-            color: inherit;
-            transition: border-color 0.25s ease, background-color 0.25s ease;
-        }
-
-        .rec-item:hover {
-            border-color: #ff4500;
-            background-color: #222222;
-        }
-
-        .rec-info {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            flex-grow: 1;
-            padding-right: 12px;
-        }
-
-        .rec-song-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #ffffff;
-            white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis;
         }
 
-        .rec-song-artist {
-            font-size: 0.8rem;
-            color: #a0a0a0;
-            margin-top: 2px;
+        .logo-img {
+            max-width: 260px;
+            max-height: 280px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 12px;
+            display: block;
         }
 
-        .rec-reason {
-            font-size: 0.75rem;
-            color: #ff8555;
-            margin-top: 4px;
-            font-style: italic;
+        /* Voltage Drop / Light Bulb Buzzing Flicker Animation */
+        @keyframes bulbFlicker {
+            0%   { opacity: 1;   filter: brightness(1);   transform: scale(1); }
+            10%  { opacity: 0.3; filter: brightness(0.4); transform: scale(0.99); }
+            20%  { opacity: 0.8; filter: brightness(1.1); transform: scale(1.01); }
+            35%  { opacity: 0.1; filter: brightness(0.2); transform: scale(0.98); } /* Deepest voltage drop */
+            50%  { opacity: 0.6; filter: brightness(0.7); transform: scale(1); }
+            65%  { opacity: 0.2; filter: brightness(0.3); transform: scale(0.99); }
+            80%  { opacity: 0.9; filter: brightness(1.2); transform: scale(1.01); }
+            100% { opacity: 1;   filter: brightness(1);   transform: scale(1); }
         }
 
-        /* YouTube Link Button */
-        .yt-link-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: #222222;
-            color: #ffffff;
-            border: 1px solid #333333;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-decoration: none;
-            flex-shrink: 0;
-            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        .bulb-buzz {
+            animation: bulbFlicker 0.45s ease-in-out;
         }
 
-        .yt-link-btn i {
-            color: #ff0000;
-            font-size: 0.95rem;
+        /* Interactive Navigation Setup */
+        .navigation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
-        .yt-link-btn:hover {
-            background: #ff0000;
-            border-color: #ff0000;
-            color: #ffffff;
-        }
-
-        .yt-link-btn:hover i {
-            color: #ffffff;
-        }
-
-        /* Action Button */
-        .action-btn {
-            width: 100%;
-            background: #ff4500;
-            color: #ffffff;
-            border: none;
-            padding: 14px;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
+        .action-button {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: background-color 0.2s ease;
+            justify-content: flex-start;
+            background: #1a1a1a;
+            border: 2px solid #282828;
+            border-radius: 12px;
+            padding: 16px 20px;
+            color: #e5e5e5;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.25s ease;
         }
 
-        .action-btn:hover {
-            background: #e03d00;
+        .action-button i {
+            font-size: 1.4rem;
+            margin-right: 18px;
+            width: 28px;
+            text-align: center;
+            color: #ff4500;
         }
 
-        .action-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .action-button:hover {
+            color: #ffffff;
+            background: #222222;
+            border-color: #ff4500;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 68, 0, 0.15);
+        }
+
+        .action-button:active {
+            transform: translateY(0);
         }
     </style>
 </head>
 <body>
 
-    <div class="advisor-card">
-        <div class="header">
-            <h1><i class="fa-solid fa-brain"></i> AI Style & Mood Advisor</h1>
-            <p>Uses AI to match musical vibe, era, instrumentals, and energy.</p>
+    <!-- Dotted LED Sliding Text Banner -->
+    <div class="led-banner">
+        <div class="led-track">
+            <div class="led-content">
+                <span><i class="fa-solid fa-bolt"></i> BABA ROCK LIVE EXPERIENCE</span>
+                <span><i class="fa-solid fa-compact-disc"></i> NON-STOP ROCK & METAL</span>
+                <span><i class="fa-solid fa-calendar-check"></i> TAKVİMİ KONTROL ET</span>
+                <span><i class="fa-solid fa-guitar"></i> LET'S ROCK AND ROLL</span>
+            </div>
+            <!-- Duplicate block ensures seamless zero-gap infinite looping -->
+            <div class="led-content" aria-hidden="true">
+                <span><i class="fa-solid fa-bolt"></i> BABA ROCK LIVE EXPERIENCE</span>
+                <span><i class="fa-solid fa-compact-disc"></i> NON-STOP ROCK & METAL</span>
+                <span><i class="fa-solid fa-calendar-check"></i> TAKVİMİ KONTROL ET</span>
+                <span><i class="fa-solid fa-guitar"></i> LET'S ROCK AND ROLL</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="welcome-card">
+        <!-- Top Logo Container -->
+        <div class="logo-container">
+            <img id="randomLogo" src="https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg" alt="Baba Rock Logo" class="logo-img">
         </div>
 
-        <div class="seed-box">
-            <div class="seed-label">Based on your playlist song:</div>
-            <div class="seed-title" id="seedTitle">Loading playlist...</div>
-            <div class="seed-artist" id="seedArtist">---</div>
-        </div>
+        <!-- Navigation Links -->
+        <nav class="navigation-list">
+            <a href="https://hyalki-del.github.io/babarock/takvim.html" class="action-button" target="_blank" rel="noopener">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Takvim</span>
+            </a>
 
-        <div class="recommendations-title">
-            <i class="fa-solid fa-sparkles"></i> AI Style Recommendations:
-        </div>
-
-        <ul class="rec-list" id="recList">
-            <li class="rec-item"><span class="rec-song-artist">Click below to generate AI recommendations.</span></li>
-        </ul>
-
-        <button class="action-btn" id="findBtn" onclick="generateAIRecommendations()">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> Generate AI Recommendations
-        </button>
+            <a href="https://hyalki-del.github.io/babarock/playlist.html" class="action-button" target="_blank" rel="noopener">
+                <i class="fa-solid fa-music"></i>
+                <span>Playlist</span>
+            </a>
+            
+            <a href="https://hyalki-del.github.io/babarock/advisor.html" class="action-button" target="_blank" rel="noopener">
+                <i class="fa-solid fa-dice"></i>
+                <span>Şarkı seçici</span>
+            </a>
+        </nav>
     </div>
 
     <script>
-        // Paste your Google Gemini API key below
-        const GEMINI_API_KEY = "AQ.Ab8RN6Lr3cD1HnhVQJufItxKh5GYmHEb0RUU4XPc5LqGwKn0wQ";
-        let playlist = [];
+        const images = [
+            "https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg",
+            "https://hyalki-del.github.io/babarock/b1.jpg",
+            "https://hyalki-del.github.io/babarock/b2.jpg",
+            "https://hyalki-del.github.io/babarock/b3.jpg",
+            "https://hyalki-del.github.io/babarock/b4.jpg",
+            "https://hyalki-del.github.io/babarock/b5.jpg",
+            "https://hyalki-del.github.io/babarock/b6.jpg",
+            "https://hyalki-del.github.io/babarock/b7.jpg"
+        ];
 
-        async function init() {
-            try {
-                const res = await fetch("./playlist.json");
-                playlist = await res.json();
-                if (playlist && playlist.length > 0) {
-                    generateAIRecommendations();
-                } else {
-                    document.getElementById("seedTitle").textContent = "Playlist is empty";
-                }
-            } catch (err) {
-                console.error("Failed to load playlist.json", err);
-                document.getElementById("seedTitle").textContent = "Error loading playlist.json";
-            }
+        // Preload images
+        images.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+
+        const shuffledImages = [...images].sort(() => Math.random() - 0.5);
+
+        let currentIndex = 0;
+        const logoImg = document.getElementById("randomLogo");
+
+        if (logoImg && shuffledImages.length > 0) {
+            logoImg.src = shuffledImages[currentIndex];
+
+            setInterval(() => {
+                // Trigger the voltage drop flicker animation
+                logoImg.classList.add("bulb-buzz");
+
+                // Swap the picture right in the middle of the deepest darkness drop (~180ms)
+                setTimeout(() => {
+                    currentIndex = (currentIndex + 1) % shuffledImages.length;
+                    logoImg.src = shuffledImages[currentIndex];
+                }, 180);
+
+                // Clean up animation class after 0.45s so it can re-trigger next cycle
+                setTimeout(() => {
+                    logoImg.classList.remove("bulb-buzz");
+                }, 450);
+
+            }, 2500);
         }
+    </script>
 
-        async function generateAIRecommendations() {
-            if (!playlist || playlist.length === 0) return;
-
-            const findBtn = document.getElementById("findBtn");
-            const recList = document.getElementById("recList");
-            const seedTitle = document.getElementById("seedTitle");
-            const seedArtist = document.getElementById("seedArtist");
-
-            if (!GEMINI_API_KEY || GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
-                recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist" style="color:#ff4500;">Missing API Key! Please set GEMINI_API_KEY inside advisor.html.</span></li>`;
-                return;
-            }
-
-            findBtn.disabled = true;
-
-            // Pick random seed track from playlist
-            const seed = playlist[Math.floor(Math.random() * playlist.length)];
-            seedTitle.textContent = seed.title;
-            seedArtist.textContent = seed.artist;
-
-            recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist"><i class="fa-solid fa-spinner fa-spin"></i> Asking Gemini AI for matching styles...</span></li>`;
-
-            const prompt = `Act as a professional music curator. Provide 5 song recommendations that share the exact same genre, musical era, tempo, instrumental style, and mood as "${seed.title}" by "${seed.artist}".
-
-CRITICAL RULES:
-1. Do NOT suggest any songs by "${seed.artist}".
-2. Do NOT suggest "${seed.title}".
-3. Provide results by DIFFERENT artists.
-4. Output MUST be a valid JSON array of objects with exact keys: "title", "artist", and "reason" (a 5-word explanation of why it fits). Do not include extra text or markdown formatting.`;
-
-            try {
-                // Primary endpoint using gemini-2.5-flash
-                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(GEMINI_API_KEY.trim())}`;
-                
-                const response = await fetch(endpoint, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: prompt }]
-                        }],
-                        generationConfig: {
-                            responseMimeType: "application/json"
-                        }
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok || data.error) {
-                    throw new Error(data.error?.message || `HTTP Error ${response.status}`);
-                }
-
-                let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (!rawText) throw new Error("Empty response returned by Gemini API.");
-
-                // Clean potential leftover backticks or markdown fences
-                rawText = rawText.replace(/```json/g, '').replace(/
+</body>
+</html>
