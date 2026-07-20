@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baba Rock - Rehearsal</title>
+    <title>Baba Rock</title>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- LED Matrix Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     
     <style>
-        /* Base Reset & Dark Metal Theme */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -22,412 +25,283 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
-            align-items: flex-start;
-            padding: 40px 20px;
+            padding: 20px 10px;
         }
 
-        /* Two-column container */
-        .app-container {
-            display: flex;
-            gap: 24px;
-            max-width: 1000px;
+        .welcome-card {
+            text-align: center;
+            max-width: 480px;
             width: 100%;
-            align-items: flex-start;
-        }
-
-        .playlist-card, .selected-card {
-            flex: 1;
             background: #121212;
-            padding: 30px 25px;
+            padding: 0 20px 25px 20px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             border: 1px solid #222222;
-            min-width: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        .header {
+        /* LED Marquee Display */
+        .led-banner {
+            width: calc(100% + 40px);
+            height: 70px;
+            background-color: #020202;
+            border-bottom: 2px solid #282828;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9);
+            overflow: hidden;
+            position: relative;
             display: flex;
             align-items: center;
-            justify-content: space-between;
             margin-bottom: 20px;
-            border-bottom: 1px solid #222222;
-            padding-bottom: 15px;
+            margin-left: -20px;
+            margin-right: -20px;
         }
 
-        .header h1 {
-            font-size: 1.3rem;
+        .led-banner::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle, rgba(0, 0, 0, 0.5) 40%, transparent 45%);
+            background-size: 3px 3px;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .led-track {
+            display: flex;
+            white-space: nowrap;
+            width: max-content;
+            animation: marqueeSlide 18s linear infinite;
+        }
+
+        @keyframes marqueeSlide {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .led-content {
             display: flex;
             align-items: center;
+            gap: 25px;
+            padding-right: 25px;
+            font-family: 'VT323', monospace;
+            font-size: 2.4rem;
+            line-height: 1;
+            color: #ff3300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 1px #ff3300;
+            -webkit-font-smoothing: none;
+        }
+
+        .led-content i {
+            font-size: 1.8rem;
+            color: #ffb700;
+            text-shadow: 0 0 1px #ffb700;
+        }
+
+        /* Two-Column Grid under LED Banner */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 12px;
-            color: #ffffff;
+            width: 100%;
+            height: 280px; /* Locked height so left image and right topics match perfectly */
         }
 
-        .header h1 i {
-            color: #ff4500;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* Shuffle Button */
-        .btn-shuffle {
-            background: #1a1a1a;
-            color: #ff4500;
+        /* Left Column: Image Container */
+        .logo-column {
+            background: #181818;
             border: 1px solid #282828;
-            padding: 5px 12px;
             border-radius: 12px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
+            padding: 8px;
             display: flex;
             align-items: center;
-            gap: 6px;
-            transition: all 0.2s ease;
+            justify-content: center;
+            overflow: hidden;
+            height: 100%;
         }
 
-        .btn-shuffle:hover {
-            background: #ff4500;
-            color: #ffffff;
-            border-color: #ff4500;
+        .logo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+            display: block;
         }
 
-        /* Orange Setlist Button */
-        .btn-setlist {
-            background: #ff4500;
-            color: #ffffff;
-            border: 1px solid #ff4500;
-            padding: 5px 12px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s ease;
+        @keyframes bulbFlicker {
+            0%   { opacity: 1;   filter: brightness(1);   transform: scale(1); }
+            10%  { opacity: 0.3; filter: brightness(0.4); transform: scale(0.99); }
+            20%  { opacity: 0.8; filter: brightness(1.1); transform: scale(1.01); }
+            35%  { opacity: 0.1; filter: brightness(0.2); transform: scale(0.98); }
+            50%  { opacity: 0.6; filter: brightness(0.7); transform: scale(1); }
+            65%  { opacity: 0.2; filter: brightness(0.3); transform: scale(0.99); }
+            80%  { opacity: 0.9; filter: brightness(1.2); transform: scale(1.01); }
+            100% { opacity: 1;   filter: brightness(1);   transform: scale(1); }
         }
 
-        .btn-setlist:hover {
-            background: #e03d00;
-            border-color: #e03d00;
-            transform: translateY(-1px);
+        .bulb-buzz {
+            animation: bulbFlicker 0.45s ease-in-out;
         }
 
-        .song-count {
-            font-size: 0.85rem;
-            color: #888888;
-            background: #1a1a1a;
-            padding: 4px 10px;
-            border-radius: 12px;
-            border: 1px solid #282828;
-        }
-
-        /* Song List Styling */
-        .song-list {
-            list-style: none;
+        /* Right Column: Navigation Buttons */
+        .navigation-column {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            max-height: 520px;
-            overflow-y: auto;
-            padding-right: 5px;
+            gap: 8px;
+            height: 100%;
         }
 
-        .song-list::-webkit-scrollbar {
-            width: 6px;
-        }
-        .song-list::-webkit-scrollbar-thumb {
-            background: #282828;
-            border-radius: 3px;
-        }
-
-        .song-item-card {
+        .action-button {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-start;
             background: #1a1a1a;
             border: 1px solid #282828;
-            padding: 12px 16px;
             border-radius: 10px;
-            transition: border-color 0.25s ease, background-color 0.25s ease, transform 0.15s ease;
-            cursor: pointer;
-        }
-
-        .song-item-card:hover {
-            border-color: #ff4500;
-            background-color: #222222;
-            transform: translateY(-1px);
-        }
-
-        .song-item-card:hover .song-title {
-            color: #ff4500;
-        }
-
-        .song-item-card:hover .yt-icon {
-            transform: scale(1.15);
-            color: #ff4500;
-        }
-
-        .song-left {
-            display: flex;
-            align-items: center;
-            min-width: 0;
-            flex-grow: 1;
-        }
-
-        .song-number {
-            font-size: 0.85rem;
-            color: #ff4500;
-            font-weight: bold;
-            width: 28px;
-            flex-shrink: 0;
-        }
-
-        .song-info {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            flex-grow: 1;
-        }
-
-        .song-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #ffffff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            transition: color 0.2s ease;
-        }
-
-        .song-artist {
-            font-size: 0.8rem;
-            color: #a0a0a0;
-            margin-top: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .yt-icon {
-            color: #ff0000;
-            font-size: 1.2rem;
-            margin-left: 12px;
-            flex-shrink: 0;
-            transition: transform 0.2s ease, color 0.2s ease;
+            padding: 0 12px;
+            color: #e5e5e5;
             text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            transition: all 0.2s ease;
+            flex: 1; /* Automatically balances each of the 4 buttons to equal height */
         }
 
-        .empty-state {
-            color: #666666;
-            font-size: 0.9rem;
+        .action-button i {
+            font-size: 1.1rem;
+            margin-right: 10px;
+            width: 20px;
             text-align: center;
-            padding: 20px 0;
-            font-style: italic;
+            color: #ff4500;
         }
 
-        @media (max-width: 768px) {
-            .app-container {
-                flex-direction: column;
+        .action-button:hover {
+            color: #ffffff;
+            background: #222222;
+            border-color: #ff4500;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 68, 0, 0.15);
+        }
+
+        .action-button:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 400px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            .logo-column {
+                height: 200px;
+            }
+            .action-button {
+                padding: 12px;
             }
         }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <!-- Left Column: Available Songs -->
-        <div class="playlist-card">
-            <div class="header">
-                <h1><i class="fa-solid fa-music"></i> Playlist</h1>
-                <div class="header-actions">
-                    <button class="btn-shuffle" id="shuffleBtn" onclick="shufflePlaylist()">
-                        <i class="fa-solid fa-shuffle"></i> Shuffle
-                    </button>
-                    <span class="song-count" id="songCount">Loading...</span>
+    <div class="welcome-card">
+        <!-- LED Banner -->
+        <div class="led-banner">
+            <div class="led-track">
+                <div class="led-content">
+                    <span><i class="fa-solid fa-bolt"></i> BABA ROCK LIVE EXPERIENCE</span>
+                    <span><i class="fa-solid fa-microphone-lines"></i> STAGE REHEARSAL</span>
+                    <span><i class="fa-solid fa-compact-disc"></i> NON-STOP ROCK & METAL</span>
+                    <span><i class="fa-solid fa-calendar-check"></i> TAKVİMİ KONTROL ET</span>
+                    <span><i class="fa-solid fa-guitar"></i> LET'S ROCK AND ROLL</span>
+                </div>
+                <div class="led-content" aria-hidden="true">
+                    <span><i class="fa-solid fa-bolt"></i> BABA ROCK LIVE EXPERIENCE</span>
+                    <span><i class="fa-solid fa-microphone-lines"></i> STAGE REHEARSAL</span>
+                    <span><i class="fa-solid fa-compact-disc"></i> NON-STOP ROCK & METAL</span>
+                    <span><i class="fa-solid fa-calendar-check"></i> TAKVİMİ KONTROL ET</span>
+                    <span><i class="fa-solid fa-guitar"></i> LET'S ROCK AND ROLL</span>
                 </div>
             </div>
-            <ul class="song-list" id="songList"></ul>
         </div>
 
-        <!-- Right Column: Picked Songs -->
-        <div class="selected-card">
-            <div class="header">
-                <h1><i class="fa-solid fa-circle-check"></i> Selected</h1>
-                <div class="header-actions">
-                    <!-- Orange Setlist Button -->
-                    <button class="btn-setlist" onclick="openSetlist()">
-                        <i class="fa-solid fa-list-check"></i> Setlist
-                    </button>
-                    <span class="song-count" id="selectedCount">0 Songs</span>
-                </div>
+        <!-- Two-Column Grid directly under LED banner -->
+        <div class="content-grid">
+            <!-- Left Column: Shuffling Photos -->
+            <div class="logo-column">
+                <img id="randomLogo" src="https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg" alt="Baba Rock Logo" class="logo-img">
             </div>
-            <ul class="song-list" id="selectedList"></ul>
+
+            <!-- Right Column: 4 Topic Navigation Buttons -->
+            <nav class="navigation-column">
+                <a href="https://hyalki-del.github.io/babarock/takvim.html" class="action-button" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Takvim</span>
+                </a>
+
+                <a href="https://hyalki-del.github.io/babarock/playlist.html" class="action-button" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-music"></i>
+                    <span>Playlist</span>
+                </a>
+
+                <a href="https://hyalki-del.github.io/babarock/rehearsal.html" class="action-button" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-microphone-lines"></i>
+                    <span>Prova/Setlist</span>
+                </a>
+                
+                <a href="https://hyalki-del.github.io/babarock/advisor.html" class="action-button" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-dice"></i>
+                    <span>Şarkı seçici</span>
+                </a>
+            </nav>
         </div>
     </div>
 
     <script>
-        let availablePlaylist = [];
-        const selectedSongs = [];
+        const images = [
+            "https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg",
+            "https://hyalki-del.github.io/babarock/b1.jpg",
+            "https://hyalki-del.github.io/babarock/b2.jpg",
+            "https://hyalki-del.github.io/babarock/b3.jpg",
+            "https://hyalki-del.github.io/babarock/b4.jpg",
+            "https://hyalki-del.github.io/babarock/b5.jpg",
+            "https://hyalki-del.github.io/babarock/b6.jpg",
+            "https://hyalki-del.github.io/babarock/b7.jpg"
+        ];
 
-        async function loadPlaylist() {
-            const countElement = document.getElementById("songCount");
+        images.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
 
-            try {
-                const res = await fetch("./playlist.json");
-                availablePlaylist = await res.json();
-                renderUI();
-            } catch (err) {
-                console.error(err);
-                countElement.textContent = "Error";
-            }
+        const shuffledImages = [...images].sort(() => Math.random() - 0.5);
+        let currentIndex = 0;
+        const logoImg = document.getElementById("randomLogo");
+
+        if (logoImg && shuffledImages.length > 0) {
+            logoImg.src = shuffledImages[currentIndex];
+
+            setInterval(() => {
+                logoImg.classList.add("bulb-buzz");
+                setTimeout(() => {
+                    currentIndex = (currentIndex + 1) % shuffledImages.length;
+                    logoImg.src = shuffledImages[currentIndex];
+                }, 180);
+
+                setTimeout(() => {
+                    logoImg.classList.remove("bulb-buzz");
+                }, 450);
+            }, 2500);
         }
-
-        function shufflePlaylist() {
-            if (availablePlaylist.length <= 1) return;
-
-            for (let i = availablePlaylist.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [availablePlaylist[i], availablePlaylist[j]] = [availablePlaylist[j], availablePlaylist[i]];
-            }
-            renderUI();
-        }
-
-        function pickSong(index) {
-            const [picked] = availablePlaylist.splice(index, 1);
-            selectedSongs.push(picked);
-            renderUI();
-        }
-
-        /* Opens new window with formatted Courier New setlist */
-        function openSetlist() {
-            if (selectedSongs.length === 0) {
-                alert("Please select at least one song first.");
-                return;
-            }
-
-            const win = window.open("", "_blank");
-            
-            let listHtml = selectedSongs.map((item, i) => {
-                return `<div>${i + 1}-${item.title}-${item.artist}</div>`;
-            }).join("");
-
-            win.document.write(`
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Setlist</title>
-                    <style>
-                        body {
-                            background-color: #ffffff;
-                            color: #000000;
-                            font-family: 'Courier New', Courier, monospace;
-                            padding: 30px;
-                        }
-                        .setlist-frame {
-                            border: 2px solid #000000;
-                            padding: 20px;
-                            display: inline-block;
-                            min-width: 320px;
-                        }
-                        .setlist-title {
-                            font-weight: bold;
-                            font-size: 1.2rem;
-                            margin-bottom: 15px;
-                            text-transform: uppercase;
-                            border-bottom: 1px solid #000;
-                            padding-bottom: 5px;
-                        }
-                        .song-line {
-                            font-size: 1rem;
-                            line-height: 1.6;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="setlist-frame">
-                        <div class="setlist-title">SETLIST</div>
-                        <div class="song-line">
-                            ${listHtml}
-                        </div>
-                    </div>
-                </body>
-                </html>
-            `);
-            win.document.close();
-        }
-
-        function renderUI() {
-            const listElement = document.getElementById("songList");
-            const countElement = document.getElementById("songCount");
-            const selectedListElement = document.getElementById("selectedList");
-            const selectedCountElement = document.getElementById("selectedCount");
-
-            // 1. Render Available Songs
-            listElement.innerHTML = "";
-            countElement.textContent = `${availablePlaylist.length} Songs`;
-
-            if (availablePlaylist.length === 0) {
-                listElement.innerHTML = `<li class="empty-state">All songs have been selected!</li>`;
-            } else {
-                availablePlaylist.forEach((item, index) => {
-                    const li = document.createElement("li");
-                    const query = encodeURIComponent(`${item.title} ${item.artist}`);
-                    const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
-
-                    li.className = "song-item-card";
-                    li.title = "Click to select this song";
-                    li.onclick = () => pickSong(index);
-
-                    li.innerHTML = `
-                        <div class="song-left">
-                            <span class="song-number">${index + 1}</span>
-                            <div class="song-info">
-                                <span class="song-title">${item.title}</span>
-                                <span class="song-artist">${item.artist}</span>
-                            </div>
-                        </div>
-                        <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="fa-brands fa-youtube yt-icon" title="Listen on YouTube" onclick="event.stopPropagation();"></a>
-                    `;
-                    listElement.appendChild(li);
-                });
-            }
-
-            // 2. Render Picked Songs
-            selectedListElement.innerHTML = "";
-            selectedCountElement.textContent = `${selectedSongs.length} Songs`;
-
-            if (selectedSongs.length === 0) {
-                selectedListElement.innerHTML = `<li class="empty-state">No songs picked yet.</li>`;
-            } else {
-                selectedSongs.forEach((item, index) => {
-                    const li = document.createElement("li");
-                    const query = encodeURIComponent(`${item.title} ${item.artist}`);
-                    const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
-
-                    li.className = "song-item-card";
-
-                    li.innerHTML = `
-                        <div class="song-left">
-                            <span class="song-number">${index + 1}</span>
-                            <div class="song-info">
-                                <span class="song-title">${item.title}</span>
-                                <span class="song-artist">${item.artist}</span>
-                            </div>
-                        </div>
-                        <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="fa-brands fa-youtube yt-icon" title="Listen on YouTube"></a>
-                    `;
-                    selectedListElement.appendChild(li);
-                });
-            }
-        }
-
-        loadPlaylist();
     </script>
 
 </body>
