@@ -32,15 +32,19 @@
             -webkit-box-align: start;
             -webkit-align-items: flex-start;
             align-items: flex-start;
-            padding: 20px 12px;
+            padding: 16px 8px;
         }
 
-        /* Two-column responsive layout */
+        /* Fixed 2-Column Side-by-Side Layout for Mobile */
         .app-container {
             display: -webkit-box;
             display: -webkit-flex;
             display: flex;
-            gap: 16px;
+            -webkit-box-orient: horizontal;
+            -webkit-box-direction: normal;
+            -webkit-flex-direction: row;
+            flex-direction: row;
+            gap: 10px;
             max-width: 1000px;
             width: 100%;
             -webkit-box-align: start;
@@ -50,15 +54,15 @@
 
         .playlist-card, .selected-card {
             -webkit-box-flex: 1;
-            -webkit-flex: 1;
-            flex: 1;
+            -webkit-flex: 1 1 50%;
+            flex: 1 1 50%;
+            width: 50%;
+            min-width: 0; /* Prevents overflow from wide text content on iPhone */
             background: #121212;
-            padding: 20px 16px;
-            border-radius: 16px;
+            padding: 14px 10px;
+            border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             border: 1px solid #222222;
-            min-width: 0;
-            width: 100%;
         }
 
         .header {
@@ -71,21 +75,23 @@
             -webkit-box-pack: justify;
             -webkit-justify-content: space-between;
             justify-content: space-between;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             border-bottom: 1px solid #222222;
-            padding-bottom: 12px;
+            padding-bottom: 8px;
+            gap: 4px;
         }
 
         .header h1 {
-            font-size: 1.2rem;
+            font-size: 0.95rem;
             display: -webkit-box;
             display: -webkit-flex;
             display: flex;
             -webkit-box-align: center;
             -webkit-align-items: center;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             color: #ffffff;
+            white-space: nowrap;
         }
 
         .header h1 i {
@@ -99,7 +105,7 @@
             -webkit-box-align: center;
             -webkit-align-items: center;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
         }
 
         /* Shuffle Button */
@@ -107,10 +113,10 @@
             background: #1a1a1a;
             color: #ff4500;
             border: 1px solid #282828;
-            padding: 6px 10px;
-            border-radius: 10px;
+            padding: 4px 8px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
             display: -webkit-inline-box;
             display: -webkit-inline-flex;
@@ -118,7 +124,7 @@
             -webkit-box-align: center;
             -webkit-align-items: center;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             transition: background 0.2s ease, color 0.2s ease;
         }
 
@@ -133,10 +139,10 @@
             background: #ff4500;
             color: #ffffff;
             border: 1px solid #ff4500;
-            padding: 6px 10px;
-            border-radius: 10px;
+            padding: 4px 8px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
             display: -webkit-inline-box;
             display: -webkit-inline-flex;
@@ -144,7 +150,7 @@
             -webkit-box-align: center;
             -webkit-align-items: center;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             transition: background 0.2s ease;
         }
 
@@ -154,12 +160,13 @@
         }
 
         .song-count {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             color: #888888;
             background: #1a1a1a;
-            padding: 4px 8px;
-            border-radius: 10px;
+            padding: 3px 6px;
+            border-radius: 8px;
             border: 1px solid #282828;
+            white-space: nowrap;
         }
 
         /* Song List Styling */
@@ -172,7 +179,7 @@
             -webkit-box-direction: normal;
             -webkit-flex-direction: column;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
             max-height: 520px;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
@@ -180,7 +187,7 @@
         }
 
         .song-list::-webkit-scrollbar {
-            width: 4px;
+            width: 3px;
         }
         .song-list::-webkit-scrollbar-thumb {
             background: #282828;
@@ -199,10 +206,11 @@
             justify-content: space-between;
             background: #1a1a1a;
             border: 1px solid #282828;
-            padding: 10px 12px;
-            border-radius: 10px;
+            padding: 8px 8px;
+            border-radius: 8px;
             transition: border-color 0.2s ease, background-color 0.2s ease;
             cursor: pointer;
+            min-width: 0;
         }
 
         .song-item-card:hover, .song-item-card:active {
@@ -224,10 +232,10 @@
         }
 
         .song-number {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #ff4500;
             font-weight: bold;
-            width: 24px;
+            width: 18px;
             -webkit-flex-shrink: 0;
             flex-shrink: 0;
         }
@@ -248,7 +256,7 @@
 
         .song-title {
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             color: #ffffff;
             white-space: nowrap;
             overflow: hidden;
@@ -256,9 +264,9 @@
         }
 
         .song-artist {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #a0a0a0;
-            margin-top: 2px;
+            margin-top: 1px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -266,30 +274,20 @@
 
         .yt-icon {
             color: #ff0000;
-            font-size: 1.1rem;
-            margin-left: 8px;
+            font-size: 1rem;
+            margin-left: 4px;
             -webkit-flex-shrink: 0;
             flex-shrink: 0;
             text-decoration: none;
-            padding: 4px;
+            padding: 2px;
         }
 
         .empty-state {
             color: #666666;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             text-align: center;
-            padding: 20px 0;
+            padding: 15px 0;
             font-style: italic;
-        }
-
-        /* Mobile Breakpoint for iPhones */
-        @media (max-width: 768px) {
-            .app-container {
-                -webkit-box-orient: vertical;
-                -webkit-box-direction: normal;
-                -webkit-flex-direction: column;
-                flex-direction: column;
-            }
         }
     </style>
 </head>
@@ -302,9 +300,9 @@
                 <h1><i class="fa-solid fa-music"></i> Playlist</h1>
                 <div class="header-actions">
                     <button class="btn-shuffle" id="shuffleBtn" onclick="shufflePlaylist()">
-                        <i class="fa-solid fa-shuffle"></i> Shuffle
+                        <i class="fa-solid fa-shuffle"></i>
                     </button>
-                    <span class="song-count" id="songCount">Loading...</span>
+                    <span class="song-count" id="songCount">...</span>
                 </div>
             </div>
             <ul class="song-list" id="songList"></ul>
@@ -315,11 +313,11 @@
             <div class="header">
                 <h1><i class="fa-solid fa-circle-check"></i> Selected</h1>
                 <div class="header-actions">
-                    <!-- Orange Setlist Export Button -->
+                    <!-- Orange Setlist Button -->
                     <button class="btn-setlist" onclick="openSetlist()">
                         <i class="fa-solid fa-list-check"></i> Setlist
                     </button>
-                    <span class="song-count" id="selectedCount">0 Songs</span>
+                    <span class="song-count" id="selectedCount">0</span>
                 </div>
             </div>
             <ul class="song-list" id="selectedList"></ul>
@@ -353,21 +351,18 @@
             renderUI();
         }
 
-        /* Move song from main list to selected */
         function pickSong(index) {
             const [picked] = availablePlaylist.splice(index, 1);
             selectedSongs.push(picked);
             renderUI();
         }
 
-        /* Move selected song back to main list */
         function unpickSong(index) {
             const [unpicked] = selectedSongs.splice(index, 1);
             availablePlaylist.push(unpicked);
             renderUI();
         }
 
-        /* Opens new window with simple Courier New setlist */
         function openSetlist() {
             if (selectedSongs.length === 0) {
                 alert("Please select at least one song first.");
@@ -392,24 +387,25 @@
                             background-color: #ffffff;
                             color: #000000;
                             font-family: 'Courier New', Courier, monospace;
-                            padding: 20px;
+                            padding: 16px;
                         }
                         .setlist-frame {
                             border: 2px solid #000000;
-                            padding: 16px;
+                            padding: 12px;
                             display: inline-block;
-                            min-width: 280px;
+                            width: 100%;
+                            box-sizing: border-box;
                         }
                         .setlist-title {
                             font-weight: bold;
                             font-size: 1.1rem;
-                            margin-bottom: 12px;
+                            margin-bottom: 10px;
                             text-transform: uppercase;
                             border-bottom: 1px solid #000000;
                             padding-bottom: 4px;
                         }
                         .song-line {
-                            font-size: 0.95rem;
+                            font-size: 0.9rem;
                             line-height: 1.5;
                         }
                     </style>
@@ -435,10 +431,10 @@
 
             // 1. Render Available Songs
             listElement.innerHTML = "";
-            countElement.textContent = `${availablePlaylist.length} Songs`;
+            countElement.textContent = `${availablePlaylist.length}`;
 
             if (availablePlaylist.length === 0) {
-                listElement.innerHTML = `<li class="empty-state">All songs have been selected!</li>`;
+                listElement.innerHTML = `<li class="empty-state">All picked!</li>`;
             } else {
                 availablePlaylist.forEach((item, index) => {
                     const li = document.createElement("li");
@@ -465,10 +461,10 @@
 
             // 2. Render Picked Songs
             selectedListElement.innerHTML = "";
-            selectedCountElement.textContent = `${selectedSongs.length} Songs`;
+            selectedCountElement.textContent = `${selectedSongs.length}`;
 
             if (selectedSongs.length === 0) {
-                selectedListElement.innerHTML = `<li class="empty-state">No songs picked yet.</li>`;
+                selectedListElement.innerHTML = `<li class="empty-state">None picked yet.</li>`;
             } else {
                 selectedSongs.forEach((item, index) => {
                     const li = document.createElement("li");
