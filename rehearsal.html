@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baba Rock - Rehearsal Playlist</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Base Reset & Dark Metal Theme */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0c0c0c;
+            background: radial-gradient(circle, #161616 0%, #070707 100%);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+        }
+
+        /* Two-column container for Playlist and Selected sidebars */
+        .app-container {
+            display: flex;
+            gap: 24px;
+            max-width: 1000px;
+            width: 100%;
+            align-items: flex-start;
+        }
+
+        .playlist-card, .selected-card {
+            flex: 1;
+            background: #121212;
+            padding: 30px 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            border: 1px solid #222222;
+            min-width: 0;
+        }
+
+        .header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #222222;
+            padding-bottom: 15px;
+        }
+
+        .header-title-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .header h1 {
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #ffffff;
+        }
+
+        .header h1 i {
+            color: #ff4500;
+        }
+
+        /* Rehearsal Topic Symbol & Badge */
+        .rehearsal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 700;
+            color: #ff4500;
+            background: rgba(255, 69, 0, 0.1);
+            border: 1px solid rgba(255, 69, 0, 0.3);
+            padding: 3px 8px;
+            border-radius: 6px;
+            width: fit-content;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-shuffle {
+            background: #1a1a1a;
+            color: #ff4500;
+            border: 1px solid #282828;
+            padding: 5px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-shuffle:hover {
+            background: #ff4500;
+            color: #ffffff;
+            border-color: #ff4500;
+        }
+
+        .song-count {
+            font-size: 0.85rem;
+            color: #888888;
+            background: #1a1a1a;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #282828;
+        }
+
+        /* Song List Styling */
+        .song-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 520px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        /* Scrollbar */
+        .song-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .song-list::-webkit-scrollbar-thumb {
+            background: #282828;
+            border-radius: 3px;
+        }
+
+        /* Interactive Song Card Frame */
+        .song-item-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1a1a1a;
+            border: 1px solid #282828;
+            padding: 12px 16px;
+            border-radius: 10px;
+            transition: border-color 0.25s ease, background-color 0.25s ease, transform 0.15s ease;
+            cursor: pointer;
+        }
+
+        .song-item-card:hover {
+            border-color: #ff4500;
+            background-color: #222222;
+            transform: translateY(-1px);
+        }
+
+        .song-item-card:hover .song-title {
+            color: #ff4500;
+        }
+
+        .song-item-card:hover .yt-icon {
+            transform: scale(1.15);
+            color: #ff4500;
+        }
+
+        .song-left {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            flex-grow: 1;
+        }
+
+        .song-number {
+            font-size: 0.85rem;
+            color: #ff4500;
+            font-weight: bold;
+            width: 28px;
+            flex-shrink: 0;
+        }
+
+        .song-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            flex-grow: 1;
+        }
+
+        .song-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color 0.2s ease;
+        }
+
+        .song-artist {
+            font-size: 0.8rem;
+            color: #a0a0a0;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .yt-icon {
+            color: #ff0000;
+            font-size: 1.2rem;
+            margin-left: 12px;
+            flex-shrink: 0;
+            transition: transform 0.2s ease, color 0.2s ease;
+            text-decoration: none;
+        }
+
+        .empty-state {
+            color: #666666;
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 20px 0;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Left Column: Available Songs -->
+        <div class="playlist-card">
+            <div class="header">
+                <div class="header-title-container">
+                    <h1><i class="fa-solid fa-music"></i> Playlist</h1>
+                    <!-- Rehearsal Topic Symbol -->
+                    <span class="rehearsal-badge"><i class="fa-solid fa-microphone-lines"></i> Rehearsal</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-shuffle" id="shuffleBtn" onclick="shufflePlaylist()">
+                        <i class="fa-solid fa-shuffle"></i> Shuffle
+                    </button>
+                    <span class="song-count" id="songCount">Loading...</span>
+                </div>
+            </div>
+            <ul class="song-list" id="songList"></ul>
+        </div>
+
+        <!-- Right Column: Picked Songs -->
+        <div class="selected-card">
+            <div class="header">
+                <div class="header-title-container">
+                    <h1><i class="fa-solid fa-circle-check"></i> Selected</h1>
+                    <!-- Rehearsal Topic Symbol -->
+                    <span class="rehearsal-badge"><i class="fa-solid fa-drum"></i> Setlist</span>
+                </div>
+                <span class="song-count" id="selectedCount">0 Songs</span>
+            </div>
+            <ul class="song-list" id="selectedList"></ul>
+        </div>
+    </div>
+
+    <script>
+        let availablePlaylist = [];
+        const selectedSongs = [];
+
+        async function loadPlaylist() {
+            const countElement = document.getElementById("songCount");
+
+            try {
+                const res = await fetch("./playlist.json");
+                availablePlaylist = await res.json();
+                renderUI();
+            } catch (err) {
+                console.error(err);
+                countElement.textContent = "Error";
+            }
+        }
+
+        function shufflePlaylist() {
+            if (availablePlaylist.length <= 1) return;
+
+            for (let i = availablePlaylist.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [availablePlaylist[i], availablePlaylist[j]] = [availablePlaylist[j], availablePlaylist[i]];
+            }
+            renderUI();
+        }
+
+        function pickSong(index) {
+            const [picked] = availablePlaylist.splice(index, 1);
+            selectedSongs.push(picked);
+            renderUI();
+        }
+
+        function renderUI() {
+            const listElement = document.getElementById("songList");
+            const countElement = document.getElementById("songCount");
+            const selectedListElement = document.getElementById("selectedList");
+            const selectedCountElement = document.getElementById("selectedCount");
+
+            // 1. Render Available Songs
+            listElement.innerHTML = "";
+            countElement.textContent = `${availablePlaylist.length} Songs`;
+
+            if (availablePlaylist.length === 0) {
+                listElement.innerHTML = `<li class="empty-state">All songs have been selected!</li>`;
+            } else {
+                availablePlaylist.forEach((item, index) => {
+                    const li = document.createElement("li");
+                    const query = encodeURIComponent(`${item.title} ${item.artist}`);
+                    const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
+
+                    li.className = "song-item-card";
+                    li.title = "Click to select this song";
+                    li.onclick = () => pickSong(index);
+
+                    li.innerHTML = `
+                        <div class="song-left">
+                            <span class="song-number">${index + 1}</span>
+                            <div class="song-info">
+                                <span class="song-title">${item.title}</span>
+                                <span class="song-artist">${item.artist}</span>
+                            </div>
+                        </div>
+                        <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="fa-brands fa-youtube yt-icon" title="Listen on YouTube" onclick="event.stopPropagation();"></a>
+                    `;
+                    listElement.appendChild(li);
+                });
+            }
+
+            // 2. Render Picked Songs
+            selectedListElement.innerHTML = "";
+            selectedCountElement.textContent = `${selectedSongs.length} Songs`;
+
+            if (selectedSongs.length === 0) {
+                selectedListElement.innerHTML = `<li class="empty-state">No songs picked yet.</li>`;
+            } else {
+                selectedSongs.forEach((item, index) => {
+                    const li = document.createElement("li");
+                    const query = encodeURIComponent(`${item.title} ${item.artist}`);
+                    const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
+
+                    li.className = "song-item-card";
+
+                    li.innerHTML = `
+                        <div class="song-left">
+                            <span class="song-number">${index + 1}</span>
+                            <div class="song-info">
+                                <span class="song-title">${item.title}</span>
+                                <span class="song-artist">${item.artist}</span>
+                            </div>
+                        </div>
+                        <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="fa-brands fa-youtube yt-icon" title="Listen on YouTube"></a>
+                    `;
+                    selectedListElement.appendChild(li);
+                });
+            }
+        }
+
+        loadPlaylist();
+    </script>
+
+</body>
+</html>
