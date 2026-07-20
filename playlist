@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baba Rock - Playlist</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #0c0c0c;
+            background: radial-gradient(circle, #161616 0%, #070707 100%);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+        }
+        .playlist-card {
+            max-width: 480px;
+            width: 100%;
+            background: #121212;
+            padding: 30px 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            border: 1px solid #222222;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #222222;
+            padding-bottom: 15px;
+        }
+        .header h1 { font-size: 1.3rem; display: flex; align-items: center; gap: 12px; }
+        .header h1 i { color: #ff4500; }
+        .song-count { font-size: 0.85rem; color: #888888; background: #1a1a1a; padding: 4px 10px; border-radius: 12px; border: 1px solid #282828; }
+        .song-list { list-style: none; display: flex; flex-direction: column; gap: 10px; max-height: 520px; overflow-y: auto; padding-right: 5px; }
+        .song-list::-webkit-scrollbar { width: 6px; }
+        .song-list::-webkit-scrollbar-thumb { background: #282828; border-radius: 3px; }
+        .song-item { display: flex; align-items: center; background: #1a1a1a; border: 1px solid #282828; padding: 12px 16px; border-radius: 10px; }
+        .song-item:hover { border-color: #ff4500; }
+        .song-number { font-size: 0.85rem; color: #ff4500; font-weight: bold; width: 28px; flex-shrink: 0; }
+        .song-info { display: flex; flex-direction: column; overflow: hidden; }
+        .song-title { font-weight: 600; font-size: 0.95rem; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .song-artist { font-size: 0.8rem; color: #a0a0a0; margin-top: 2px; }
+    </style>
+</head>
+<body>
+
+    <div class="playlist-card">
+        <div class="header">
+            <h1><i class="fa-solid fa-music"></i> Playlist</h1>
+            <span class="song-count" id="songCount">Loading...</span>
+        </div>
+
+        <ul class="song-list" id="songList"></ul>
+    </div>
+
+    <script>
+        async function loadPlaylist() {
+            const listElement = document.getElementById("songList");
+            const countElement = document.getElementById("songCount");
+
+            try {
+                // Fetch playlist.json from your own repo domain (No CORS, No Cloudflare blocking)
+                const res = await fetch("./playlist.json");
+                const playlist = await res.json();
+
+                listElement.innerHTML = "";
+                countElement.textContent = `${playlist.length} Songs`;
+
+                playlist.forEach((item, index) => {
+                    const li = document.createElement("li");
+                    li.className = "song-item";
+                    li.innerHTML = `
+                        <span class="song-number">${index + 1}</span>
+                        <div class="song-info">
+                            <span class="song-title">${item.title}</span>
+                            <span class="song-artist">${item.artist}</span>
+                        </div>
+                    `;
+                    listElement.appendChild(li);
+                });
+            } catch (err) {
+                console.error(err);
+                countElement.textContent = "Error";
+            }
+        }
+
+        loadPlaylist();
+    </script>
+
+</body>
+</html>
