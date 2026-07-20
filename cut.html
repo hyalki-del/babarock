@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baba Rock - Similar Song Advisor</title>
+    <title>Baba Rock - YouTube Similar Song Advisor</title>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -53,7 +53,7 @@
         }
 
         .header h1 i {
-            color: #ff4500;
+            color: #ff0000;
         }
 
         .header p {
@@ -124,7 +124,7 @@
         }
 
         .rec-item:hover {
-            border-color: #ff4500;
+            border-color: #ff0000;
             background-color: #222222;
         }
 
@@ -184,8 +184,8 @@
 
     <div class="advisor-card">
         <div class="header">
-            <h1><i class="fa-solid fa-wand-magic-sparkles"></i> Similar Song Advisor</h1>
-            <p>Discovers songs outside your list matching your taste.</p>
+            <h1><i class="fa-brands fa-youtube"></i> YouTube Suggest Advisor</h1>
+            <p>Discovers related songs directly using YouTube search suggestions.</p>
         </div>
 
         <div class="seed-box">
@@ -195,11 +195,11 @@
         </div>
 
         <div class="recommendations-title">
-            <i class="fa-solid fa-compact-disc"></i> Recommended Similar Tracks:
+            <i class="fa-solid fa-compact-disc"></i> Suggested YouTube Searches:
         </div>
 
         <ul class="rec-list" id="recList">
-            <li class="rec-item"><span class="rec-song-artist">Click the button to get suggestions.</span></li>
+            <li class="rec-item"><span class="rec-song-artist">Click the button below to fetch suggestions.</span></li>
         </ul>
 
         <button class="action-btn" id="findBtn" onclick="generateRecommendations()">
@@ -208,8 +208,6 @@
     </div>
 
     <script>
-        // Shared public Last.fm API Key for metadata fetching
-        const LASTFM_API_KEY = "2d3de6028d7a1fb5f0967399589d8db1";
         let playlist = [];
 
         async function init() {
@@ -225,85 +223,100 @@
             }
         }
 
-       async function generateRecommendations() {
-    if (!playlist || playlist.length === 0) return;
+        function cleanText(text) {
+            return text
+                .replace(/\(.*?\)|\[.*?\]/g, '')
+                .replace(/-(.*)(Remaster|Live|Deluxe|Version).*/i, '')
+                .trim();
+        }
 
-    const recList = document.getElementById("recList");
-    const seedTitle = document.getElementById("seedTitle");
-    const seedArtist = document.getElementById("seedArtist");
-
-    // Clean up title (remove things like "(Live)", "[Remastered]", etc.)
-    const seed = playlist[Math.floor(Math.random() * playlist.length)];
-    const cleanTitle = seed.title.replace(/\(.*?\)|\[.*?\]/g, '').trim();
-    const cleanArtist = seed.artist.replace(/\(.*?\)|\[.*?\]/g, '').trim();
-
-    seedTitle.textContent = seed.title;
-    seedArtist.textContent = seed.artist;
-
-    recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Searching for recommendations...</span></li>`;
-
-    try {
-        // 1. First attempt: Search for Similar Tracks
-        let trackUrl = `https://ws.audioscrobbler.com/2.0/?method=track.getsimilar&artist=${encodeURIComponent(cleanArtist)}&track=${encodeURIComponent(cleanTitle)}&api_key=${LASTFM_API_KEY}&format=json&limit=5`;
-        let res = await fetch(trackUrl);
-        let data = await res.json();
-        let tracks = data.similartracks?.track || [];
-
-        // 2. Fallback: If no similar tracks, search for Similar Artists instead
-        if (tracks.length === 0) {
-            let artistUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=${encodeURIComponent(cleanArtist)}&api_key=${LASTFM_API_KEY}&format=json&limit=3`;
-            let artistRes = await fetch(artistUrl);
-            let artistData = await artistRes.json();
-            let similarArtists = artistData.similarartists?.artist || [];
-
-            // Fetch top track for each similar artist
-            for (let artist of similarArtists) {
-                let topTrackUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=${encodeURIComponent(artist.name)}&api_key=${LASTFM_API_KEY}&format=json&limit=1`;
-                let topRes = await fetch(topTrackUrl);
-                let topData = await topRes.json();
-                let topTrack = topData.toptracks?.track?.[0];
-
-                if (topTrack) {
-                    tracks.push({
-                        name: topTrack.name,
-                        artist: { name: artist.name }
-                    });
+        // Fetches YouTube search auto-suggestions via CORS proxy
+        async function fetchYTSuggestions(query) {
+            try {
+                const targetUrl = `https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(query)}`;
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+                
+                const res = await fetch(proxyUrl);
+                const data = await res.json();
+                
+                if (data.contents) {
+                    const parsed = JSON.parse(data.contents);
+                    return parsed[1] || [];
                 }
+            } catch (e) {
+                console.warn("Proxy suggestion error:", e);
             }
+            return [];
         }
 
-        recList.innerHTML = "";
+        async function generateRecommendations() {
+            if (!playlist || playlist.length === 0) return;
 
-        if (tracks.length === 0) {
-            recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">No similar tracks found. Click "Find Similar Songs" to try another track!</span></li>`;
-            return;
+            const recList = document.getElementById("recList");
+            const seedTitle = document.getElementById("seedTitle");
+            const seedArtist = document.getElementById("seedArtist");
+
+            // Pick random seed from playlist
+            const seed = playlist[Math.floor(Math.random() * playlist.length)];
+            const cleanTitleStr = cleanText(seed.title);
+            const cleanArtistStr = cleanText(seed.artist);
+
+            seedTitle.textContent = seed.title;
+            seedArtist.textContent = seed.artist;
+
+            recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Querying YouTube search suggestions...</span></li>`;
+
+            // Try two search query patterns
+            const primaryQuery = `${cleanArtistStr} ${cleanTitleStr} similar songs`;
+            const fallbackQuery = `songs like ${cleanArtistStr}`;
+
+            let suggestions = await fetchYTSuggestions(primaryQuery);
+
+            if (suggestions.length < 3) {
+                const secondary = await fetchYTSuggestions(fallbackQuery);
+                suggestions = [...suggestions, ...secondary];
+            }
+
+            // Remove duplicate phrases
+            const uniqueSuggestions = [...new Set(suggestions)];
+
+            // Filter out exact match query inputs
+            const filtered = uniqueSuggestions.filter(item => {
+                const lower = item.toLowerCase();
+                return !lower.includes("similar songs") && !lower.includes("songs like");
+            });
+
+            const finalResults = filtered.length > 0 ? filtered : uniqueSuggestions;
+
+            renderResults(finalResults, cleanArtistStr);
         }
 
-        // Render the result list
-        tracks.slice(0, 5).forEach(t => {
-            const songName = t.name;
-            const artistName = typeof t.artist === 'string' ? t.artist : t.artist.name;
-            const query = encodeURIComponent(`${songName} ${artistName}`);
-            const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
+        function renderResults(suggestions, artistName) {
+            const recList = document.getElementById("recList");
+            recList.innerHTML = "";
 
-            const li = document.createElement("li");
-            li.innerHTML = `
-                <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="rec-item" title="Listen on YouTube">
-                    <div class="rec-info">
-                        <span class="rec-song-title">${songName}</span>
-                        <span class="rec-song-artist">${artistName}</span>
-                    </div>
-                    <i class="fa-brands fa-youtube yt-icon"></i>
-                </a>
-            `;
-            recList.appendChild(li);
-        });
+            if (suggestions.length === 0) {
+                recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">No suggestions returned. Try another song!</span></li>`;
+                return;
+            }
 
-    } catch (err) {
-        console.error(err);
-        recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Unable to fetch recommendations right now.</span></li>`;
-    }
-}
+            suggestions.slice(0, 5).forEach(phrase => {
+                const query = encodeURIComponent(phrase);
+                const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
+
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="rec-item" title="Open YouTube Search">
+                        <div class="rec-info">
+                            <span class="rec-song-title">${phrase}</span>
+                            <span class="rec-song-artist">Search on YouTube</span>
+                        </div>
+                        <i class="fa-brands fa-youtube yt-icon"></i>
+                    </a>
+                `;
+                recList.appendChild(li);
+            });
+        }
 
         init();
     </script>
