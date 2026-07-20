@@ -1,0 +1,54 @@
+name: Sync Ultimate Guitar Playlist
+
+on:
+  schedule:
+    # Runs automatically every midnight UTC (or run manually from Actions tab)
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions button
+
+jobs:
+  update-playlist:
+    runs-runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Fetch Playlist Data
+        run: |
+          python -c "
+          import requests, json, re
+          from bs4 import BeautifulSoup
+
+          url = 'https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r'
+          headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+
+          res = requests.get(url, headers=headers)
+          soup = BeautifulSoup(res.text, 'html.parser')
+          store_div = soup.find('div', class_='js-store')
+
+          if store_div:
+              raw_data = json.loads(store_div['data-content'])
+              raw_items = raw_data['store']['page']['data']['playlist']['items']
+              cleaned = [{'title': item.get('song_name', ''), 'artist': item.get('artist_name', '')} for item in raw_items]
+              
+              with open('playlist.json', 'w', encoding='utf-8') as f:
+                  json.dump(cleaned, f, ensure_ascii=False, indent=2)
+              print('Playlist updated successfully!')
+          else:
+              print('Could not find dataset')
+          "
+
+      - name: Commit & Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add playlist.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update playlist.json" && git push)
