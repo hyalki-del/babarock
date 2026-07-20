@@ -179,8 +179,7 @@
             const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
             document.getElementById('currentMonthYear').innerText = `${monthNames[month]} ${year}`;
 
-            const dayOfWeek = new Date(year, month, 1).getDay();
-            const firstDayIndex = (dayOfWeek === 0) ? 6 : dayOfWeek - 1;
+           const firstDayIndex = new Date(year, month, 1).getDay();
             const totalDays = new Date(year, month + 1, 0).getDate();
 
             for (let i = 0; i < firstDayIndex; i++) {
