@@ -5,6 +5,9 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   update-playlist:
     runs-on: ubuntu-latest
@@ -12,54 +15,51 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.x'
+          node-version: '22'
 
-      - name: Install dependencies
-        run: pip install requests beautifulsoup4
-
-      - name: Fetch Playlist Data
+      - name: Install Playwright
         run: |
-          python -c "
-          import requests, json
-          from bs4 import BeautifulSoup
+          npm install playwright
+          npx playwright install chromium
 
-          url = 'https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r'
-          headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+      - name: Fetch Playlist via Browser
+        run: |
+          node -e "
+          const { chromium } = require('playwright');
+          const fs = require('fs');
 
-          res = requests.get(url, headers=headers)
-          soup = BeautifulSoup(res.text, 'html.parser')
-          store_div = soup.find('div', class_='js-store')
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage();
+            
+            await page.goto('https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r', { waitUntil: 'networkidle' });
+            
+            const songs = await page.evaluate(() => {
+              const data = window.UGApp?.store?.page?.data;
+              if (!data) return [];
+              const rawItems = data.songbook?.tabs || data.playlist?.items || [];
+              return rawItems.map(item => {
+                const tab = item.tab || item;
+                return {
+                  title: tab.song_name || tab.song_title || '',
+                  artist: tab.artist_name || tab.band_name || ''
+                };
+              }).filter(s => s.title && s.artist);
+            });
 
-          cleaned = []
-          if store_div:
-              raw_data = json.loads(store_div['data-content'])
-              parent = raw_data.get('store', {}).get('page', {}).get('data', {})
+            await browser.close();
 
-              # Ultimate Guitar stores tabs in songbook or playlist key depending on account settings
-              raw_items = []
-              if 'songbook' in parent and 'tabs' in parent['songbook']:
-                  raw_items = parent['songbook']['tabs']
-              elif 'playlist' in parent and 'items' in parent['playlist']:
-                  raw_items = parent['playlist']['items']
-              elif 'list' in parent and 'list' in parent['list']:
-                  raw_items = parent['list']['list']
-
-              for item in raw_items:
-                  # Extract tab object if nested
-                  tab = item.get('tab', item)
-                  title = tab.get('song_name', tab.get('song_title', ''))
-                  artist = tab.get('artist_name', tab.get('band_name', ''))
-                  if title and artist:
-                      cleaned.append({'title': title, 'artist': artist})
-
-              with open('playlist.json', 'w', encoding='utf-8') as f:
-                  json.dump(cleaned, f, ensure_ascii=False, indent=2)
-              print(f'Successfully saved {len(cleaned)} tracks!')
-          else:
-              print('Could not find store div')
+            if (songs.length > 0) {
+              fs.writeFileSync('playlist.json', JSON.stringify(songs, null, 2));
+              console.log('Saved ' + songs.length + ' songs.');
+            } else {
+              console.error('No songs found.');
+              process.exit(1);
+            }
+          })();
           "
 
       - name: Commit & Push Changes
