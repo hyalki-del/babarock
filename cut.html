@@ -1,95 +1,158 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BABAROCK TAKVIM</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Baba Rock</title>
+    <!-- Font Awesome for crisp icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #000000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        .apple-card { background-color: #1c1c1e; border: 1px solid rgba(255, 255, 255, 0.05); }
-        
-        /* Dotted KITT Red LED Loader styles */
-        .kitty-led {
-            width: 120px;
-            height: 10px;
-            background-color: #0c0c0e;
-            border-radius: 5px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+        /* Base Reset & Dark Metal Theme Styling */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
-        .kitty-led::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 200%;
-            height: 100%;
-            background-image: radial-gradient(circle, #ff0033 35%, transparent 45%);
-            background-size: 12px 10px;
-            background-repeat: repeat-x;
-            filter: drop-shadow(0 0 3px #ff0033) drop-shadow(0 0 6px #ff0000);
-            animation: kittyMarquee 0.6s linear infinite;
+
+        body {
+            background-color: #0c0c0c;
+            background: radial-gradient(circle, #161616 0%, #070707 100%);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
-        @keyframes kittyMarquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-12px); } /* Perfect loop match with background-size width */
+
+        /* Container Card - Strict Single Column Constraints */
+        .welcome-card {
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+            background: #121212;
+            padding: 40px 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            border: 1px solid #222222;
+        }
+
+        /* Logo Configuration */
+        .logo-container {
+            margin-bottom: 35px;
+        }
+
+        .logo-img {
+            max-width: 260px;
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            display: inline-block;
+            transition: opacity 0.3s ease-in-out; /* Yumuşak geçiş efekti */
+        }
+
+        /* Interactive Navigation Setup */
+        .navigation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .action-button {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            background: #1a1a1a;
+            border: 2px solid #282828;
+            border-radius: 12px;
+            padding: 16px 20px;
+            color: #e5e5e5;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.25s ease;
+        }
+
+        .action-button i {
+            font-size: 1.4rem;
+            margin-right: 18px;
+            width: 28px;
+            text-align: center;
+            color: #ff4500; /* Fiery Orange Accent */
+        }
+
+        /* Hover states */
+        .action-button:hover {
+            color: #ffffff;
+            background: #222222;
+            border-color: #ff4500;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 68, 0, 0.15);
+        }
+
+        .action-button:active {
+            transform: translateY(0);
         }
     </style>
 </head>
-<body class="text-[#f5f5f7] p-4 md:p-8 min-h-screen">
-    <div class="max-w-6xl mx-auto space-y-6">
-        
-        <header class="apple-card rounded-2xl p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm">
-            <div>
-                <h1 class="text-2xl font-semibold tracking-tight text-white">Sahne Senkronizasyonu</h1>
-                <p class="text-[#86868b] text-sm mt-1">Meşgul olduğunuz günleri seçin. Kaydedilmesi için "Kaydet ve Güncelle" butonuna basın.</p>
-            </div>
-            
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="flex items-center gap-2">
-                    <span class="text-sm font-medium text-[#86868b]">Kullanıcı:</span>
-                    <select id="userSelect" class="bg-[#2c2c2e] border border-white/10 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer">
-                        <option value="serkan">SERKAN</option>
-                        <option value="ilker">ILKER</option>
-                        <option value="hasan">HASAN</option>
-                        <option value="osman">OSMAN</option>
-                        <option value="oguzhan">OGUZHAN</option>
-                    </select>
-                </div>
-                
-                <!-- The action button now contains a clean container slot for the state transition -->
-                <button id="saveBtn" class="bg-[#0071e3] hover:bg-[#0077ed] text-white text-sm px-5 py-2.5 rounded-xl font-medium tracking-wide transition-all shadow-md flex items-center justify-center gap-3 min-w-[160px] h-[42px]">
-                    <span id="btnText">Kaydet ve Güncelle</span>
-                    <span id="btnLoader" class="hidden"><div class="kitty-led"></div></span>
-                </button>
-            </div>
-        </header>
+<body>
 
+    <div class="welcome-card">
+        <!-- Top Logo Container -->
+        <div class="logo-container">
+            <img id="randomLogo" src="https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg" alt="Baba Rock Logo" class="logo-img">
+        </div>
+
+        <!-- Links Grid Layout -->
+        <nav class="navigation-list">
+            <!-- Calendar Navigation -->
+            <a href="https://hyalki-del.github.io/babarock/takvim.html" class="action-button" target="_blank" rel="noopener">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Takvim</span>
+            </a>
+
+            <!-- Playlist Navigation -->
+            <a href="https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r" class="action-button" target="_blank" rel="noopener">
+                <i class="fa-solid fa-music"></i>
+                <span>Playlist</span>
+            </a>
+        </nav>
     </div>
 
     <script>
-        // Demonstration Script to show how the UI state toggles cleanly 
-        const saveBtn = document.getElementById('saveBtn');
-        const btnText = document.getElementById('btnText');
-        const btnLoader = document.getElementById('btnLoader');
+        // 1. Tüm resimlerin bağlantılarını buradaki diziye ekle
+        const images = [
+            "https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg",
+            "https://github.com/hyalki-del/babarock/blob/72e1ec20cdd9116c302dd507b708e4eb3dc51499/image_crop_to_bounds-0e9bcbad-74e8-4dcf-9bb4-189f2d3ed57c.jpg", // Kendi resim linklerinle değiştir
+            "https://github.com/hyalki-del/babarock/blob/72e1ec20cdd9116c302dd507b708e4eb3dc51499/image_crop_to_bounds-1dab8ba5-f7c9-43b8-a53d-1b21ff3861e5.jpg"
+            "https://github.com/hyalki-del/babarock/blob/72e1ec20cdd9116c302dd507b708e4eb3dc51499/image_crop_to_bounds-20e17c61-df2d-41f7-846a-cd8fc77e2617.jpg"
+            "https://github.com/hyalki-del/babarock/blob/72e1ec20cdd9116c302dd507b708e4eb3dc51499/image_crop_to_bounds-21808ade-aca2-40ee-be63-38ee160acde1.jpg"
+            "https://github.com/hyalki-del/babarock/blob/72e1ec20cdd9116c302dd507b708e4eb3dc51499/image_crop_to_bounds-2c8e3d92-d6bc-4c3f-9486-3f76a77acd97.jpg"
+            "https://github.com/hyalki-del/babarock/blob/72e1ec20cdd9116c302dd507b708e4eb3dc51499/image_crop_to_bounds-fdead5c0-e180-4ca6-80bc-f3111ab9e27d.jpg"
+        ];
 
-        saveBtn.addEventListener('click', () => {
-            // Step 1: Enter Loading State
-            saveBtn.disabled = true;
-            btnText.textContent = "Kaydediliyor...";
-            btnLoader.classList.remove('hidden');
+        // 2. Sayfa her açıldığında listedeki resimleri rastgele karıştır (Fisher-Yates algoritması)
+        const shuffledImages = [...images].sort(() => Math.random() - 0.5);
 
-            // Step 2: Simulating API Save Roundtrip (2 seconds)
+        let currentIndex = 0;
+        const logoImg = document.getElementById("randomLogo");
+
+        // Sayfa ilk açıldığında ilk rastgele resmi bas
+        logoImg.src = shuffledImages[currentIndex];
+
+        // 3. Her 2 saniyede (2000 ms) bir resmi sıradakiyle değiştir
+        setInterval(() => {
+            logoImg.style.opacity = 0; // Geçiş esnasında hafif solma efekti
+
             setTimeout(() => {
-                // Step 3: Return to Normal State
-                saveBtn.disabled = false;
-                btnText.textContent = "Kaydet ve Güncelle";
-                btnLoader.classList.add('hidden');
-            }, 2000);
-        });
+                currentIndex = (currentIndex + 1) % shuffledImages.length;
+                logoImg.src = shuffledImages[currentIndex];
+                logoImg.style.opacity = 1;
+            }, 300); // 0.3 saniyelik yumuşak geçiş
+        }, 2000);
     </script>
+
 </body>
 </html>
