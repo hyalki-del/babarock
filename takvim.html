@@ -180,7 +180,7 @@
             document.getElementById('currentMonthYear').innerText = `${monthNames[month]} ${year}`;
 
             const dayOfWeek = new Date(year, month, 1).getDay();
-cons        const firstDayIndex = (dayOfWeek === 0) ? 6 : dayOfWeek - 1;
+            const firstDayIndex = (dayOfWeek === 0) ? 6 : dayOfWeek - 1;
             const totalDays = new Date(year, month + 1, 0).getDate();
 
             for (let i = 0; i < firstDayIndex; i++) {
