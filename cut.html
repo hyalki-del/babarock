@@ -43,7 +43,7 @@
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             border: 1px solid #222222;
-            min-width: 0; /* Prevents flex children from overflowing */
+            min-width: 0;
         }
 
         .header {
@@ -65,6 +65,33 @@
 
         .header h1 i {
             color: #ff4500;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-shuffle {
+            background: #1a1a1a;
+            color: #ff4500;
+            border: 1px solid #282828;
+            padding: 5px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-shuffle:hover {
+            background: #ff4500;
+            color: #ffffff;
+            border-color: #ff4500;
         }
 
         .song-count {
@@ -196,7 +223,12 @@
         <div class="playlist-card">
             <div class="header">
                 <h1><i class="fa-solid fa-music"></i> Playlist</h1>
-                <span class="song-count" id="songCount">Loading...</span>
+                <div class="header-actions">
+                    <button class="btn-shuffle" id="shuffleBtn" onclick="shufflePlaylist()">
+                        <i class="fa-solid fa-shuffle"></i> Shuffle
+                    </button>
+                    <span class="song-count" id="songCount">Loading...</span>
+                </div>
             </div>
             <ul class="song-list" id="songList"></ul>
         </div>
@@ -228,8 +260,18 @@
             }
         }
 
+        // Fisher-Yates shuffle algorithm to randomize remaining songs
+        function shufflePlaylist() {
+            if (availablePlaylist.length <= 1) return;
+
+            for (let i = availablePlaylist.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [availablePlaylist[i], availablePlaylist[j]] = [availablePlaylist[j], availablePlaylist[i]];
+            }
+            renderUI();
+        }
+
         function pickSong(index) {
-            // Remove from main list and move to selected state
             const [picked] = availablePlaylist.splice(index, 1);
             selectedSongs.push(picked);
             renderUI();
