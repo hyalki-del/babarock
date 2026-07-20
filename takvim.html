@@ -54,7 +54,7 @@
                 </div>
 
                 <div class="grid grid-cols-7 text-center text-xs font-medium text-[#86868b] uppercase tracking-wider mb-4">
-                    <div>Paz</div><div>Pzt</div><div>Sal</div><div>Çar</div><div>Per</div><div>Cum</div><div>Cmt</div>
+                    <div>Pzt</div><div>Sal</div><div>Çar</div><div>Per</div><div>Cum</div><div>Cmt</div><div>Paz</div>
                 </div>
                 <div id="calendarGrid" class="grid grid-cols-7 gap-2"></div>
             </main>
@@ -179,7 +179,8 @@
             const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
             document.getElementById('currentMonthYear').innerText = `${monthNames[month]} ${year}`;
 
-           const firstDayIndex = new Date(year, month, 1).getDay();
+            const dayOfWeek = new Date(year, month, 1).getDay();
+            const firstDayIndex = (dayOfWeek === 0) ? 6 : dayOfWeek - 1;
             const totalDays = new Date(year, month + 1, 0).getDate();
 
             for (let i = 0; i < firstDayIndex; i++) {
