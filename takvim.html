@@ -15,7 +15,7 @@
         
         <header class="apple-card rounded-2xl p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm">
             <div>
-                <h1 class="text-2xl font-semibold tracking-tight text-white">Sahne Senkronizasyonu</h1>
+                <h1 class="text-2xl font-semibold tracking-tight text-white">BABAROCK TAKVIM</h1>
                 <p class="text-[#86868b] text-sm mt-1">Meşgul olduğunuz günleri seçin. Kaydedilmesi için "Kaydet ve Güncelle" butonuna basın.</p>
             </div>
             
@@ -119,7 +119,7 @@
 
         // Kilitlenme sorununu çözen akıllı veri çekme metodu (POST üzerinden OKUMA)
         async function fetchDatabase() {
-            showLoading("En güncel takvim verileri yükleniyor...");
+            showLoading("Güncel veriler yükleniyor...");
             try {
                 const res = await fetch(DATABASE_URL + "?action=read", { method: 'GET', redirect: 'follow' });
                 const data = await res.json();
@@ -136,7 +136,7 @@
         }
 
         async function pushToDatabase() {
-            showLoading("Değişiklikler Google E-Tabloya kaydediliyor...");
+            showLoading("Değişiklikler kaydediliyor...");
             try {
                 await fetch(DATABASE_URL, {
                     method: 'POST',
@@ -144,10 +144,10 @@
                     body: JSON.stringify({ name: currentUser, busyDates: localChanges[currentUser] })
                 });
                 await fetchDatabase();
-                alert("Tebrikler! Takviminiz başarıyla güncellendi.");
+                alert("Tebrikler! Başarıyla güncellendi.");
             } catch (e) { 
                 console.error(e);
-                alert("Kayıt sırasında bir hata oluştu."); 
+                alert("Kayıt sırasında bir HATA oluştu."); 
             }
             hideLoading();
         }
@@ -179,7 +179,8 @@
             const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
             document.getElementById('currentMonthYear').innerText = `${monthNames[month]} ${year}`;
 
-            const firstDayIndex = new Date(year, month, 1).getDay();
+            const dayOfWeek = new Date(year, month, 1).getDay();
+cons        const firstDayIndex = (dayOfWeek === 0) ? 6 : dayOfWeek - 1;
             const totalDays = new Date(year, month + 1, 0).getDate();
 
             for (let i = 0; i < firstDayIndex; i++) {
