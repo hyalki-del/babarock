@@ -87,7 +87,10 @@
             border-radius: 3px;
         }
 
-        .song-item {
+        /* Full Clickable Song Frame */
+        .song-item-link {
+            text-decoration: none;
+            color: inherit;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -95,11 +98,23 @@
             border: 1px solid #282828;
             padding: 12px 16px;
             border-radius: 10px;
-            transition: border-color 0.25s ease;
+            transition: border-color 0.25s ease, background-color 0.25s ease, transform 0.15s ease;
+            cursor: pointer;
         }
 
-        .song-item:hover {
+        .song-item-link:hover {
             border-color: #ff4500;
+            background-color: #222222;
+            transform: translateY(-1px);
+        }
+
+        .song-item-link:hover .song-title {
+            color: #ff4500;
+        }
+
+        .song-item-link:hover .yt-icon {
+            transform: scale(1.15);
+            color: #ff4500;
         }
 
         .song-left {
@@ -124,24 +139,14 @@
             flex-grow: 1;
         }
 
-        .song-title-link {
+        .song-title {
             font-weight: 600;
             font-size: 0.95rem;
             color: #ffffff;
-            text-decoration: none;
-            display: inline-block;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            cursor: pointer;
-            position: relative;
-            z-index: 10;
             transition: color 0.2s ease;
-        }
-
-        .song-title-link:hover {
-            color: #ff4500;
-            text-decoration: underline;
         }
 
         .song-artist {
@@ -153,24 +158,12 @@
             text-overflow: ellipsis;
         }
 
-        .yt-icon-link {
+        .yt-icon {
             color: #ff0000;
             font-size: 1.2rem;
             margin-left: 12px;
             flex-shrink: 0;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 4px;
-            position: relative;
-            z-index: 10;
             transition: transform 0.2s ease, color 0.2s ease;
-        }
-
-        .yt-icon-link:hover {
-            transform: scale(1.15);
-            color: #ff4500;
         }
     </style>
 </head>
@@ -199,23 +192,20 @@
 
                 playlist.forEach((item, index) => {
                     const li = document.createElement("li");
-                    li.className = "song-item";
 
                     const query = encodeURIComponent(`${item.title} ${item.artist}`);
                     const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
 
                     li.innerHTML = `
-                        <div class="song-left">
-                            <span class="song-number">${index + 1}</span>
-                            <div class="song-info">
-                                <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="song-title-link" title="Search on YouTube">
-                                    ${item.title}
-                                </a>
-                                <span class="song-artist">${item.artist}</span>
+                        <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="song-item-link" title="Listen on YouTube">
+                            <div class="song-left">
+                                <span class="song-number">${index + 1}</span>
+                                <div class="song-info">
+                                    <span class="song-title">${item.title}</span>
+                                    <span class="song-artist">${item.artist}</span>
+                                </div>
                             </div>
-                        </div>
-                        <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="yt-icon-link" title="Listen on YouTube">
-                            <i class="fa-brands fa-youtube"></i>
+                            <i class="fa-brands fa-youtube yt-icon"></i>
                         </a>
                     `;
                     listElement.appendChild(li);
