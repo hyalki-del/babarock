@@ -302,7 +302,12 @@
             selectedSongs.push(picked);
             renderUI();
         }
-
+// Add this new function:
+function unpickSong(index) {
+    const [unpicked] = selectedSongs.splice(index, 1);
+    availablePlaylist.push(unpicked);
+    renderUI();
+}
         /* Opens new window with formatted Courier New setlist */
         function openSetlist() {
             if (selectedSongs.length === 0) {
@@ -399,33 +404,39 @@
             }
 
             // 2. Render Picked Songs
-            selectedListElement.innerHTML = "";
-            selectedCountElement.textContent = `${selectedSongs.length} Songs`;
+selectedListElement.innerHTML = "";
+selectedCountElement.textContent = `${selectedSongs.length} Songs`;
 
-            if (selectedSongs.length === 0) {
-                selectedListElement.innerHTML = `<li class="empty-state">No songs picked yet.</li>`;
-            } else {
-                selectedSongs.forEach((item, index) => {
-                    const li = document.createElement("li");
-                    const query = encodeURIComponent(`${item.title} ${item.artist}`);
-                    const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
+if (selectedSongs.length === 0) {
+    selectedListElement.innerHTML = `<li class="empty-state">No songs picked yet.</li>`;
+} else {
+    selectedSongs.forEach((item, index) => {
+        const li = document.createElement("li");
+        const query = encodeURIComponent(`${item.title} ${item.artist}`);
+        const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
 
-                    li.className = "song-item-card";
+        li.className = "song-item-card";
+        
+        // --- ADD THESE TWO LINES ---
+        li.title = "Click to remove and return to playlist";
+        li.onclick = () => unpickSong(index);
+        // ---------------------------
 
-                    li.innerHTML = `
-                        <div class="song-left">
-                            <span class="song-number">${index + 1}</span>
-                            <div class="song-info">
-                                <span class="song-title">${item.title}</span>
-                                <span class="song-artist">${item.artist}</span>
-                            </div>
-                        </div>
-                        <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="fa-brands fa-youtube yt-icon" title="Listen on YouTube"></a>
-                    `;
-                    selectedListElement.appendChild(li);
-                });
-            }
-        }
+        li.innerHTML = `
+            <div class="song-left">
+                <span class="song-number">${index + 1}</span>
+                <div class="song-info">
+                    <span class="song-title">${item.title}</span>
+                    <span class="song-artist">${item.artist}</span>
+                </div>
+            </div>
+            <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="fa-brands fa-youtube yt-icon" title="Listen on YouTube" onclick="event.stopPropagation();"></a>
+        `;
+        selectedListElement.appendChild(li);
+    });
+}
+            
+        
 
         loadPlaylist();
     </script>
