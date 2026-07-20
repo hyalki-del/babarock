@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baba Rock - Playlist</title>
+    <title>Baba Rock - Rehearsal Playlist</title>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -48,11 +48,17 @@
 
         .header {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
             margin-bottom: 20px;
             border-bottom: 1px solid #222222;
             padding-bottom: 15px;
+        }
+
+        .header-title-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
         .header h1 {
@@ -65,6 +71,23 @@
 
         .header h1 i {
             color: #ff4500;
+        }
+
+        /* Rehearsal Topic Symbol & Badge */
+        .rehearsal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 700;
+            color: #ff4500;
+            background: rgba(255, 69, 0, 0.1);
+            border: 1px solid rgba(255, 69, 0, 0.3);
+            padding: 3px 8px;
+            border-radius: 6px;
+            width: fit-content;
         }
 
         .header-actions {
@@ -222,7 +245,11 @@
         <!-- Left Column: Available Songs -->
         <div class="playlist-card">
             <div class="header">
-                <h1><i class="fa-solid fa-music"></i> Playlist</h1>
+                <div class="header-title-container">
+                    <h1><i class="fa-solid fa-music"></i> Playlist</h1>
+                    <!-- Rehearsal Topic Symbol -->
+                    <span class="rehearsal-badge"><i class="fa-solid fa-microphone-lines"></i> Rehearsal</span>
+                </div>
                 <div class="header-actions">
                     <button class="btn-shuffle" id="shuffleBtn" onclick="shufflePlaylist()">
                         <i class="fa-solid fa-shuffle"></i> Shuffle
@@ -236,7 +263,11 @@
         <!-- Right Column: Picked Songs -->
         <div class="selected-card">
             <div class="header">
-                <h1><i class="fa-solid fa-circle-check"></i> Selected</h1>
+                <div class="header-title-container">
+                    <h1><i class="fa-solid fa-circle-check"></i> Selected</h1>
+                    <!-- Rehearsal Topic Symbol -->
+                    <span class="rehearsal-badge"><i class="fa-solid fa-drum"></i> Setlist</span>
+                </div>
                 <span class="song-count" id="selectedCount">0 Songs</span>
             </div>
             <ul class="song-list" id="selectedList"></ul>
@@ -260,7 +291,6 @@
             }
         }
 
-        // Fisher-Yates shuffle algorithm to randomize remaining songs
         function shufflePlaylist() {
             if (availablePlaylist.length <= 1) return;
 
