@@ -225,64 +225,85 @@
             }
         }
 
-        async function generateRecommendations() {
-            if (!playlist || playlist.length === 0) return;
+       async function generateRecommendations() {
+    if (!playlist || playlist.length === 0) return;
 
-            const recList = document.getElementById("recList");
-            const seedTitle = document.getElementById("seedTitle");
-            const seedArtist = document.getElementById("seedArtist");
+    const recList = document.getElementById("recList");
+    const seedTitle = document.getElementById("seedTitle");
+    const seedArtist = document.getElementById("seedArtist");
 
-            // Pick a random seed track from your existing playlist
-            const seed = playlist[Math.floor(Math.random() * playlist.length)];
-            seedTitle.textContent = seed.title;
-            seedArtist.textContent = seed.artist;
+    // Clean up title (remove things like "(Live)", "[Remastered]", etc.)
+    const seed = playlist[Math.floor(Math.random() * playlist.length)];
+    const cleanTitle = seed.title.replace(/\(.*?\)|\[.*?\]/g, '').trim();
+    const cleanArtist = seed.artist.replace(/\(.*?\)|\[.*?\]/g, '').trim();
 
-            recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Searching Last.fm catalog...</span></li>`;
+    seedTitle.textContent = seed.title;
+    seedArtist.textContent = seed.artist;
 
-            try {
-                const url = `https://ws.audioscrobbler.com/2.0/?method=track.getsimilar&artist=${encodeURIComponent(seed.artist)}&track=${encodeURIComponent(seed.title)}&api_key=${LASTFM_API_KEY}&format=json&limit=5`;
-                const res = await fetch(url);
-                const data = await res.json();
+    recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Searching for recommendations...</span></li>`;
 
-                const tracks = data.similartracks?.track || [];
-                recList.innerHTML = "";
+    try {
+        // 1. First attempt: Search for Similar Tracks
+        let trackUrl = `https://ws.audioscrobbler.com/2.0/?method=track.getsimilar&artist=${encodeURIComponent(cleanArtist)}&track=${encodeURIComponent(cleanTitle)}&api_key=${LASTFM_API_KEY}&format=json&limit=5`;
+        let res = await fetch(trackUrl);
+        let data = await res.json();
+        let tracks = data.similartracks?.track || [];
 
-                if (tracks.length === 0) {
-                    recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">No similar tracks found for this song. Try again!</span></li>`;
-                    return;
+        // 2. Fallback: If no similar tracks, search for Similar Artists instead
+        if (tracks.length === 0) {
+            let artistUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=${encodeURIComponent(cleanArtist)}&api_key=${LASTFM_API_KEY}&format=json&limit=3`;
+            let artistRes = await fetch(artistUrl);
+            let artistData = await artistRes.json();
+            let similarArtists = artistData.similarartists?.artist || [];
+
+            // Fetch top track for each similar artist
+            for (let artist of similarArtists) {
+                let topTrackUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=${encodeURIComponent(artist.name)}&api_key=${LASTFM_API_KEY}&format=json&limit=1`;
+                let topRes = await fetch(topTrackUrl);
+                let topData = await topRes.json();
+                let topTrack = topData.toptracks?.track?.[0];
+
+                if (topTrack) {
+                    tracks.push({
+                        name: topTrack.name,
+                        artist: { name: artist.name }
+                    });
                 }
-
-                // Filter out songs that are already inside your playlist.json
-                const externalTracks = tracks.filter(t => 
-                    !playlist.some(p => p.title.toLowerCase() === t.name.toLowerCase())
-                );
-
-                const finalTracks = externalTracks.length > 0 ? externalTracks : tracks;
-
-                finalTracks.slice(0, 5).forEach(t => {
-                    const songName = t.name;
-                    const artistName = t.artist.name;
-                    const query = encodeURIComponent(`${songName} ${artistName}`);
-                    const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
-
-                    const li = document.createElement("li");
-                    li.innerHTML = `
-                        <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="rec-item" title="Listen on YouTube">
-                            <div class="rec-info">
-                                <span class="rec-song-title">${songName}</span>
-                                <span class="rec-song-artist">${artistName}</span>
-                            </div>
-                            <i class="fa-brands fa-youtube yt-icon"></i>
-                        </a>
-                    `;
-                    recList.appendChild(li);
-                });
-
-            } catch (err) {
-                console.error(err);
-                recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Unable to fetch recommendations right now.</span></li>`;
             }
         }
+
+        recList.innerHTML = "";
+
+        if (tracks.length === 0) {
+            recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">No similar tracks found. Click "Find Similar Songs" to try another track!</span></li>`;
+            return;
+        }
+
+        // Render the result list
+        tracks.slice(0, 5).forEach(t => {
+            const songName = t.name;
+            const artistName = typeof t.artist === 'string' ? t.artist : t.artist.name;
+            const query = encodeURIComponent(`${songName} ${artistName}`);
+            const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
+
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="rec-item" title="Listen on YouTube">
+                    <div class="rec-info">
+                        <span class="rec-song-title">${songName}</span>
+                        <span class="rec-song-artist">${artistName}</span>
+                    </div>
+                    <i class="fa-brands fa-youtube yt-icon"></i>
+                </a>
+            `;
+            recList.appendChild(li);
+        });
+
+    } catch (err) {
+        console.error(err);
+        recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Unable to fetch recommendations right now.</span></li>`;
+    }
+}
 
         init();
     </script>
