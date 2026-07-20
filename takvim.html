@@ -207,7 +207,8 @@
                 btn.onclick = () => toggleDate(dateTarget);
 
                 btn.innerHTML = `
-                    <span class="text-sm font-semibold ${isFree ? 'text-[#34c759]' : 'text-gray-400'}">${day}</span>
+                   // YENİ HALİ: Boş günlerde yeşil (#34c759), en az bir kişi seçtiyse kırmızı (#ff3b30) yapar.
+                    <span class="text-sm font-semibold ${isFree ? 'text-[#34c759]' : 'text-[#ff3b30]'}">${day}</span>
                     <div class="flex flex-wrap gap-1 mt-2">
                         ${busyMembers.map(k => `<span class="text-[9px] px-1.5 py-0.5 rounded-md font-bold text-white uppercase ${membersInfo[k].color}">${membersInfo[k].name[0]}</span>`).join('')}
                     </div>
