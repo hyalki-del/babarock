@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baba Rock</title>
-    <!-- Font Awesome for crisp icons -->
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         /* Base Reset & Dark Metal Theme Styling */
         * {
@@ -41,14 +42,23 @@
         /* Logo Configuration */
         .logo-container {
             margin-bottom: 35px;
+            height: 280px; /* Görsellerin taşmasını ve kaymasını engeller */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
 
         .logo-img {
             max-width: 260px;
-            width: 100%;
+            max-height: 280px;
+            width: auto;
             height: auto;
-            border-radius: 8px;
-            display: inline-block;
+            object-fit: contain;
+            border-radius: 12px;
+            display: block;
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
         }
 
         /* Interactive Navigation Setup */
@@ -99,9 +109,9 @@
 <body>
 
     <div class="welcome-card">
-        <!-- Top Logo using GitHub Pages distribution link -->
+        <!-- Top Logo Container -->
         <div class="logo-container">
-            <img src="https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg" alt="Baba Rock Logo" class="logo-img">
+            <img id="randomLogo" src="https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg" alt="Baba Rock Logo" class="logo-img">
         </div>
 
         <!-- Links Grid Layout -->
@@ -119,6 +129,46 @@
             </a>
         </nav>
     </div>
+
+    <script>
+        const images = [
+            "https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg",
+            "https://hyalki-del.github.io/babarock/b1.jpg",
+            "https://hyalki-del.github.io/babarock/b2.jpg",
+            "https://hyalki-del.github.io/babarock/b3.jpg",
+            "https://hyalki-del.github.io/babarock/b4.jpg",
+            "https://hyalki-del.github.io/babarock/b5.jpg",
+            "https://hyalki-del.github.io/babarock/b6.jpg",
+            "https://hyalki-del.github.io/babarock/b7.jpg"
+        ];
+
+        // Resimleri önceden belleğe al
+        images.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+
+        // Sayfa açıldığında rastgele sırala
+        const shuffledImages = [...images].sort(() => Math.random() - 0.5);
+
+        let currentIndex = 0;
+        const logoImg = document.getElementById("randomLogo");
+
+        if (logoImg && shuffledImages.length > 0) {
+            logoImg.src = shuffledImages[currentIndex];
+
+            setInterval(() => {
+                logoImg.style.opacity = "0";
+
+                setTimeout(() => {
+                    currentIndex = (currentIndex + 1) % shuffledImages.length;
+                    logoImg.src = shuffledImages[currentIndex];
+                    logoImg.style.opacity = "1";
+                }, 500);
+
+            }, 2500);
+        }
+    </script>
 
 </body>
 </html>
