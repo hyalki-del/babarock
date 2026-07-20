@@ -1,63 +1,236 @@
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baba Rock - Song Advisor</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0c0c0c;
+            background: radial-gradient(circle, #161616 0%, #070707 100%);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+        }
+
+        .advisor-card {
+            max-width: 520px;
+            width: 100%;
+            background: #121212;
+            padding: 30px 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            border: 1px solid #222222;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #222222;
+            padding-bottom: 15px;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #ffffff;
+        }
+
+        .header h1 i {
+            color: #ff4500;
+        }
+
+        .header p {
+            font-size: 0.85rem;
+            color: #888888;
+            margin-top: 6px;
+        }
+
+        /* Seed Banner */
+        .seed-box {
+            background: #1a1a1a;
+            border: 1px solid #282828;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .seed-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #ff4500;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .seed-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .seed-artist {
+            font-size: 0.85rem;
+            color: #a0a0a0;
+        }
+
+        /* Recommendation List */
+        .recommendations-title {
+            font-size: 0.9rem;
+            color: #888888;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rec-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .rec-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1a1a1a;
+            border: 1px solid #282828;
+            padding: 12px 16px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: inherit;
+            transition: border-color 0.25s ease, background-color 0.25s ease;
+        }
+
+        .rec-item:hover {
+            border-color: #ff4500;
+            background-color: #222222;
+        }
+
+        .rec-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            flex-grow: 1;
+        }
+
+        .rec-song-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rec-song-artist {
+            font-size: 0.8rem;
+            color: #a0a0a0;
+            margin-top: 2px;
+        }
+
+        .yt-icon {
+            color: #ff0000;
+            font-size: 1.2rem;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+
+        /* Controls */
+        .action-btn {
+            width: 100%;
+            background: #ff4500;
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background-color 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #e03d00;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="advisor-card">
+        <div class="header">
+            <h1><i class="fa-solid fa-compact-disc"></i> Song Advisor</h1>
+            <p>Finds related tracks based on your playlist.</p>
+        </div>
+
+        <div class="seed-box">
+            <div class="seed-label">Based on your playlist song:</div>
+            <div class="seed-title" id="seedTitle">Loading playlist...</div>
+            <div class="seed-artist" id="seedArtist">---</div>
+        </div>
+
+        <div class="recommendations-title">
+            <i class="fa-solid fa-music"></i> Recommended Tracks:
+        </div>
+
+        <ul class="rec-list" id="recList">
+            <li class="rec-item"><span class="rec-song-artist">Click below to fetch recommendations.</span></li>
+        </ul>
+
+        <button class="action-btn" id="findBtn" onclick="generateRecommendations()">
+            <i class="fa-solid fa-compass"></i> Find Similar Songs
+        </button>
+    </div>
+
+    <script>
         let playlist = [];
 
         async function init() {
             try {
                 const res = await fetch("./playlist.json");
                 playlist = await res.json();
-                if (playlist.length > 0) {
+                if (playlist && playlist.length > 0) {
                     generateRecommendations();
+                } else {
+                    document.getElementById("seedTitle").textContent = "Playlist is empty";
                 }
             } catch (err) {
-                console.error(err);
-                document.getElementById("seedTitle").textContent = "Error loading playlist";
+                console.error("Failed to load playlist.json", err);
+                document.getElementById("seedTitle").textContent = "Error loading playlist.json";
             }
         }
 
         function cleanText(text) {
-            return text
+            if (!text) return "";
+            return String(text)
                 .replace(/\(.*?\)|\[.*?\]/g, '')
                 .replace(/-(.*)(Remaster|Live|Deluxe|Version).*/i, '')
                 .trim();
-        }
-
-        // Fetch YouTube Auto-Suggest via JSONP (No CORS proxy required)
-        function fetchYTSuggestionsJSONP(query) {
-            return new Promise((resolve) => {
-                const callbackName = 'yt_callback_' + Math.random().toString(36).substring(2, 9);
-                const script = document.createElement('script');
-                
-                // Set timeout safety in case request drops
-                const timeout = setTimeout(() => {
-                    cleanup();
-                    resolve([]);
-                }, 3000);
-
-                function cleanup() {
-                    clearTimeout(timeout);
-                    if (window[callbackName]) delete window[callbackName];
-                    if (script.parentNode) script.parentNode.removeChild(script);
-                }
-
-                window[callbackName] = function(data) {
-                    cleanup();
-                    if (data && data[1]) {
-                        // Extract array of suggestion strings
-                        const results = data[1].map(item => Array.isArray(item) ? item[0] : item);
-                        resolve(results);
-                    } else {
-                        resolve([]);
-                    }
-                };
-
-                script.src = `https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}&jsonp=${callbackName}`;
-                script.onerror = () => {
-                    cleanup();
-                    resolve([]);
-                };
-
-                document.body.appendChild(script);
-            });
         }
 
         async function generateRecommendations() {
@@ -67,55 +240,61 @@
             const seedTitle = document.getElementById("seedTitle");
             const seedArtist = document.getElementById("seedArtist");
 
-            // Pick random seed from playlist
+            // Pick a random song from playlist
             const seed = playlist[Math.floor(Math.random() * playlist.length)];
-            const cleanTitleStr = cleanText(seed.title);
             const cleanArtistStr = cleanText(seed.artist);
+            const cleanTitleStr = cleanText(seed.title);
 
             seedTitle.textContent = seed.title;
             seedArtist.textContent = seed.artist;
 
-            recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Fetching YouTube suggestions...</span></li>`;
+            recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Fetching related tracks...</span></li>`;
 
-            // Query YouTube Auto-Complete
-            const primaryQuery = `${cleanArtistStr} ${cleanTitleStr} similar`;
-            let suggestions = await fetchYTSuggestionsJSONP(primaryQuery);
+            try {
+                // Fetch tracks by artist from iTunes Search API (CORS friendly)
+                const queryUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(cleanArtistStr)}&entity=song&limit=10`;
+                const res = await fetch(queryUrl);
+                const data = await res.json();
 
-            if (suggestions.length < 3) {
-                const secondary = await fetchYTSuggestionsJSONP(`songs like ${cleanArtistStr}`);
-                suggestions = [...suggestions, ...secondary];
+                let results = data.results || [];
+
+                // Exclude current track title
+                let tracks = results
+                    .filter(item => item.trackName.toLowerCase() !== cleanTitleStr.toLowerCase())
+                    .map(item => ({
+                        title: item.trackName,
+                        artist: item.artistName
+                    }));
+
+                renderTracks(tracks);
+            } catch (err) {
+                console.error("Fetch error:", err);
+                recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Unable to fetch suggestions right now.</span></li>`;
             }
-
-            // Fallback: If YouTube suggestions are too short, generate direct YouTube search links
-            if (suggestions.length === 0) {
-                suggestions = [
-                    `${cleanArtistStr} best songs`,
-                    `${cleanArtistStr} similar bands`,
-                    `Bands like ${cleanArtistStr}`,
-                    `${cleanArtistStr} live performance`,
-                    `${cleanArtistStr} full album`
-                ];
-            }
-
-            // Remove duplicate entries
-            const uniqueSuggestions = [...new Set(suggestions)];
-            renderResults(uniqueSuggestions);
         }
 
-        function renderResults(suggestions) {
+        function renderTracks(tracks) {
             const recList = document.getElementById("recList");
             recList.innerHTML = "";
 
-            suggestions.slice(0, 5).forEach(phrase => {
-                const query = encodeURIComponent(phrase);
+            if (!tracks || tracks.length === 0) {
+                recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">No matching tracks found. Try again!</span></li>`;
+                return;
+            }
+
+            // Pick 5 random items from results
+            const shuffled = tracks.sort(() => 0.5 - Math.random()).slice(0, 5);
+
+            shuffled.forEach(t => {
+                const query = encodeURIComponent(`${t.title} ${t.artist}`);
                 const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
 
                 const li = document.createElement("li");
                 li.innerHTML = `
-                    <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="rec-item" title="Open YouTube Search">
+                    <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="rec-item" title="Listen on YouTube">
                         <div class="rec-info">
-                            <span class="rec-song-title">${phrase}</span>
-                            <span class="rec-song-artist">Search on YouTube</span>
+                            <span class="rec-song-title">${t.title}</span>
+                            <span class="rec-song-artist">${t.artist}</span>
                         </div>
                         <i class="fa-brands fa-youtube yt-icon"></i>
                     </a>
@@ -124,5 +303,8 @@
             });
         }
 
-        init();
+        window.onload = init;
     </script>
+
+</body>
+</html>
