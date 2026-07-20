@@ -235,7 +235,7 @@
             displayBox.classList.add("shuffling");
 
             toggleBtn.className = "action-btn stop-state";
-            toggleBtn.innerHTML = `<i class="fa-solid fa-hand"></i> <span>Stop</span>`;
+            toggleBtn.innerHTML = `<i class="fa-solid fa-hand"></i> <span>SEÇ</span>`;
 
             shuffleInterval = setInterval(() => {
                 const tempSong = playlist[Math.floor(Math.random() * playlist.length)];
@@ -266,7 +266,7 @@
             ytBtn.classList.remove("disabled");
 
             toggleBtn.className = "action-btn";
-            toggleBtn.innerHTML = `<i class="fa-solid fa-shuffle"></i> <span>Pick Again</span>`;
+            toggleBtn.innerHTML = `<i class="fa-solid fa-shuffle"></i> <span>YENİLE</span>`;
         }
 
         init();
