@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baba Rock - Song Advisor</title>
+    <title>Baba Rock - Genre & Style Advisor</title>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -90,6 +90,19 @@
         .seed-artist {
             font-size: 0.85rem;
             color: #a0a0a0;
+        }
+
+        .genre-tag {
+            display: inline-block;
+            margin-top: 8px;
+            background: #2a1810;
+            color: #ff8555;
+            border: 1px solid #ff4500;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: capitalize;
         }
 
         /* Recommendation List */
@@ -184,26 +197,27 @@
 
     <div class="advisor-card">
         <div class="header">
-            <h1><i class="fa-solid fa-compact-disc"></i> Song Advisor</h1>
-            <p>Finds related tracks based on your playlist.</p>
+            <h1><i class="fa-solid fa-guitar"></i> Style & Genre Advisor</h1>
+            <p>Discovers other artists matching the genre and era of your track.</p>
         </div>
 
         <div class="seed-box">
             <div class="seed-label">Based on your playlist song:</div>
             <div class="seed-title" id="seedTitle">Loading playlist...</div>
             <div class="seed-artist" id="seedArtist">---</div>
+            <div id="genreContainer"></div>
         </div>
 
         <div class="recommendations-title">
-            <i class="fa-solid fa-music"></i> Recommended Tracks:
+            <i class="fa-solid fa-compact-disc"></i> Similar Style & Era Tracks:
         </div>
 
         <ul class="rec-list" id="recList">
-            <li class="rec-item"><span class="rec-song-artist">Click below to fetch recommendations.</span></li>
+            <li class="rec-item"><span class="rec-song-artist">Click below to find similar style tracks.</span></li>
         </ul>
 
         <button class="action-btn" id="findBtn" onclick="generateRecommendations()">
-            <i class="fa-solid fa-compass"></i> Find Similar Songs
+            <i class="fa-solid fa-compass"></i> Find Style-Matched Songs
         </button>
     </div>
 
@@ -239,37 +253,76 @@
             const recList = document.getElementById("recList");
             const seedTitle = document.getElementById("seedTitle");
             const seedArtist = document.getElementById("seedArtist");
+            const genreContainer = document.getElementById("genreContainer");
 
             // Pick a random song from playlist
             const seed = playlist[Math.floor(Math.random() * playlist.length)];
             const cleanArtistStr = cleanText(seed.artist);
-            const cleanTitleStr = cleanText(seed.title);
 
             seedTitle.textContent = seed.title;
             seedArtist.textContent = seed.artist;
+            genreContainer.innerHTML = "";
 
-            recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Fetching related tracks...</span></li>`;
+            recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Analyzing genre and era tags...</span></li>`;
 
             try {
-                // Fetch tracks by artist from iTunes Search API (CORS friendly)
-                const queryUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(cleanArtistStr)}&entity=song&limit=10`;
-                const res = await fetch(queryUrl);
-                const data = await res.json();
+                // 1. Fetch artist details from MusicBrainz to get genre tags
+                const mbUrl = `https://musicbrainz.org/ws/2/artist/?query=artist:${encodeURIComponent(cleanArtistStr)}&fmt=json`;
+                const mbRes = await fetch(mbUrl);
+                const mbData = await mbRes.json();
 
-                let results = data.results || [];
+                let detectedGenre = "rock";
+                if (mbData.artists && mbData.artists.length > 0) {
+                    const artistObj = mbData.artists[0];
+                    if (artistObj.tags && artistObj.tags.length > 0) {
+                        // Pick highest-voted genre tag
+                        detectedGenre = artistObj.tags.sort((a, b) => b.count - a.count)[0].name;
+                    }
+                }
 
-                // Exclude current track title
-                let tracks = results
-                    .filter(item => item.trackName.toLowerCase() !== cleanTitleStr.toLowerCase())
-                    .map(item => ({
-                        title: item.trackName,
-                        artist: item.artistName
-                    }));
+                genreContainer.innerHTML = `<span class="genre-tag"><i class="fa-solid fa-tag"></i> ${detectedGenre}</span>`;
 
-                renderTracks(tracks);
+                // 2. Query MusicBrainz for OTHER bands under the same genre tag
+                const genreQueryUrl = `https://musicbrainz.org/ws/2/artist/?query=tag:${encodeURIComponent(detectedGenre)}&fmt=json&limit=15`;
+                const genreRes = await fetch(genreQueryUrl);
+                const genreData = await genreRes.json();
+
+                let matchedArtists = (genreData.artists || [])
+                    .map(a => a.name)
+                    // Exclude the current band from seed
+                    .filter(name => name.toLowerCase() !== cleanArtistStr.toLowerCase());
+
+                if (matchedArtists.length === 0) {
+                    matchedArtists = ["Deep Purple", "Black Sabbath", "Judas Priest", "Rainbow", "Motorhead"];
+                }
+
+                // Pick 3-5 random bands from matching genre
+                const selectedBands = matchedArtists.sort(() => 0.5 - Math.random()).slice(0, 5);
+
+                // 3. Get top tracks for those genre-matched bands via iTunes API
+                let recTracks = [];
+                for (let band of selectedBands) {
+                    try {
+                        const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(band)}&entity=song&limit=1`;
+                        const iRes = await fetch(itunesUrl);
+                        const iData = await iRes.json();
+
+                        if (iData.results && iData.results.length > 0) {
+                            recTracks.push({
+                                title: iData.results[0].trackName,
+                                artist: band
+                            });
+                        }
+                    } catch (e) {
+                        console.warn("Failed fetching track for band", band);
+                    }
+                }
+
+                renderTracks(recTracks);
+
             } catch (err) {
-                console.error("Fetch error:", err);
-                recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Unable to fetch suggestions right now.</span></li>`;
+                console.error("Style matching error:", err);
+                recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Unable to fetch genre suggestions right now.</span></li>`;
             }
         }
 
@@ -282,10 +335,7 @@
                 return;
             }
 
-            // Pick 5 random items from results
-            const shuffled = tracks.sort(() => 0.5 - Math.random()).slice(0, 5);
-
-            shuffled.forEach(t => {
+            tracks.forEach(t => {
                 const query = encodeURIComponent(`${t.title} ${t.artist}`);
                 const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
 
