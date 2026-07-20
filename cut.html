@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baba Rock - Song Advisor</title>
+    <title>Baba Rock - Şarkı seçici</title>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -74,7 +74,11 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: border-color 0.3s ease;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .song-display-box.shuffling {
+            border-color: #ff9500;
         }
 
         .song-display-box.active {
@@ -102,7 +106,7 @@
             gap: 12px;
         }
 
-        .pick-btn {
+        .action-btn {
             background: #ff4500;
             color: #ffffff;
             border: none;
@@ -118,13 +122,21 @@
             transition: background-color 0.2s ease, transform 0.1s ease;
         }
 
-        .pick-btn:hover {
+        .action-btn:hover {
             background: #e03d00;
             transform: translateY(-1px);
         }
 
-        .pick-btn:active {
+        .action-btn:active {
             transform: translateY(0);
+        }
+
+        .action-btn.stop-state {
+            background: #d32f2f;
+        }
+
+        .action-btn.stop-state:hover {
+            background: #b71c1c;
         }
 
         .yt-btn {
@@ -162,18 +174,18 @@
 
     <div class="advisor-card">
         <div class="header">
-            <h1><i class="fa-solid fa-dice"></i> Song Advisor</h1>
-            <p>Need something to play or listen to? Let randomness decide.</p>
+            <h1><i class="fa-solid fa-dice"></i> Şarkı seçici</h1>
+            <p>Sıradaki şarkı hangisi?</p>
         </div>
 
         <div class="song-display-box" id="displayBox">
-            <div class="display-title" id="songTitle">Press the button below</div>
-            <div class="display-artist" id="songArtist">to pick a song from your list</div>
+            <div class="display-title" id="songTitle">Aşağıdaki düğmeye bas</div>
+            <div class="display-artist" id="songArtist">Şarkı seçmek için</div>
         </div>
 
         <div class="controls">
-            <button class="pick-btn" id="pickBtn" onclick="pickRandomSong()">
-                <i class="fa-solid fa-shuffle"></i> Pick a Song
+            <button class="action-btn" id="toggleBtn" onclick="handleToggle()">
+                <i class="fa-solid fa-shuffle"></i> <span>Bir şarkı seç</span>
             </button>
             
             <a href="#" target="_blank" rel="noopener noreferrer" class="yt-btn disabled" id="ytBtn">
@@ -184,8 +196,9 @@
 
     <script>
         let playlist = [];
+        let shuffleInterval = null;
+        let isShuffling = false;
 
-        // Load songs from playlist.json
         async function init() {
             try {
                 const res = await fetch("./playlist.json");
@@ -196,49 +209,64 @@
             }
         }
 
-        function pickRandomSong() {
+        function handleToggle() {
             if (!playlist || playlist.length === 0) {
                 document.getElementById("songTitle").textContent = "No songs found in playlist.json";
                 return;
             }
 
+            if (!isShuffling) {
+                startShuffle();
+            } else {
+                stopShuffle();
+            }
+        }
+
+        function startShuffle() {
+            isShuffling = true;
             const titleEl = document.getElementById("songTitle");
             const artistEl = document.getElementById("songArtist");
             const displayBox = document.getElementById("displayBox");
+            const toggleBtn = document.getElementById("toggleBtn");
             const ytBtn = document.getElementById("ytBtn");
-            const pickBtn = document.getElementById("pickBtn");
 
-            pickBtn.disabled = true;
             ytBtn.classList.add("disabled");
             displayBox.classList.remove("active");
+            displayBox.classList.add("shuffling");
 
-            // Slot machine shuffle animation effect
-            let counter = 0;
-            const maxCycles = 15;
-            const interval = setInterval(() => {
+            toggleBtn.className = "action-btn stop-state";
+            toggleBtn.innerHTML = `<i class="fa-solid fa-hand"></i> <span>Stop</span>`;
+
+            shuffleInterval = setInterval(() => {
                 const tempSong = playlist[Math.floor(Math.random() * playlist.length)];
                 titleEl.textContent = tempSong.title;
                 artistEl.textContent = tempSong.artist;
-                counter++;
+            }, 50);
+        }
 
-                if (counter >= maxCycles) {
-                    clearInterval(interval);
-                    
-                    // Final selected song
-                    const selectedSong = playlist[Math.floor(Math.random() * playlist.length)];
-                    titleEl.textContent = selectedSong.title;
-                    artistEl.textContent = selectedSong.artist;
+        function stopShuffle() {
+            clearInterval(shuffleInterval);
+            isShuffling = false;
 
-                    // Set up YouTube search URL
-                    const query = encodeURIComponent(`${selectedSong.title} ${selectedSong.artist}`);
-                    ytBtn.href = `https://www.youtube.com/results?search_query=${query}`;
-                    
-                    // Enable buttons and apply highlighting
-                    ytBtn.classList.remove("disabled");
-                    displayBox.classList.add("active");
-                    pickBtn.disabled = false;
-                }
-            }, 60);
+            const titleEl = document.getElementById("songTitle");
+            const artistEl = document.getElementById("songArtist");
+            const displayBox = document.getElementById("displayBox");
+            const toggleBtn = document.getElementById("toggleBtn");
+            const ytBtn = document.getElementById("ytBtn");
+
+            const selectedSong = playlist[Math.floor(Math.random() * playlist.length)];
+            titleEl.textContent = selectedSong.title;
+            artistEl.textContent = selectedSong.artist;
+
+            const query = encodeURIComponent(`${selectedSong.title} ${selectedSong.artist}`);
+            ytBtn.href = `https://www.youtube.com/results?search_query=${query}`;
+            
+            displayBox.classList.remove("shuffling");
+            displayBox.classList.add("active");
+            ytBtn.classList.remove("disabled");
+
+            toggleBtn.className = "action-btn";
+            toggleBtn.innerHTML = `<i class="fa-solid fa-shuffle"></i> <span>Pick Again</span>`;
         }
 
         init();
