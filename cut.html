@@ -38,6 +38,139 @@
             border: 1px solid #222222;
         }
 
+        /* Logo Configuration - Orijinal Sade Boyutlar */
+        .logo-container {
+            margin-bottom: 35px;
+            height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-img {
+            max-width: 260px;
+            max-height: 160px;
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            border-radius: 8px;
+            display: inline-block;
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        /* Interactive Navigation Setup */
+        .navigation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .action-button {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            background: #1a1a1a;
+            border: 2px solid #282828;
+            border-radius: 12px;
+            padding: 16px 20px;
+            color: #e5e5e5;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.25s ease;
+        }
+
+        .action-button i {
+            font-size: 1.4rem;
+            margin-right: 18px;
+            width: 28px;
+            text-align: center;
+            color: #ff4500; /* Fiery Orange Accent */
+        }
+
+        /* Hover states */
+        .action-button:hover {
+            color: #ffffff;
+            background: #222222;
+            border-color: #ff4500;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 68, 0, 0.15);
+        }
+
+        .action-button:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="welcome-card">
+        <!-- Top Logo Container -->
+        <div class="logo-container">
+            <img id="randomLogo" src="https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg" alt="Baba Rock Logo" class="logo-img">
+        </div>
+
+        <!-- Links Grid Layout -->
+        <nav class="navigation-list">
+            <!-- Calendar Navigation -->
+            <a href="https://hyalki-del.github.io/babarock/takvim.html" class="action-button" target="_blank" rel="noopener">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Takvim</span>
+            </a>
+
+            <!-- Playlist Navigation -->
+            <a href="https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r" class="action-button" target="_blank" rel="noopener">
+                <i class="fa-solid fa-music"></i>
+                <span>Playlist</span>
+            </a>
+        </nav>
+    </div>
+
+    <script>
+        const images = [
+            "https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg",
+            "https://hyalki-del.github.io/babarock/image_crop_to_bounds-0e9bcbad-74e8-4dcf-9bb4-189f2d3ed57c.jpg",
+            "https://hyalki-del.github.io/babarock/image_crop_to_bounds-1dab8ba5-f7c9-43b8-a53d-1b21ff3861e5.jpg",
+            "https://hyalki-del.github.io/babarock/image_crop_to_bounds-20e17c61-df2d-41f7-846a-cd8fc77e2617.jpg",
+            "https://hyalki-del.github.io/babarock/image_crop_to_bounds-21808ade-aca2-40ee-be63-38ee160acde1.jpg",
+            "https://hyalki-del.github.io/babarock/image_crop_to_bounds-2c8e3d92-d6bc-4c3f-9486-3f76a77acd97.jpg"
+        ];
+
+        // Resimleri önceden yükleme
+        images.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+
+        // Sayfa açılışında karışık sıralama
+        const shuffledImages = [...images].sort(() => Math.random() - 0.5);
+
+        let currentIndex = 0;
+        const logoImg = document.getElementById("randomLogo");
+
+        if (logoImg && shuffledImages.length > 0) {
+            logoImg.src = shuffledImages[currentIndex];
+
+            setInterval(() => {
+                logoImg.style.opacity = "0";
+
+                setTimeout(() => {
+                    currentIndex = (currentIndex + 1) % shuffledImages.length;
+                    logoImg.src = shuffledImages[currentIndex];
+                    logoImg.style.opacity = "1";
+                }, 500);
+
+            }, 2500);
+        }
+    </script>
+
+</body>
+</html>            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            border: 1px solid #222222;
+        }
+
         /* Logo Configuration */
         .logo-container {
             margin-bottom: 35px;
