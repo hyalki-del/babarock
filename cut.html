@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baba Rock - Şarkı seçici</title>
+    <title>Baba Rock - Similar Song Advisor</title>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -22,23 +22,23 @@
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 20px;
+            align-items: flex-start;
+            padding: 40px 20px;
         }
 
         .advisor-card {
-            max-width: 440px;
+            max-width: 520px;
             width: 100%;
             background: #121212;
-            padding: 35px 25px;
+            padding: 30px 25px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             border: 1px solid #222222;
-            text-align: center;
         }
 
         .header {
-            margin-bottom: 25px;
+            text-align: center;
+            margin-bottom: 20px;
             border-bottom: 1px solid #222222;
             padding-bottom: 15px;
         }
@@ -62,51 +62,104 @@
             margin-top: 6px;
         }
 
-        /* Song Result Display Box */
-        .song-display-box {
+        /* Seed Banner */
+        .seed-box {
             background: #1a1a1a;
-            border: 2px solid #282828;
+            border: 1px solid #282828;
             border-radius: 12px;
-            padding: 25px 15px;
-            margin-bottom: 25px;
-            min-height: 130px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: center;
         }
 
-        .song-display-box.shuffling {
-            border-color: #ff9500;
-        }
-
-        .song-display-box.active {
-            border-color: #ff4500;
-            box-shadow: 0 0 15px rgba(255, 69, 0, 0.2);
-        }
-
-        .display-title {
-            font-size: 1.15rem;
+        .seed-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #ff4500;
             font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 6px;
-            word-break: break-word;
+            margin-bottom: 4px;
         }
 
-        .display-artist {
-            font-size: 0.95rem;
+        .seed-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .seed-artist {
+            font-size: 0.85rem;
             color: #a0a0a0;
         }
 
-        /* Action Buttons */
-        .controls {
+        /* Recommendation List */
+        .recommendations-title {
+            font-size: 0.9rem;
+            color: #888888;
+            margin-bottom: 12px;
             display: flex;
-            flex-direction: column;
-            gap: 12px;
+            align-items: center;
+            gap: 8px;
         }
 
+        .rec-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .rec-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1a1a1a;
+            border: 1px solid #282828;
+            padding: 12px 16px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: inherit;
+            transition: border-color 0.25s ease, background-color 0.25s ease;
+        }
+
+        .rec-item:hover {
+            border-color: #ff4500;
+            background-color: #222222;
+        }
+
+        .rec-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            flex-grow: 1;
+        }
+
+        .rec-song-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rec-song-artist {
+            font-size: 0.8rem;
+            color: #a0a0a0;
+            margin-top: 2px;
+        }
+
+        .yt-icon {
+            color: #ff0000;
+            font-size: 1.2rem;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+
+        /* Controls */
         .action-btn {
+            width: 100%;
             background: #ff4500;
             color: #ffffff;
             border: none;
@@ -119,54 +172,11 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            transition: background-color 0.2s ease, transform 0.1s ease;
+            transition: background-color 0.2s ease;
         }
 
         .action-btn:hover {
             background: #e03d00;
-            transform: translateY(-1px);
-        }
-
-        .action-btn:active {
-            transform: translateY(0);
-        }
-
-        .action-btn.stop-state {
-            background: #d32f2f;
-        }
-
-        .action-btn.stop-state:hover {
-            background: #b71c1c;
-        }
-
-        .yt-btn {
-            background: #222222;
-            color: #ffffff;
-            border: 1px solid #333333;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: background-color 0.2s ease, border-color 0.2s ease;
-        }
-
-        .yt-btn i {
-            color: #ff0000;
-        }
-
-        .yt-btn:hover {
-            background: #2a2a2a;
-            border-color: #ff4500;
-        }
-
-        .yt-btn.disabled {
-            opacity: 0.5;
-            pointer-events: none;
         }
     </style>
 </head>
@@ -174,99 +184,104 @@
 
     <div class="advisor-card">
         <div class="header">
-            <h1><i class="fa-solid fa-dice"></i> Sıradaki şarkı</h1>
-            <p>Sıradaki şarkı hangisi?</p>
+            <h1><i class="fa-solid fa-wand-magic-sparkles"></i> Similar Song Advisor</h1>
+            <p>Discovers songs outside your list matching your taste.</p>
         </div>
 
-        <div class="song-display-box" id="displayBox">
-            <div class="display-title" id="songTitle">Aşağıdaki düğmeye bas</div>
-            <div class="display-artist" id="songArtist">ŞARKI SEÇİMİ</div>
+        <div class="seed-box">
+            <div class="seed-label">Based on your playlist song:</div>
+            <div class="seed-title" id="seedTitle">Loading playlist...</div>
+            <div class="seed-artist" id="seedArtist">---</div>
         </div>
 
-        <div class="controls">
-            <button class="action-btn" id="toggleBtn" onclick="handleToggle()">
-                <i class="fa-solid fa-shuffle"></i> <span>Bir şarkı seç</span>
-            </button>
-            
-            <a href="#" target="_blank" rel="noopener noreferrer" class="yt-btn disabled" id="ytBtn">
-                <i class="fa-brands fa-youtube"></i> Search on YouTube
-            </a>
+        <div class="recommendations-title">
+            <i class="fa-solid fa-compact-disc"></i> Recommended Similar Tracks:
         </div>
+
+        <ul class="rec-list" id="recList">
+            <li class="rec-item"><span class="rec-song-artist">Click the button to get suggestions.</span></li>
+        </ul>
+
+        <button class="action-btn" id="findBtn" onclick="generateRecommendations()">
+            <i class="fa-solid fa-compass"></i> Find Similar Songs
+        </button>
     </div>
 
     <script>
+        // Shared public Last.fm API Key for metadata fetching
+        const LASTFM_API_KEY = "2d3de6028d7a1fb5f0967399589d8db1";
         let playlist = [];
-        let shuffleInterval = null;
-        let isShuffling = false;
 
         async function init() {
             try {
                 const res = await fetch("./playlist.json");
                 playlist = await res.json();
+                if (playlist.length > 0) {
+                    generateRecommendations();
+                }
             } catch (err) {
                 console.error(err);
-                document.getElementById("songTitle").textContent = "Error loading playlist";
+                document.getElementById("seedTitle").textContent = "Error loading playlist";
             }
         }
 
-        function handleToggle() {
-            if (!playlist || playlist.length === 0) {
-                document.getElementById("songTitle").textContent = "No songs found in playlist.json";
-                return;
+        async function generateRecommendations() {
+            if (!playlist || playlist.length === 0) return;
+
+            const recList = document.getElementById("recList");
+            const seedTitle = document.getElementById("seedTitle");
+            const seedArtist = document.getElementById("seedArtist");
+
+            // Pick a random seed track from your existing playlist
+            const seed = playlist[Math.floor(Math.random() * playlist.length)];
+            seedTitle.textContent = seed.title;
+            seedArtist.textContent = seed.artist;
+
+            recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Searching Last.fm catalog...</span></li>`;
+
+            try {
+                const url = `https://ws.audioscrobbler.com/2.0/?method=track.getsimilar&artist=${encodeURIComponent(seed.artist)}&track=${encodeURIComponent(seed.title)}&api_key=${LASTFM_API_KEY}&format=json&limit=5`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                const tracks = data.similartracks?.track || [];
+                recList.innerHTML = "";
+
+                if (tracks.length === 0) {
+                    recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">No similar tracks found for this song. Try again!</span></li>`;
+                    return;
+                }
+
+                // Filter out songs that are already inside your playlist.json
+                const externalTracks = tracks.filter(t => 
+                    !playlist.some(p => p.title.toLowerCase() === t.name.toLowerCase())
+                );
+
+                const finalTracks = externalTracks.length > 0 ? externalTracks : tracks;
+
+                finalTracks.slice(0, 5).forEach(t => {
+                    const songName = t.name;
+                    const artistName = t.artist.name;
+                    const query = encodeURIComponent(`${songName} ${artistName}`);
+                    const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
+
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                        <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="rec-item" title="Listen on YouTube">
+                            <div class="rec-info">
+                                <span class="rec-song-title">${songName}</span>
+                                <span class="rec-song-artist">${artistName}</span>
+                            </div>
+                            <i class="fa-brands fa-youtube yt-icon"></i>
+                        </a>
+                    `;
+                    recList.appendChild(li);
+                });
+
+            } catch (err) {
+                console.error(err);
+                recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Unable to fetch recommendations right now.</span></li>`;
             }
-
-            if (!isShuffling) {
-                startShuffle();
-            } else {
-                stopShuffle();
-            }
-        }
-
-        function startShuffle() {
-            isShuffling = true;
-            const titleEl = document.getElementById("songTitle");
-            const artistEl = document.getElementById("songArtist");
-            const displayBox = document.getElementById("displayBox");
-            const toggleBtn = document.getElementById("toggleBtn");
-            const ytBtn = document.getElementById("ytBtn");
-
-            ytBtn.classList.add("disabled");
-            displayBox.classList.remove("active");
-            displayBox.classList.add("shuffling");
-
-            toggleBtn.className = "action-btn stop-state";
-            toggleBtn.innerHTML = `<i class="fa-solid fa-hand"></i> <span>SEÇ</span>`;
-
-            shuffleInterval = setInterval(() => {
-                const tempSong = playlist[Math.floor(Math.random() * playlist.length)];
-                titleEl.textContent = tempSong.title;
-                artistEl.textContent = tempSong.artist;
-            }, 50);
-        }
-
-        function stopShuffle() {
-            clearInterval(shuffleInterval);
-            isShuffling = false;
-
-            const titleEl = document.getElementById("songTitle");
-            const artistEl = document.getElementById("songArtist");
-            const displayBox = document.getElementById("displayBox");
-            const toggleBtn = document.getElementById("toggleBtn");
-            const ytBtn = document.getElementById("ytBtn");
-
-            const selectedSong = playlist[Math.floor(Math.random() * playlist.length)];
-            titleEl.textContent = selectedSong.title;
-            artistEl.textContent = selectedSong.artist;
-
-            const query = encodeURIComponent(`${selectedSong.title} ${selectedSong.artist}`);
-            ytBtn.href = `https://www.youtube.com/results?search_query=${query}`;
-            
-            displayBox.classList.remove("shuffling");
-            displayBox.classList.add("active");
-            ytBtn.classList.remove("disabled");
-
-            toggleBtn.className = "action-btn";
-            toggleBtn.innerHTML = `<i class="fa-solid fa-shuffle"></i> <span>YENİLE</span>`;
         }
 
         init();
