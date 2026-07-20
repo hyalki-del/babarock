@@ -4,21 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baba Rock - Playlist</title>
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        /* Base Reset & Dark Metal Theme */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             background-color: #0c0c0c;
             background: radial-gradient(circle, #161616 0%, #070707 100%);
             color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: flex-start;
             padding: 40px 20px;
         }
+
         .playlist-card {
             max-width: 480px;
             width: 100%;
@@ -28,6 +36,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             border: 1px solid #222222;
         }
+
         .header {
             display: flex;
             align-items: center;
@@ -36,18 +45,97 @@
             border-bottom: 1px solid #222222;
             padding-bottom: 15px;
         }
-        .header h1 { font-size: 1.3rem; display: flex; align-items: center; gap: 12px; }
-        .header h1 i { color: #ff4500; }
-        .song-count { font-size: 0.85rem; color: #888888; background: #1a1a1a; padding: 4px 10px; border-radius: 12px; border: 1px solid #282828; }
-        .song-list { list-style: none; display: flex; flex-direction: column; gap: 10px; max-height: 520px; overflow-y: auto; padding-right: 5px; }
-        .song-list::-webkit-scrollbar { width: 6px; }
-        .song-list::-webkit-scrollbar-thumb { background: #282828; border-radius: 3px; }
-        .song-item { display: flex; align-items: center; background: #1a1a1a; border: 1px solid #282828; padding: 12px 16px; border-radius: 10px; }
-        .song-item:hover { border-color: #ff4500; }
-        .song-number { font-size: 0.85rem; color: #ff4500; font-weight: bold; width: 28px; flex-shrink: 0; }
-        .song-info { display: flex; flex-direction: column; overflow: hidden; }
-        .song-title { font-weight: 600; font-size: 0.95rem; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .song-artist { font-size: 0.8rem; color: #a0a0a0; margin-top: 2px; }
+
+        .header h1 {
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #ffffff;
+        }
+
+        .header h1 i {
+            color: #ff4500;
+        }
+
+        .song-count {
+            font-size: 0.85rem;
+            color: #888888;
+            background: #1a1a1a;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #282828;
+        }
+
+        /* Song List Styling */
+        .song-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 520px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        /* Scrollbar */
+        .song-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .song-list::-webkit-scrollbar-thumb {
+            background: #282828;
+            border-radius: 3px;
+        }
+
+        .song-item {
+            display: flex;
+            align-items: center;
+            background: #1a1a1a;
+            border: 1px solid #282828;
+            padding: 12px 16px;
+            border-radius: 10px;
+            transition: border-color 0.25s ease;
+        }
+
+        .song-item:hover {
+            border-color: #ff4500;
+        }
+
+        .song-number {
+            font-size: 0.85rem;
+            color: #ff4500;
+            font-weight: bold;
+            width: 28px;
+            flex-shrink: 0;
+        }
+
+        .song-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .song-title-link {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #ffffff;
+            text-decoration: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color 0.2s ease;
+        }
+
+        .song-title-link:hover {
+            color: #ff4500;
+            text-decoration: underline;
+        }
+
+        .song-artist {
+            font-size: 0.8rem;
+            color: #a0a0a0;
+            margin-top: 2px;
+        }
     </style>
 </head>
 <body>
@@ -67,7 +155,6 @@
             const countElement = document.getElementById("songCount");
 
             try {
-                // Fetch playlist.json from your own repo domain (No CORS, No Cloudflare blocking)
                 const res = await fetch("./playlist.json");
                 const playlist = await res.json();
 
@@ -77,10 +164,17 @@
                 playlist.forEach((item, index) => {
                     const li = document.createElement("li");
                     li.className = "song-item";
+
+                    // Encode title and artist for a clean YouTube search URL
+                    const searchQuery = encodeURIComponent(`${item.title} ${item.artist}`);
+                    const youtubeUrl = `https://www.youtube.com/results?search_query=${searchQuery}`;
+
                     li.innerHTML = `
                         <span class="song-number">${index + 1}</span>
                         <div class="song-info">
-                            <span class="song-title">${item.title}</span>
+                            <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="song-title-link" title="Search on YouTube">
+                                ${item.title}
+                            </a>
                             <span class="song-artist">${item.artist}</span>
                         </div>
                     `;
