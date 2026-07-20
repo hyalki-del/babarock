@@ -2,13 +2,12 @@ name: Sync Ultimate Guitar Playlist
 
 on:
   schedule:
-    # Runs automatically every midnight UTC (or run manually from Actions tab)
     - cron: '0 0 * * *'
-  workflow_dispatch: # Allows manual trigger from GitHub Actions button
+  workflow_dispatch:
 
 jobs:
   update-playlist:
-    runs-runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -24,7 +23,7 @@ jobs:
       - name: Fetch Playlist Data
         run: |
           python -c "
-          import requests, json, re
+          import requests, json
           from bs4 import BeautifulSoup
 
           url = 'https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r'
@@ -34,16 +33,33 @@ jobs:
           soup = BeautifulSoup(res.text, 'html.parser')
           store_div = soup.find('div', class_='js-store')
 
+          cleaned = []
           if store_div:
               raw_data = json.loads(store_div['data-content'])
-              raw_items = raw_data['store']['page']['data']['playlist']['items']
-              cleaned = [{'title': item.get('song_name', ''), 'artist': item.get('artist_name', '')} for item in raw_items]
-              
+              parent = raw_data.get('store', {}).get('page', {}).get('data', {})
+
+              # Ultimate Guitar stores tabs in songbook or playlist key depending on account settings
+              raw_items = []
+              if 'songbook' in parent and 'tabs' in parent['songbook']:
+                  raw_items = parent['songbook']['tabs']
+              elif 'playlist' in parent and 'items' in parent['playlist']:
+                  raw_items = parent['playlist']['items']
+              elif 'list' in parent and 'list' in parent['list']:
+                  raw_items = parent['list']['list']
+
+              for item in raw_items:
+                  # Extract tab object if nested
+                  tab = item.get('tab', item)
+                  title = tab.get('song_name', tab.get('song_title', ''))
+                  artist = tab.get('artist_name', tab.get('band_name', ''))
+                  if title and artist:
+                      cleaned.append({'title': title, 'artist': artist})
+
               with open('playlist.json', 'w', encoding='utf-8') as f:
                   json.dump(cleaned, f, ensure_ascii=False, indent=2)
-              print('Playlist updated successfully!')
+              print(f'Successfully saved {len(cleaned)} tracks!')
           else:
-              print('Could not find dataset')
+              print('Could not find store div')
           "
 
       - name: Commit & Push Changes
