@@ -27,7 +27,7 @@
             padding: 20px;
         }
 
-        /* Container Card - Strict Single Column Constraints */
+        /* Container Card */
         .welcome-card {
             text-align: center;
             max-width: 420px;
@@ -42,7 +42,7 @@
         /* Logo Configuration */
         .logo-container {
             margin-bottom: 35px;
-            height: 280px; /* Görsellerin taşmasını ve kaymasını engeller */
+            height: 280px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -57,8 +57,22 @@
             object-fit: contain;
             border-radius: 12px;
             display: block;
-            opacity: 1;
-            transition: opacity 0.5s ease-in-out;
+        }
+
+        /* Voltage Drop / Light Bulb Buzzing Flicker Animation */
+        @keyframes bulbFlicker {
+            0%   { opacity: 1;   filter: brightness(1);   transform: scale(1); }
+            10%  { opacity: 0.3; filter: brightness(0.4); transform: scale(0.99); }
+            20%  { opacity: 0.8; filter: brightness(1.1); transform: scale(1.01); }
+            35%  { opacity: 0.1; filter: brightness(0.2); transform: scale(0.98); } /* Deepest voltage drop */
+            50%  { opacity: 0.6; filter: brightness(0.7); transform: scale(1); }
+            65%  { opacity: 0.2; filter: brightness(0.3); transform: scale(0.99); }
+            80%  { opacity: 0.9; filter: brightness(1.2); transform: scale(1.01); }
+            100% { opacity: 1;   filter: brightness(1);   transform: scale(1); }
+        }
+
+        .bulb-buzz {
+            animation: bulbFlicker 0.45s ease-in-out;
         }
 
         /* Interactive Navigation Setup */
@@ -89,10 +103,9 @@
             margin-right: 18px;
             width: 28px;
             text-align: center;
-            color: #ff4500; /* Fiery Orange Accent */
+            color: #ff4500;
         }
 
-        /* Hover states */
         .action-button:hover {
             color: #ffffff;
             background: #222222;
@@ -114,15 +127,13 @@
             <img id="randomLogo" src="https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg" alt="Baba Rock Logo" class="logo-img">
         </div>
 
-        <!-- Links Grid Layout -->
+        <!-- Navigation Links -->
         <nav class="navigation-list">
-            <!-- Calendar Navigation -->
             <a href="https://hyalki-del.github.io/babarock/takvim.html" class="action-button" target="_blank" rel="noopener">
                 <i class="fa-solid fa-calendar-days"></i>
                 <span>Takvim</span>
             </a>
 
-            <!-- Playlist Navigation -->
             <a href="https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r" class="action-button" target="_blank" rel="noopener">
                 <i class="fa-solid fa-music"></i>
                 <span>Playlist</span>
@@ -142,13 +153,12 @@
             "https://hyalki-del.github.io/babarock/b7.jpg"
         ];
 
-        // Resimleri önceden belleğe al
+        // Preload images
         images.forEach(src => {
             const img = new Image();
             img.src = src;
         });
 
-        // Sayfa açıldığında rastgele sırala
         const shuffledImages = [...images].sort(() => Math.random() - 0.5);
 
         let currentIndex = 0;
@@ -158,13 +168,19 @@
             logoImg.src = shuffledImages[currentIndex];
 
             setInterval(() => {
-                logoImg.style.opacity = "0";
+                // Trigger the voltage drop flicker animation
+                logoImg.classList.add("bulb-buzz");
 
+                // Swap the picture right in the middle of the deepest darkness drop (~180ms)
                 setTimeout(() => {
                     currentIndex = (currentIndex + 1) % shuffledImages.length;
                     logoImg.src = shuffledImages[currentIndex];
-                    logoImg.style.opacity = "1";
-                }, 500);
+                }, 180);
+
+                // Clean up animation class after 0.45s so it can re-trigger next cycle
+                setTimeout(() => {
+                    logoImg.classList.remove("bulb-buzz");
+                }, 450);
 
             }, 2500);
         }
