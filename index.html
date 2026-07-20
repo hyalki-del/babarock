@@ -6,6 +6,10 @@
     <title>Baba Rock</title>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- LED Matrix Dedicated Display Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     
     <style>
         /* Base Reset & Dark Metal Theme Styling */
@@ -22,21 +26,89 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            padding: 20px;
+            justify-content: center;
+            padding: 20px 10px;
         }
 
         /* Container Card */
         .welcome-card {
             text-align: center;
-            max-width: 420px;
+            max-width: 440px;
             width: 100%;
             background: #121212;
-            padding: 40px 25px;
+            padding: 0 25px 40px 25px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             border: 1px solid #222222;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Wider LED Marquee Screen */
+        .led-banner {
+            width: 100%;
+            height: 80px;
+            background-color: #020202;
+            border-bottom: 2px solid #282828;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        /* Physical LED Grid Overlay */
+        .led-banner::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle, rgba(0, 0, 0, 0.5) 40%, transparent 45%);
+            background-size: 3px 3px;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .led-track {
+            display: flex;
+            white-space: nowrap;
+            width: max-content;
+            animation: marqueeSlide 15s linear infinite;
+        }
+
+        /* Seamless Scrolling Animation */
+        @keyframes marqueeSlide {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Maximum Text Size - Touching Top & Bottom Borders */
+        .led-content {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            padding-right: 30px;
+            font-family: 'VT323', monospace;
+            font-size: 2.9rem; /* Scaled up to fill the full 80px height */
+            line-height: 1;
+            color: #ff3300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 1px #ff3300;
+            -webkit-font-smoothing: none;
+            font-smooth: never;
+        }
+
+        .led-content i {
+            font-size: 2.2rem; /* Icons scaled proportionally */
+            color: #ffb700;
+            text-shadow: 0 0 1px #ffb700;
         }
 
         /* Logo Configuration */
@@ -64,7 +136,7 @@
             0%   { opacity: 1;   filter: brightness(1);   transform: scale(1); }
             10%  { opacity: 0.3; filter: brightness(0.4); transform: scale(0.99); }
             20%  { opacity: 0.8; filter: brightness(1.1); transform: scale(1.01); }
-            35%  { opacity: 0.1; filter: brightness(0.2); transform: scale(0.98); } /* Deepest voltage drop */
+            35%  { opacity: 0.1; filter: brightness(0.2); transform: scale(0.98); }
             50%  { opacity: 0.6; filter: brightness(0.7); transform: scale(1); }
             65%  { opacity: 0.2; filter: brightness(0.3); transform: scale(0.99); }
             80%  { opacity: 0.9; filter: brightness(1.2); transform: scale(1.01); }
@@ -122,6 +194,25 @@
 <body>
 
     <div class="welcome-card">
+        <!-- Integrated Dotted LED Banner -->
+        <div class="led-banner">
+            <div class="led-track">
+                <div class="led-content">
+                    <span><i class="fa-solid fa-bolt"></i> BABA ROCK LIVE EXPERIENCE</span>
+                    <span><i class="fa-solid fa-compact-disc"></i> NON-STOP ROCK & METAL</span>
+                    <span><i class="fa-solid fa-calendar-check"></i> TAKVİMİ KONTROL ET</span>
+                    <span><i class="fa-solid fa-guitar"></i> LET'S ROCK AND ROLL</span>
+                </div>
+                <!-- Duplicate block for seamless zero-gap loop -->
+                <div class="led-content" aria-hidden="true">
+                    <span><i class="fa-solid fa-bolt"></i> BABA ROCK LIVE EXPERIENCE</span>
+                    <span><i class="fa-solid fa-compact-disc"></i> NON-STOP ROCK & METAL</span>
+                    <span><i class="fa-solid fa-calendar-check"></i> TAKVİMİ KONTROL ET</span>
+                    <span><i class="fa-solid fa-guitar"></i> LET'S ROCK AND ROLL</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Top Logo Container -->
         <div class="logo-container">
             <img id="randomLogo" src="https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg" alt="Baba Rock Logo" class="logo-img">
@@ -138,10 +229,11 @@
                 <i class="fa-solid fa-music"></i>
                 <span>Playlist</span>
             </a>
+            
             <a href="https://hyalki-del.github.io/babarock/advisor.html" class="action-button" target="_blank" rel="noopener">
-    <i class="fa-solid fa-dice"></i>
-    <span>Şarkı seçici</span>
-</a>
+                <i class="fa-solid fa-dice"></i>
+                <span>Şarkı seçici</span>
+            </a>
         </nav>
     </div>
 
