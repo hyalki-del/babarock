@@ -3,47 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inline Web Worker Example</title>
+    <title>Baba Rock - Song Advisor</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0c0c0c;
+            background: radial-gradient(circle, #161616 0%, #070707 100%);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .advisor-card {
+            max-width: 440px;
+            width: 100%;
+            background: #121212;
+            padding: 35px 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            border: 1px solid #222222;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 25px;
+            border-bottom: 1px solid #222222;
+            padding-bottom: 15px;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #ffffff;
+        }
+
+        .header h1 i {
+            color: #ff4500;
+        }
+
+        .header p {
+            font-size: 0.85rem;
+            color: #888888;
+            margin-top: 6px;
+        }
+
+        /* Song Result Display Box */
+        .song-display-box {
+            background: #1a1a1a;
+            border: 2px solid #282828;
+            border-radius: 12px;
+            padding: 25px 15px;
+            margin-bottom: 25px;
+            min-height: 130px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: border-color 0.3s ease;
+        }
+
+        .song-display-box.active {
+            border-color: #ff4500;
+            box-shadow: 0 0 15px rgba(255, 69, 0, 0.2);
+        }
+
+        .display-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 6px;
+            word-break: break-word;
+        }
+
+        .display-artist {
+            font-size: 0.95rem;
+            color: #a0a0a0;
+        }
+
+        /* Action Buttons */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .pick-btn {
+            background: #ff4500;
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .pick-btn:hover {
+            background: #e03d00;
+            transform: translateY(-1px);
+        }
+
+        .pick-btn:active {
+            transform: translateY(0);
+        }
+
+        .yt-btn {
+            background: #222222;
+            color: #ffffff;
+            border: 1px solid #333333;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .yt-btn i {
+            color: #ff0000;
+        }
+
+        .yt-btn:hover {
+            background: #2a2a2a;
+            border-color: #ff4500;
+        }
+
+        .yt-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
-    <h1>Web Worker Embedded Example</h1>
-    <button id="runBtn">Run Task in Background</button>
-    <p id="output">Status: Idle</p>
 
-    <script type="module">
-        // 1. Define the worker code as a string
-        const workerCode = `
-            self.onmessage = function(e) {
-                console.log('Worker received task with data:', e.data);
-                
-                // Simulate a heavy background computation
-                let result = 0;
-                for (let i = 0; i < 1000000000; i++) {
-                    result += i;
+    <div class="advisor-card">
+        <div class="header">
+            <h1><i class="fa-solid fa-dice"></i> Song Advisor</h1>
+            <p>Need something to play or listen to? Let randomness decide.</p>
+        </div>
+
+        <div class="song-display-box" id="displayBox">
+            <div class="display-title" id="songTitle">Press the button below</div>
+            <div class="display-artist" id="songArtist">to pick a song from your list</div>
+        </div>
+
+        <div class="controls">
+            <button class="pick-btn" id="pickBtn" onclick="pickRandomSong()">
+                <i class="fa-solid fa-shuffle"></i> Pick a Song
+            </button>
+            
+            <a href="#" target="_blank" rel="noopener noreferrer" class="yt-btn disabled" id="ytBtn">
+                <i class="fa-brands fa-youtube"></i> Search on YouTube
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let playlist = [];
+
+        // Load songs from playlist.json
+        async function init() {
+            try {
+                const res = await fetch("./playlist.json");
+                playlist = await res.json();
+            } catch (err) {
+                console.error(err);
+                document.getElementById("songTitle").textContent = "Error loading playlist";
+            }
+        }
+
+        function pickRandomSong() {
+            if (!playlist || playlist.length === 0) {
+                document.getElementById("songTitle").textContent = "No songs found in playlist.json";
+                return;
+            }
+
+            const titleEl = document.getElementById("songTitle");
+            const artistEl = document.getElementById("songArtist");
+            const displayBox = document.getElementById("displayBox");
+            const ytBtn = document.getElementById("ytBtn");
+            const pickBtn = document.getElementById("pickBtn");
+
+            pickBtn.disabled = true;
+            ytBtn.classList.add("disabled");
+            displayBox.classList.remove("active");
+
+            // Slot machine shuffle animation effect
+            let counter = 0;
+            const maxCycles = 15;
+            const interval = setInterval(() => {
+                const tempSong = playlist[Math.floor(Math.random() * playlist.length)];
+                titleEl.textContent = tempSong.title;
+                artistEl.textContent = tempSong.artist;
+                counter++;
+
+                if (counter >= maxCycles) {
+                    clearInterval(interval);
+                    
+                    // Final selected song
+                    const selectedSong = playlist[Math.floor(Math.random() * playlist.length)];
+                    titleEl.textContent = selectedSong.title;
+                    artistEl.textContent = selectedSong.artist;
+
+                    // Set up YouTube search URL
+                    const query = encodeURIComponent(`${selectedSong.title} ${selectedSong.artist}`);
+                    ytBtn.href = `https://www.youtube.com/results?search_query=${query}`;
+                    
+                    // Enable buttons and apply highlighting
+                    ytBtn.classList.remove("disabled");
+                    displayBox.classList.add("active");
+                    pickBtn.disabled = false;
                 }
+            }, 60);
+        }
 
-                // Send the result back to the main page
-                self.postMessage('Task finished! Result: ' + result);
-            };
-        `;
-
-        // 2. Convert the code string into a Blob object
-        const blob = new Blob([workerCode], { type: 'application/javascript' });
-        const workerUrl = URL.createObjectURL(blob);
-
-        // 3. Initialize the Web Worker using the Blob URL
-        const worker = new Worker(workerUrl);
-
-        // 4. Listen for messages returned from the worker
-        worker.onmessage = function(e) {
-            document.getElementById('output').textContent = e.data;
-        };
-
-        // 5. Trigger worker execution on button click
-        document.getElementById('runBtn').addEventListener('click', () => {
-            document.getElementById('output').textContent = 'Processing in background...';
-            worker.postMessage({ task: 'start' });
-        });
+        init();
     </script>
+
 </body>
 </html>
