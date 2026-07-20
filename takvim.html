@@ -216,15 +216,20 @@
             }
 
             const roster = document.getElementById('rosterList');
-            roster.innerHTML = Object.keys(localChanges).map(k => `
-                <div class="flex items-center justify-between text-xs bg-[#2c2c2e]/50 p-3 rounded-xl border border-white/5">
-                    <div class="flex items-center gap-2.5">
-                        <span class="h-2 w-2 rounded-full ${membersInfo[k].color}"></span>
-                        <span class="font-medium text-[#f5f5f7]">${membersInfo[k].name}</span>
-                    </div>
-                    <span class="font-mono text-[#86868b] bg-black/40 px-2 py-0.5 rounded-md">${localChanges[k].length} meşgul gün</span>
-                </div>
-            `).join('');
+
+const sortedMembers = Object.keys(localChanges).sort((a, b) => {
+    return localChanges[b].length - localChanges[a].length;
+});
+
+roster.innerHTML = sortedMembers.map(k => `
+    <div class="flex items-center justify-between text-xs bg-[#2c2c2e]/50 p-3 rounded-xl border border-white/5">
+        <div class="flex items-center gap-2.5">
+            <span class="h-2 w-2 rounded-full ${membersInfo[k].color}"></span>
+            <span class="font-medium text-[#f5f5f7]">${membersInfo[k].name}</span>
+        </div>
+        <span class="font-mono text-[#86868b] bg-black/40 px-2 py-0.5 rounded-md">${localChanges[k].length} meşgul gün</span>
+    </div>
+`).join('');
             
             const hasChanges = JSON.stringify(serverData[currentUser]) !== JSON.stringify(localChanges[currentUser]);
             if(hasChanges) {
