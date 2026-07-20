@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baba Rock - Şarkı seçici</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0c0c0c;
+            background: radial-gradient(circle, #161616 0%, #070707 100%);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .advisor-card {
+            max-width: 440px;
+            width: 100%;
+            background: #121212;
+            padding: 35px 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            border: 1px solid #222222;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 25px;
+            border-bottom: 1px solid #222222;
+            padding-bottom: 15px;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #ffffff;
+        }
+
+        .header h1 i {
+            color: #ff4500;
+        }
+
+        .header p {
+            font-size: 0.85rem;
+            color: #888888;
+            margin-top: 6px;
+        }
+
+        /* Song Result Display Box */
+        .song-display-box {
+            background: #1a1a1a;
+            border: 2px solid #282828;
+            border-radius: 12px;
+            padding: 25px 15px;
+            margin-bottom: 25px;
+            min-height: 130px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .song-display-box.shuffling {
+            border-color: #ff9500;
+        }
+
+        .song-display-box.active {
+            border-color: #ff4500;
+            box-shadow: 0 0 15px rgba(255, 69, 0, 0.2);
+        }
+
+        .display-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 6px;
+            word-break: break-word;
+        }
+
+        .display-artist {
+            font-size: 0.95rem;
+            color: #a0a0a0;
+        }
+
+        /* Action Buttons */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .action-btn {
+            background: #ff4500;
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .action-btn:hover {
+            background: #e03d00;
+            transform: translateY(-1px);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        .action-btn.stop-state {
+            background: #d32f2f;
+        }
+
+        .action-btn.stop-state:hover {
+            background: #b71c1c;
+        }
+
+        .yt-btn {
+            background: #222222;
+            color: #ffffff;
+            border: 1px solid #333333;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .yt-btn i {
+            color: #ff0000;
+        }
+
+        .yt-btn:hover {
+            background: #2a2a2a;
+            border-color: #ff4500;
+        }
+
+        .yt-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="advisor-card">
+        <div class="header">
+            <h1><i class="fa-solid fa-dice"></i> Sıradaki şarkı</h1>
+            <p>Sıradaki şarkı hangisi?</p>
+        </div>
+
+        <div class="song-display-box" id="displayBox">
+            <div class="display-title" id="songTitle">BABAROCK</div>
+          
+        </div>
+
+        <div class="controls">
+            <button class="action-btn" id="toggleBtn" onclick="handleToggle()">
+                <i class="fa-solid fa-shuffle"></i> <span>Bir şarkı seç</span>
+            </button>
+            
+            <a href="#" target="_blank" rel="noopener noreferrer" class="yt-btn disabled" id="ytBtn">
+                <i class="fa-brands fa-youtube"></i> Search on YouTube
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let playlist = [];
+        let shuffleInterval = null;
+        let isShuffling = false;
+
+        async function init() {
+            try {
+                const res = await fetch("./playlist.json");
+                playlist = await res.json();
+            } catch (err) {
+                console.error(err);
+                document.getElementById("songTitle").textContent = "Error loading playlist";
+            }
+        }
+
+        function handleToggle() {
+            if (!playlist || playlist.length === 0) {
+                document.getElementById("songTitle").textContent = "No songs found in playlist.json";
+                return;
+            }
+
+            if (!isShuffling) {
+                startShuffle();
+            } else {
+                stopShuffle();
+            }
+        }
+
+        function startShuffle() {
+            isShuffling = true;
+            const titleEl = document.getElementById("songTitle");
+            const artistEl = document.getElementById("songArtist");
+            const displayBox = document.getElementById("displayBox");
+            const toggleBtn = document.getElementById("toggleBtn");
+            const ytBtn = document.getElementById("ytBtn");
+
+            ytBtn.classList.add("disabled");
+            displayBox.classList.remove("active");
+            displayBox.classList.add("shuffling");
+
+            toggleBtn.className = "action-btn stop-state";
+            toggleBtn.innerHTML = `<i class="fa-solid fa-hand"></i> <span>KARIŞTIR</span>`;
+
+            shuffleInterval = setInterval(() => {
+                const tempSong = playlist[Math.floor(Math.random() * playlist.length)];
+                titleEl.textContent = tempSong.title;
+                artistEl.textContent = tempSong.artist;
+            }, 50);
+        }
+
+        function stopShuffle() {
+            clearInterval(shuffleInterval);
+            isShuffling = false;
+
+            const titleEl = document.getElementById("songTitle");
+            const artistEl = document.getElementById("songArtist");
+            const displayBox = document.getElementById("displayBox");
+            const toggleBtn = document.getElementById("toggleBtn");
+            const ytBtn = document.getElementById("ytBtn");
+
+            const selectedSong = playlist[Math.floor(Math.random() * playlist.length)];
+            titleEl.textContent = selectedSong.title;
+            artistEl.textContent = selectedSong.artist;
+
+            const query = encodeURIComponent(`${selectedSong.title} ${selectedSong.artist}`);
+            ytBtn.href = `https://www.youtube.com/results?search_query=${query}`;
+            
+            displayBox.classList.remove("shuffling");
+            displayBox.classList.add("active");
+            ytBtn.classList.remove("disabled");
+
+            toggleBtn.className = "action-btn";
+            toggleBtn.innerHTML = `<i class="fa-solid fa-shuffle"></i> <span>TEKRAR</span>`;
+        }
+
+        init();
+    </script>
+
+</body>
+</html>
