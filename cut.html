@@ -1,252 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baba Rock - AI Music Advisor</title>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: #0c0c0c;
-            background: radial-gradient(circle, #161616 0%, #070707 100%);
-            color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 40px 20px;
-        }
-
-        .advisor-card {
-            max-width: 520px;
-            width: 100%;
-            background: #121212;
-            padding: 30px 25px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-            border: 1px solid #222222;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #222222;
-            padding-bottom: 15px;
-        }
-
-        .header h1 {
-            font-size: 1.4rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            color: #ffffff;
-        }
-
-        .header h1 i {
-            color: #ff4500;
-        }
-
-        .header p {
-            font-size: 0.85rem;
-            color: #888888;
-            margin-top: 6px;
-        }
-
-        /* Seed Banner */
-        .seed-box {
-            background: #1a1a1a;
-            border: 1px solid #282828;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .seed-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #ff4500;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .seed-title {
-            font-size: 1.05rem;
-            font-weight: 600;
-            color: #ffffff;
-        }
-
-        .seed-artist {
-            font-size: 0.85rem;
-            color: #a0a0a0;
-        }
-
-        /* Recommendation List */
-        .recommendations-title {
-            font-size: 0.9rem;
-            color: #888888;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .rec-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .rec-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #1a1a1a;
-            border: 1px solid #282828;
-            padding: 12px 16px;
-            border-radius: 10px;
-            color: inherit;
-            transition: border-color 0.25s ease, background-color 0.25s ease;
-        }
-
-        .rec-item:hover {
-            border-color: #ff4500;
-            background-color: #222222;
-        }
-
-        .rec-info {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            flex-grow: 1;
-            padding-right: 12px;
-        }
-
-        .rec-song-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #ffffff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .rec-song-artist {
-            font-size: 0.8rem;
-            color: #a0a0a0;
-            margin-top: 2px;
-        }
-
-        .rec-reason {
-            font-size: 0.75rem;
-            color: #ff8555;
-            margin-top: 4px;
-            font-style: italic;
-        }
-
-        /* YouTube Link Button */
-        .yt-link-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: #222222;
-            color: #ffffff;
-            border: 1px solid #333333;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-decoration: none;
-            flex-shrink: 0;
-            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-        }
-
-        .yt-link-btn i {
-            color: #ff0000;
-            font-size: 0.95rem;
-        }
-
-        .yt-link-btn:hover {
-            background: #ff0000;
-            border-color: #ff0000;
-            color: #ffffff;
-        }
-
-        .yt-link-btn:hover i {
-            color: #ffffff;
-        }
-
-        /* Action Button */
-        .action-btn {
-            width: 100%;
-            background: #ff4500;
-            color: #ffffff;
-            border: none;
-            padding: 14px;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: background-color 0.2s ease;
-        }
-
-        .action-btn:hover {
-            background: #e03d00;
-        }
-
-        .action-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="advisor-card">
-        <div class="header">
-            <h1><i class="fa-solid fa-brain"></i> AI Style & Mood Advisor</h1>
-            <p>Uses Gemini AI to match musical vibe, era, instrumentals, and energy.</p>
-        </div>
-
-        <div class="seed-box">
-            <div class="seed-label">Based on your playlist song:</div>
-            <div class="seed-title" id="seedTitle">Loading playlist...</div>
-            <div class="seed-artist" id="seedArtist">---</div>
-        </div>
-
-        <div class="recommendations-title">
-            <i class="fa-solid fa-sparkles"></i> AI Style Recommendations:
-        </div>
-
-        <ul class="rec-list" id="recList">
-            <li class="rec-item"><span class="rec-song-artist">Click below to generate AI recommendations.</span></li>
-        </ul>
-
-        <button class="action-btn" id="findBtn" onclick="generateAIRecommendations()">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> Generate AI Recommendations
-        </button>
-    </div>
-
-    <script>
+<script>
         // Paste your Gemini API key here
-        const GEMINI_API_KEY = "AQ.Ab8RN6Lr3cD1HnhVQJufItxKh5GYmHEb0RUU4XPc5LqGwKn0wQ";
+        const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
         let playlist = [];
 
         async function init() {
@@ -274,45 +28,51 @@
 
             findBtn.disabled = true;
 
-            // Pick a random seed track from playlist
             const seed = playlist[Math.floor(Math.random() * playlist.length)];
             seedTitle.textContent = seed.title;
             seedArtist.textContent = seed.artist;
 
             recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist"><i class="fa-solid fa-spinner fa-spin"></i> Asking Gemini AI for matching styles...</span></li>`;
 
-            // Prompt enforcing genre, era, style, and excluding the seed artist/song
-            const prompt = `Act as a professional music curator. I want 5 song recommendations that share the exact same genre, musical era, tempo/BPM, instrumental style, and mood as the track "${seed.title}" by "${seed.artist}".
-
-CRITICAL RULES:
+            const prompt = `Act as a music curator. Provide 5 song recommendations that share the exact same genre, musical era, tempo, instrumental style, and mood as "${seed.title}" by "${seed.artist}".
+            
+RULES:
 1. Do NOT suggest any songs by "${seed.artist}".
 2. Do NOT suggest "${seed.title}".
-3. Focus purely on similar style, era, sound, and genre by DIFFERENT artists.
-4. Output MUST be a raw, valid JSON array containing objects with keys: "title", "artist", and "reason" (a 5-word explanation of why it fits the style/vibe). Do not use markdown backticks or formatting.`;
+3. Provide results by DIFFERENT artists.
+4. Output MUST be a JSON array containing objects with keys: "title", "artist", and "reason" (a short 5-word explanation of why it fits).`;
 
             try {
+                // Endpoint updated to stable gemini-2.5-flash
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
                 
                 const response = await fetch(url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }]
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: {
+                            // Forces Gemini to output pure JSON, preventing formatting errors
+                            response_mime_type: "application/json"
+                        }
                     })
                 });
 
                 const data = await response.json();
-                let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+                
+                if (data.error) {
+                    throw new Error(data.error.message || "API Error");
+                }
 
-                // Strip potential markdown fence wrappers from raw text
-                rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+                const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!rawText) throw new Error("Empty response from AI");
 
                 const recommendations = JSON.parse(rawText);
                 renderTracks(recommendations);
 
             } catch (err) {
                 console.error("AI Generation Error:", err);
-                recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Failed to fetch AI recommendations. Make sure your API key is set!</span></li>`;
+                recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">Error: ${err.message}. Check your API key and try again!</span></li>`;
             } finally {
                 findBtn.disabled = false;
             }
@@ -322,7 +82,7 @@ CRITICAL RULES:
             const recList = document.getElementById("recList");
             recList.innerHTML = "";
 
-            if (!tracks || tracks.length === 0) {
+            if (!tracks || !Array.isArray(tracks) || tracks.length === 0) {
                 recList.innerHTML = `<li class="rec-item"><span class="rec-song-artist">No AI recommendations returned. Click again!</span></li>`;
                 return;
             }
@@ -350,6 +110,3 @@ CRITICAL RULES:
 
         window.onload = init;
     </script>
-
-</body>
-</html>
