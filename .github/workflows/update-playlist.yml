@@ -35,7 +35,14 @@ jobs:
             const browser = await chromium.launch({ headless: true });
             const page = await browser.newPage();
             
-            await page.goto('https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r', { waitUntil: 'networkidle' });
+            // Fix: Use domcontentloaded instead of networkidle to prevent infinite ad timeout
+            await page.goto('https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r', { 
+              waitUntil: 'domcontentloaded',
+              timeout: 60000 
+            });
+            
+            // Wait up to 10s for Ultimate Guitar store div to load in DOM
+            await page.waitForSelector('.js-store', { timeout: 10000 }).catch(() => {});
             
             const songs = await page.evaluate(() => {
               const data = window.UGApp?.store?.page?.data;
