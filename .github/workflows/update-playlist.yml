@@ -74,15 +74,23 @@ jobs:
 
             const songs = rawItems.map(item => {
               const tab = item.tab || item;
+              const key = 
+                tab.tonality_name || 
+                tab.meta?.tonality_name || 
+                tab.tonality || 
+                tab.key_name || 
+                'N/A';
+
               return {
                 title: tab.song_name || tab.song_title || tab.title || '',
-                artist: tab.artist_name || tab.band_name || tab.artist || ''
+                artist: tab.artist_name || tab.band_name || tab.artist || '',
+                key: key
               };
             }).filter(s => s.title && s.artist);
 
             if (songs.length > 0) {
               fs.writeFileSync('playlist.json', JSON.stringify(songs, null, 2));
-              console.log('Successfully saved ' + songs.length + ' songs to playlist.json');
+              console.log('Successfully saved ' + songs.length + ' songs to playlist.json with tonality data.');
             } else {
               console.error('Data container parsed, but no song entries were found.');
               process.exit(1);
@@ -98,4 +106,4 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add playlist.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update playlist.json" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update playlist.json with key info" && git push)
