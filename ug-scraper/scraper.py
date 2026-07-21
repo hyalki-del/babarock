@@ -5,24 +5,20 @@ import time
 from pathlib import Path
 import lyricsgenius
 
-# Path Resolution: Script is in ug-scraper/, playlist.json is at repository root
 CURRENT_DIR = Path(__file__).resolve().parent
 ROOT_DIR = CURRENT_DIR.parent
 
 PLAYLIST_PATH = ROOT_DIR / "playlist.json"
 OUTPUT_DIR = CURRENT_DIR / "songs"
 
-# Retrieve Genius Access Token injected via GitHub Secrets
 GENIUS_ACCESS_TOKEN = os.getenv("GENIUS_ACCESS_TOKEN")
 
 
 def sanitize_filename(name: str) -> str:
-    """Sanitizes strings for safe cross-platform file naming."""
     return re.sub(r'[\\/*?:"<>|]', "", name).strip()
 
 
 def clean_genius_lyrics(raw_text: str) -> str:
-    """Removes Genius-specific metadata artifacts (headers, footers, embed tags)."""
     if not raw_text:
         return ""
 
@@ -32,12 +28,10 @@ def clean_genius_lyrics(raw_text: str) -> str:
 
     text = "\n".join(lines)
     text = re.sub(r'\d*Embed$', '', text)
-    
     return text.strip()
 
 
 def load_playlist() -> list:
-    """Loads and parses track data from root playlist.json."""
     if not PLAYLIST_PATH.exists():
         print(f"[-] CRITICAL ERROR: Target playlist file not found at: {PLAYLIST_PATH}")
         raise FileNotFoundError(f"Missing {PLAYLIST_PATH}")
