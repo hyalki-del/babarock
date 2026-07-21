@@ -1,150 +1,187 @@
 [
   {
     "title": "Separate Ways",
-    "artist": "Journey"
+    "artist": "Journey",
+    "key": "Em"
   },
   {
     "title": "The Look",
-    "artist": "Roxette"
+    "artist": "Roxette",
+    "key": "D"
   },
   {
     "title": "Hold The Line",
-    "artist": "Toto"
+    "artist": "Toto",
+    "key": "F#m"
   },
   {
     "title": "Sari Cizmeli Mehmet Aga",
-    "artist": "Kurban"
+    "artist": "Kurban",
+    "key": "N/A"
   },
   {
     "title": "Wasting Love",
-    "artist": "Iron Maiden"
+    "artist": "Iron Maiden",
+    "key": "Em"
   },
   {
     "title": "Kryptonite",
-    "artist": "3 Doors Down"
+    "artist": "3 Doors Down",
+    "key": "Bm"
   },
   {
     "title": "Perfect Strangers",
-    "artist": "Deep Purple"
+    "artist": "Deep Purple",
+    "key": "Dm"
   },
   {
     "title": "Its My Life",
-    "artist": "Bon Jovi"
+    "artist": "Bon Jovi",
+    "key": "Cm"
   },
   {
     "title": "Give In To Me",
-    "artist": "Three Days Grace"
+    "artist": "Three Days Grace",
+    "key": "N/A"
   },
   {
     "title": "Symphony Of Destruction",
-    "artist": "Megadeth"
+    "artist": "Megadeth",
+    "key": "Em"
   },
   {
     "title": "Islak Islak",
-    "artist": "Baris Akarsu"
+    "artist": "Baris Akarsu",
+    "key": "N/A"
   },
   {
     "title": "Bebek",
-    "artist": "Acil Servis"
+    "artist": "Acil Servis",
+    "key": "N/A"
   },
   {
     "title": "Dont Chain My Heart",
-    "artist": "Toto"
+    "artist": "Toto",
+    "key": "Bm"
   },
   {
     "title": "You Give Love A Bad Name",
-    "artist": "Bon Jovi"
+    "artist": "Bon Jovi",
+    "key": "Cm"
   },
   {
     "title": "Sometimes I Feel Like Screaming",
-    "artist": "Deep Purple"
+    "artist": "Deep Purple",
+    "key": "Dm"
   },
   {
     "title": "No Prayer For The Dying",
-    "artist": "Iron Maiden"
+    "artist": "Iron Maiden",
+    "key": "N/A"
   },
   {
     "title": "Walking By Myself",
-    "artist": "Gary Moore"
+    "artist": "Gary Moore",
+    "key": "E"
   },
   {
     "title": "Since You Been Gone",
-    "artist": "Rainbow"
+    "artist": "Rainbow",
+    "key": "G"
   },
   {
     "title": "Long Train Runnin",
-    "artist": "The Doobie Brothers"
+    "artist": "The Doobie Brothers",
+    "key": "Gm"
   },
   {
     "title": "I Surrender",
-    "artist": "Rainbow"
+    "artist": "Rainbow",
+    "key": "Gm"
   },
   {
     "title": "Oh Pretty Woman",
-    "artist": "Gary Moore"
+    "artist": "Gary Moore",
+    "key": "Cm"
   },
   {
     "title": "Born To Be Wild",
-    "artist": "Steppenwolf"
+    "artist": "Steppenwolf",
+    "key": "E"
   },
   {
     "title": "Here I Go Again",
-    "artist": "Whitesnake"
+    "artist": "Whitesnake",
+    "key": "G"
   },
   {
     "title": "Livin On A Prayer",
-    "artist": "Bon Jovi"
+    "artist": "Bon Jovi",
+    "key": "Em"
   },
   {
     "title": "Smoke On The Water",
-    "artist": "Deep Purple"
+    "artist": "Deep Purple",
+    "key": "Gm"
   },
   {
     "title": "Johnny B Goode",
-    "artist": "Chuck Berry"
+    "artist": "Chuck Berry",
+    "key": "Bb"
   },
   {
     "title": "Blue Suede Shoes",
-    "artist": "Elvis Presley"
+    "artist": "Elvis Presley",
+    "key": "A"
   },
   {
     "title": "Jailhouse Rock",
-    "artist": "The Blues Brothers"
+    "artist": "The Blues Brothers",
+    "key": "N/A"
   },
   {
     "title": "Fool For Your Loving",
-    "artist": "Whitesnake"
+    "artist": "Whitesnake",
+    "key": "Am"
   },
   {
     "title": "Burning Heart",
-    "artist": "Survivor"
+    "artist": "Survivor",
+    "key": "Am"
   },
   {
     "title": "Eye Of The Tiger",
-    "artist": "Survivor"
+    "artist": "Survivor",
+    "key": "Cm"
   },
   {
     "title": "The Final Countdown",
-    "artist": "Europe"
+    "artist": "Europe",
+    "key": "F#m"
   },
   {
     "title": "Burn",
-    "artist": "Deep Purple"
+    "artist": "Deep Purple",
+    "key": "Gm"
   },
   {
     "title": "Stormbringer",
-    "artist": "Deep Purple"
+    "artist": "Deep Purple",
+    "key": "Em"
   },
   {
     "title": "In These Arms",
-    "artist": "Bon Jovi"
+    "artist": "Bon Jovi",
+    "key": "E"
   },
   {
     "title": "For Whom The Bell Tolls",
-    "artist": "Metallica"
+    "artist": "Metallica",
+    "key": "Em"
   },
   {
     "title": "Diamonds And Rust",
-    "artist": "Judas Priest"
+    "artist": "Judas Priest",
+    "key": "Em"
   }
 ]
