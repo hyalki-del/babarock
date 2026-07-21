@@ -180,6 +180,7 @@
             font-size: 1.2rem;
             flex-shrink: 0;
             transition: transform 0.2s ease, color 0.2s ease;
+            padding: 4px;
         }
 
         /* Modal Overlay for Editing Key */
@@ -277,6 +278,43 @@
                 .replace(/[^a-z0-9]/g, "");
         }
 
+        async function openTxtFileInNewTab(txtPath) {
+            try {
+                const response = await fetch(txtPath);
+                if (!response.ok) throw new Error("File not found");
+                const text = await response.text();
+
+                // Open window and render formatted text at 2x size
+                const newWindow = window.open("", "_blank");
+                if (newWindow) {
+                    newWindow.document.write(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Song Text View</title>
+                            <style>
+                                body {
+                                    background-color: #121212;
+                                    color: #ffffff;
+                                    font-family: monospace;
+                                    font-size: 2em;
+                                    padding: 24px;
+                                    white-space: pre-wrap;
+                                    word-wrap: break-word;
+                                }
+                            </style>
+                        </head>
+                        <body>${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</body>
+                        </html>
+                    `);
+                    newWindow.document.close();
+                }
+            } catch (err) {
+                // Fallback to directly navigating to the file if fetch fails
+                window.open(txtPath, "_blank");
+            }
+        }
+
         async function loadPlaylist() {
             const countElement = document.getElementById("songCount");
 
@@ -317,6 +355,7 @@
                 const li = document.createElement("li");
                 const query = encodeURIComponent(`${item.title} ${item.artist}`);
                 const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
+                const txtPath = `./songs/${encodeURIComponent(item.title)}.txt`;
                 
                 const normTitle = normalizeTitle(item.title);
                 const detectedKey = normalizedKeyMap[normTitle] || item.key || null;
@@ -326,15 +365,15 @@
 
                 li.className = "song-item-card";
 
-                // 1. Single-Click Handler: Debounced redirect to YouTube
+                // 1. Single-Click Handler: Open .txt file with 2x text size
                 li.onclick = (e) => {
                     if (clickTimer) clearTimeout(clickTimer);
                     clickTimer = setTimeout(() => {
-                        window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
-                    }, 250); // Wait 250ms for possible second click
+                        openTxtFileInNewTab(txtPath);
+                    }, 250); // Wait 250ms for possible double-click
                 };
 
-                // 2. Double-Click Handler: Cancels YouTube click and opens edit key modal
+                // 2. Double-Click Handler: Open edit key modal
                 li.ondblclick = (e) => {
                     if (clickTimer) clearTimeout(clickTimer);
                     openModal(item, detectedKey);
@@ -350,10 +389,16 @@
                     </div>
                     <div class="actions-right">
                         ${keyBadgeHtml}
-                        <i class="fa-brands fa-youtube yt-icon"></i>
+                        <i class="fa-brands fa-youtube yt-icon" id="yt-btn-${index}"></i>
                     </div>
                 `;
                 listElement.appendChild(li);
+
+                // Add standalone click handler for YouTube Button
+                document.getElementById(`yt-btn-${index}`).onclick = (e) => {
+                    e.stopPropagation(); // Prevents song text file from opening
+                    window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
+                };
             });
         }
 
