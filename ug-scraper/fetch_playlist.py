@@ -9,14 +9,10 @@ SONGS_DIR = "./songs"
 
 os.makedirs(SONGS_DIR, exist_ok=True)
 
-# Extended browser headers to avoid Cloudflare/bot filtering
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.5',
-    'DNT': '1',
-    'Connection': 'keep-alive',
-    'Upgrade-Insecure-Requests': '1'
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.5'
 }
 
 def sanitize_filename(name: str) -> str:
@@ -24,46 +20,48 @@ def sanitize_filename(name: str) -> str:
     name = re.sub(r'[^a-z0-9]+', '-', name)
     return name.strip('-')
 
-def extract_tabs_from_json(data: dict) -> list:
-    """Recursively searches the nested UG store object for tab arrays."""
-    # Try direct known key paths
-    try:
-        page = data.get('store', {}).get('page', {}).get('data', {})
-        if 'songbook' in page:
-            return page['songbook'].get('tabs', [])
-        if 'playlist' in page:
-            return page['playlist'].get('tabs', [])
-        if 'tabs' in page:
-            return page['tabs']
-        if 'list' in page:
-            return page['list']
-    except Exception as e:
-        print(f"Key extraction warning: {e}")
-
+def find_tabs_recursively(obj):
+    """Recursively traverses JSON to find array containing song/tab objects."""
+    if isinstance(obj, dict):
+        # Look for standard UG track keys
+        for key in ['tabs', 'list', 'items', 'songs']:
+            if key in obj and isinstance(obj[key], list) and len(obj[key]) > 0:
+                # Validate that list items look like tab entries
+                first = obj[key][0]
+                if isinstance(first, dict) and ('tab' in first or 'artist_name' in first or 'tab_url' in first or 'song_name' in first):
+                    return obj[key]
+        
+        for v in obj.values():
+            result = find_tabs_recursively(v)
+            if result:
+                return result
+    elif isinstance(obj, list):
+        for item in obj:
+            result = find_tabs_recursively(item)
+            if result:
+                return result
     return []
 
 def fetch_playlist_tabs() -> list:
-    print(f"Connecting to UG Playlist URL...")
+    print(f"Connecting to UG Playlist: {PLAYLIST_URL}")
     res = requests.get(PLAYLIST_URL, headers=HEADERS)
-    print(f"HTTP Response Status Code: {res.status_code}")
+    print(f"HTTP Response Status: {res.status_code}")
     
     if res.status_code != 200:
-        raise Exception(f"UG rejected request with status code {res.status_code}")
+        raise Exception(f"HTTP {res.status_code} Error connecting to Ultimate Guitar.")
 
     soup = BeautifulSoup(res.text, 'html.parser')
     js_store = soup.find('script', class_='js-store')
     
     if not js_store or not js_store.string:
-        # Check if page was blocked by anti-bot captcha
-        if "cloudflare" in res.text.lower() or "captcha" in res.text.lower():
-            raise Exception("Page request was intercepted by Cloudflare anti-bot check.")
-        raise Exception("Could not find 'js-store' script block in HTML response.")
+        raise Exception("Could not find 'js-store' script block in UG HTML response.")
 
-    print("Successfully retrieved 'js-store' raw data block.")
+    print("Found 'js-store' data block. Parsing JSON...")
     data = json.loads(js_store.string)
     
-    tabs_data = extract_tabs_from_json(data)
-    print(f"Found {len(tabs_data)} raw tab items in dataset.")
+    # Use recursive deep-search to guarantee finding the track list
+    tabs_data = find_tabs_recursively(data)
+    print(f"Extracted {len(tabs_data)} tracks from JSON payload.")
 
     extracted_songs = []
     for item in tabs_data:
@@ -85,7 +83,6 @@ def fetch_ug_tab_content(tab_url: str) -> str | None:
     try:
         res = requests.get(tab_url, headers=HEADERS, timeout=10)
         if res.status_code != 200:
-            print(f"  --> HTTP {res.status_code} when opening {tab_url}")
             return None
 
         soup = BeautifulSoup(res.text, 'html.parser')
@@ -93,13 +90,19 @@ def fetch_ug_tab_content(tab_url: str) -> str | None:
         
         if js_store and js_store.string:
             data = json.loads(js_store.string)
-            content = data['store']['page']['data']['tab_view']['wiki_tab']['content']
+            # Fetch wiki_tab content recursively or directly
+            page = data.get('store', {}).get('page', {}).get('data', {})
+            content = page.get('tab_view', {}).get('wiki_tab', {}).get('content', '')
+            
+            if not content:
+                # Alternative nested lookup
+                wiki_tab = find_tabs_recursively(data)
             
             cleaned = re.sub(r'\[\/?ch\]', '', content)
             cleaned = re.sub(r'\[\/?tab\]', '', cleaned)
             return cleaned
     except Exception as e:
-        print(f"  --> Exception while parsing tab details: {e}")
+        print(f"Exception fetching tab content from {tab_url}: {e}")
         return None
 
 def main():
@@ -110,7 +113,7 @@ def main():
         return
 
     if not raw_songs:
-        print("WARNING: No songs were extracted. Check log trace above.")
+        print("ERROR: No songs could be parsed from playlist. Please inspect logs.")
         return
 
     playlist_output = []
@@ -130,9 +133,9 @@ def main():
             if lyrics_text:
                 with open(file_path, "w", encoding="utf-8") as f:
                     f.write(f"{artist} - {title}\n{'=' * 40}\n\n{lyrics_text}")
-                print(f"  --> Saved {file_path}")
+                print(f"  -> Created {file_path}")
             else:
-                print(f"  --> Failed to download content for {artist} - {title}")
+                print(f"  -> Warning: Failed to extract lyrics text for {artist} - {title}")
         else:
             print(f"Skipping (already exists): {file_path}")
         
@@ -146,7 +149,7 @@ def main():
     with open("playlist.json", "w", encoding="utf-8") as f:
         json.dump(playlist_output, f, indent=2, ensure_ascii=False)
 
-    print(f"Process completed. Wrote {len(playlist_output)} items into playlist.json.")
+    print(f"\nSUCCESS: Updated playlist.json with {len(playlist_output)} items.")
 
 if __name__ == "__main__":
     main()
