@@ -1,9 +1,9 @@
 name: Run Subfolder Playlist Scraper
 
 on:
-  workflow_dispatch:  # Manual trigger button
+  workflow_dispatch:  # Manual execution button in GitHub UI
   schedule:
-    - cron: '0 0 * * 0' # Automated weekly run (Sunday UTC)
+    - cron: '0 0 * * 0' # Automated run: Every Sunday at midnight UTC
 
 jobs:
   scrape-and-commit:
@@ -17,9 +17,11 @@ jobs:
       contents: write
 
     steps:
+      # Step 1: Fetches your repo. Uses action v6 (Node 24 compliant)
       - name: Checkout Repository
         uses: actions/checkout@v6
 
+      # Step 2: Sets up Python. Uses action v6 (Node 24 compliant)
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -27,27 +29,38 @@ jobs:
           cache: 'pip'
           cache-dependency-path: 'ug-scraper/requirements.txt'
 
+      # Step 3: Installs your Python requirements
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # Step 4: Runs your Python script
       - name: Execute Scraper
         run: |
           python scraper.py
 
-      - name: Commit and Push Scraped Songs
+      # Step 5: Commits the generated song text files back to GitHub
+      - name: Commit and Push Scraped Lyrics
+        if: success()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Stage the output directory
           git add songs/
           
-          # Check if changed files exist before pushing
           if [ -n "$(git status --porcelain songs/)" ]; then
-            git commit -m "chore(data): automated playlist update [skip ci]"
+            git commit -m "chore(data): automated lyrics update [skip ci]"
             git push origin HEAD:${{ github.ref_name }}
           else
-            echo "No new changes detected in songs directory."
+            echo "No new song files found to commit."
           fi
+
+      # Step 6: Uploads debug snapshot if scraper.py raises an error
+      - name: Upload Debug Snapshot on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudflare-debug-snapshot
+          path: ug-scraper/debug_cloudflare.html
+          retention-days: 3
