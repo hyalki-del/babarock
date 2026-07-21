@@ -13,14 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Node.js Engine
+        uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version: '24'
 
-      - name: Fetch Playlist Data
+      - name: Fetch Playlist Data via Native Fetch
         run: |
           node -e "
           const fs = require('fs');
@@ -37,7 +37,7 @@ jobs:
           (async () => {
             const url = 'https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r';
             
-            console.log('Fetching HTML directly...');
+            console.log('Fetching HTML directly via Node.js native engine...');
             const response = await fetch(url, {
               headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -53,7 +53,6 @@ jobs:
 
             const html = await response.text();
 
-            // Match the embedded data payload inside div.js-store[data-content]
             const match = html.match(/class=\"js-store\"[^\>]*data-content=\"([^\"]+)\"/i) || 
                           html.match(/data-content=\"([^\"]+)\"[^\>]*class=\"js-store\"/i);
 
