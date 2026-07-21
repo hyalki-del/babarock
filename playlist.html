@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -177,9 +177,9 @@
             cursor: grab;
             position: relative;
 
-            /* Touch & Long-Press UX Enhancements */
-            -webkit-touch-callout: none; /* Disable iOS Callout popup */
-            -webkit-user-select: none;   /* Disable selection */
+            /* Selection & Callout Prevention */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
             -khtml-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
@@ -353,10 +353,10 @@
                 <i class="fa-solid fa-floppy-disk"></i> Sıralamayı kaydet
             </button>
         </div>
-        <p class="header-instructions">Ton bilgisi ayarı için şarkı üzerine basılı tutun.</p>
+        <p class="header-instructions">Ton bilgisi ayarı için şarkı üzerine çift tıklayın.</p>
 
         <div class="sub-header">
-            <span class="drag-hint"><i class="fa-solid fa-grip-lines"></i>Şarkı sırasını değiştirmek için </span>
+            <span class="drag-hint"><i class="fa-solid fa-grip-lines"></i> Şarkı sırasını değiştirmek için</span>
             <span class="song-count" id="songCount">Yükleniyor...</span>
         </div>
 
@@ -368,10 +368,10 @@
         <div class="modal-card">
             <div class="modal-title">Şarkı tonunu değiştir</div>
             <div class="modal-song-name" id="modalSongName"></div>
-            <input type="text" class="modal-input" id="modalKeyInput" placeholder="e.g. Am, Em, F#m" />
+            <input type="text" class="modal-input" id="modalKeyInput" placeholder="Örn: Am, Em, F#m" />
             <div class="modal-actions">
-                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-                <button class="btn-save" id="saveBtn" onclick="submitKeyUpdate()">Save</button>
+                <button class="btn-cancel" onclick="closeModal()">İptal</button>
+                <button class="btn-save" id="saveBtn" onclick="submitKeyUpdate()">Kaydet</button>
             </div>
         </div>
     </div>
@@ -445,74 +445,32 @@
             }
         }
 
-        /* --- Cross-Platform 2-Second Hold & Tap Controller --- */
-        function setupItemGestures(element, songItem, detectedKey, txtPath) {
-            const HOLD_DURATION = 1000; // 2 seconds
-            const MOVE_THRESHOLD = 10;   // Cancel on scroll/swipe
-            let longPressTimer = null;
-            let isLongPressTriggered = false;
-            let startX = 0;
-            let startY = 0;
+        /* --- Cross-Platform Double-Tap & Click Controller --- */
+        function setupDoubleClickAndTap(element, songItem, detectedKey, txtPath) {
+            let lastTapTime = 0;
+            let clickTimer = null;
+            const DOUBLE_TAP_THRESHOLD = 300; // ms window to register a double-tap
 
-            function startPress(e) {
-                isLongPressTriggered = false;
-                const point = e.touches ? e.touches[0] : e;
-                startX = point.clientX;
-                startY = point.clientY;
+            element.addEventListener('click', (e) => {
+                const currentTime = Date.now();
+                const tapLength = currentTime - lastTapTime;
 
-                if (longPressTimer) clearTimeout(longPressTimer);
-
-                longPressTimer = setTimeout(() => {
-                    isLongPressTriggered = true;
-                    if (navigator.vibrate) navigator.vibrate(50);
+                if (tapLength < DOUBLE_TAP_THRESHOLD && tapLength > 0) {
+                    // Double Click / Double Tap detected -> Open Key Dialog
+                    if (clickTimer) clearTimeout(clickTimer);
+                    lastTapTime = 0;
                     openModal(songItem, detectedKey);
-                }, HOLD_DURATION);
-            }
+                } else {
+                    // Single Click / Single Tap -> Open Lyrics File
+                    lastTapTime = currentTime;
+                    if (clickTimer) clearTimeout(clickTimer);
 
-            function cancelPress() {
-                if (longPressTimer) {
-                    clearTimeout(longPressTimer);
-                    longPressTimer = null;
-                }
-            }
-
-            function handleMove(e) {
-                if (!longPressTimer) return;
-                const point = e.touches ? e.touches[0] : e;
-                const deltaX = Math.abs(point.clientX - startX);
-                const deltaY = Math.abs(point.clientY - startY);
-
-                if (deltaX > MOVE_THRESHOLD || deltaY > MOVE_THRESHOLD) {
-                    cancelPress();
-                }
-            }
-
-            function handleEnd(e) {
-                cancelPress();
-                if (!isLongPressTriggered) {
-                    openTxtFileInNewTab(txtPath);
-                }
-            }
-
-            // Touch Listeners (iOS & Android)
-            element.addEventListener('touchstart', startPress, { passive: true });
-            element.addEventListener('touchmove', handleMove, { passive: true });
-            element.addEventListener('touchend', handleEnd);
-            element.addEventListener('touchcancel', cancelPress);
-
-            // Mouse Listeners (Desktop)
-            element.addEventListener('mousedown', (e) => {
-                if (e.button === 0) startPress(e);
-            });
-            element.addEventListener('mousemove', handleMove);
-            element.addEventListener('mouseup', (e) => {
-                if (!isLongPressTriggered && e.button === 0) {
-                    cancelPress();
-                    openTxtFileInNewTab(txtPath);
+                    clickTimer = setTimeout(() => {
+                        openTxtFileInNewTab(txtPath);
+                        lastTapTime = 0;
+                    }, DOUBLE_TAP_THRESHOLD);
                 }
             });
-            element.addEventListener('mouseleave', cancelPress);
-            element.addEventListener('contextmenu', (e) => e.preventDefault());
         }
 
         async function loadPlaylist() {
@@ -531,7 +489,7 @@
                 renderUI();
             } catch (err) {
                 console.error(err);
-                countElement.textContent = "Error";
+                countElement.textContent = "Hata";
             }
         }
 
@@ -581,20 +539,19 @@
                     </div>
                 `;
 
-                // Attach Gesture Handler (Long Press -> Edit Key, Single Tap -> Open Lyrics)
-                setupItemGestures(li, item, detectedKey, txtPath);
-
-                // Attach Drag & Drop
+                // Attach Event Handlers
+                setupDoubleClickAndTap(li, item, detectedKey, txtPath);
                 addDragListeners(li);
 
                 listElement.appendChild(li);
 
                 // Stop propagation on YouTube icon click
-                document.getElementById(`yt-icon-${index}`).addEventListener('click', (e) => {
+                const ytIcon = document.getElementById(`yt-icon-${index}`);
+                ytIcon.addEventListener('click', (e) => {
                     e.stopPropagation();
                     window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
                 });
-                document.getElementById(`yt-icon-${index}`).addEventListener('touchstart', (e) => {
+                ytIcon.addEventListener('touchstart', (e) => {
                     e.stopPropagation();
                 });
             });
@@ -661,7 +618,7 @@
                 }, 2000);
             } catch (err) {
                 console.error("Failed to save playlist order:", err);
-                alert("Could not sync playlist order to back-end.");
+                alert("Sıralama kaydedilemedi.");
                 btn.disabled = false;
                 btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Sıralamayı kaydet`;
             }
@@ -707,14 +664,14 @@
                     renderUI();
                     closeModal();
                 } else {
-                    alert("Error updating key: " + result.message);
+                    alert("Ton güncellenirken hata oluştu: " + result.message);
                 }
             } catch (err) {
                 console.error("Save failed:", err);
-                alert("Network error. Key could not be saved.");
+                alert("Ağ hatası. Ton kaydedilemedi.");
             } finally {
                 saveBtn.disabled = false;
-                saveBtn.textContent = "Save";
+                saveBtn.textContent = "Kaydet";
             }
         }
 
