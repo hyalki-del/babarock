@@ -1,78 +1,353 @@
-// Replace with your actual Spreadsheet ID
-const SPREADSHEET_ID = "1a2b3c4d5e6f7g8h9_YOUR_SHEET_ID";
-const SHEET_NAME = "keys"; // Tab name in your Google Sheet
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baba Rock - Playlist</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Base Reset & Dark Metal Theme */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-// Direct Google Sheet export endpoint (No "Publish to Web" required)
-const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+        body {
+            background-color: #0c0c0c;
+            background: radial-gradient(circle, #161616 0%, #070707 100%);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+        }
 
-function parseCSV(text) {
-    const lines = text.trim().split(/\r?\n/);
-    if (lines.length < 2) return [];
+        .playlist-card {
+            max-width: 480px;
+            width: 100%;
+            background: #121212;
+            padding: 30px 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            border: 1px solid #222222;
+        }
 
-    // Parse header row
-    const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^"|"$/g, ''));
-    const data = [];
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #222222;
+            padding-bottom: 15px;
+        }
 
-    for (let i = 1; i < lines.length; i++) {
-        // Handle values wrapped in quotes
-        const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
-        const cleanRow = row.map(val => val.trim().replace(/^"|"$/g, ''));
+        .header h1 {
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #ffffff;
+        }
 
-        const obj = {};
-        headers.forEach((header, index) => {
-            obj[header] = cleanRow[index] || "";
-        });
-        data.push(obj);
-    }
-    return data;
-}
+        .header h1 i {
+            color: #ff4500;
+        }
 
-async function loadPlaylist() {
-    const listElement = document.getElementById("songList");
-    const countElement = document.getElementById("songCount");
+        .song-count {
+            font-size: 0.85rem;
+            color: #888888;
+            background: #1a1a1a;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #282828;
+        }
 
-    try {
-        // Bust browser cache with a dynamic timestamp
-        const res = await fetch(`${SHEET_CSV_URL}&t=${Date.now()}`);
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        /* Song List Styling */
+        .song-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 520px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        /* Custom Scrollbar */
+        .song-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .song-list::-webkit-scrollbar-thumb {
+            background: #282828;
+            border-radius: 3px;
+        }
+
+        /* Full Clickable Song Item Frame */
+        .song-item-link {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1a1a1a;
+            border: 1px solid #282828;
+            padding: 12px 16px;
+            border-radius: 10px;
+            transition: border-color 0.25s ease, background-color 0.25s ease, transform 0.15s ease;
+            cursor: pointer;
+        }
+
+        .song-item-link:hover {
+            border-color: #ff4500;
+            background-color: #222222;
+            transform: translateY(-1px);
+        }
+
+        .song-item-link:hover .song-title {
+            color: #ff4500;
+        }
+
+        .song-item-link:hover .yt-icon {
+            transform: scale(1.15);
+            color: #ff4500;
+        }
+
+        .song-left {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            flex-grow: 1;
+        }
+
+        .song-number {
+            font-size: 0.85rem;
+            color: #ff4500;
+            font-weight: bold;
+            width: 28px;
+            flex-shrink: 0;
+        }
+
+        .song-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            flex-grow: 1;
+        }
+
+        .song-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color 0.2s ease;
+        }
+
+        .song-artist {
+            font-size: 0.8rem;
+            color: #a0a0a0;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Right Actions Layout Container */
+        .actions-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        /* Key Badge Component */
+        .key-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #ff4500;
+            background: #121212;
+            border: 1px solid #ff4500;
+            padding: 3px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .yt-icon {
+            color: #ff0000;
+            font-size: 1.2rem;
+            margin-left: 4px;
+            flex-shrink: 0;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="playlist-card">
+        <div class="header">
+            <h1><i class="fa-solid fa-music"></i> Playlist</h1>
+            <span class="song-count" id="songCount">Loading...</span>
+        </div>
+
+        <ul class="song-list" id="songList"></ul>
+    </div>
+
+    <script>
+        const SPREADSHEET_ID = "1cY4MJ8zFP5HWg8msUFGSy5dAIpJso8iUr5DgR6t64wE";
+        const SHEET_NAME = "keys";
         
-        const csvText = await res.text();
-        const playlist = parseCSV(csvText);
+        // Direct CSV Endpoint via Google Visualization Query API
+        const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
 
-        listElement.innerHTML = "";
-        countElement.textContent = `${playlist.length} Songs`;
+        /**
+         * RFC 4180 Compliant Finite State Machine (FSM) CSV Parser
+         * Accurately parses escaped quotes (""), embedded commas, and multiline text.
+         */
+        function parseCSV(text) {
+            const result = [];
+            let row = [];
+            let field = '';
+            let inQuotes = false;
 
-        playlist.forEach((item, index) => {
-            const li = document.createElement("li");
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const nextChar = text[i + 1];
 
-            const query = encodeURIComponent(`${item.title} ${item.artist}`);
-            const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        field += '"';
+                        i++; // Skip escaped double quote
+                    } else {
+                        inQuotes = !inQuotes; // Toggle quote state
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    row.push(field.trim());
+                    field = '';
+                } else if ((char === '\r' || char === '\n') && !inQuotes) {
+                    if (char === '\r' && nextChar === '\n') i++; // Handle CRLF line endings
+                    row.push(field.trim());
+                    if (row.some(cell => cell.length > 0)) result.push(row);
+                    row = [];
+                    field = '';
+                } else {
+                    field += char;
+                }
+            }
+            
+            if (field || row.length > 0) {
+                row.push(field.trim());
+                if (row.some(cell => cell.length > 0)) result.push(row);
+            }
 
-            const keyBadgeHtml = (item.key && item.key.toUpperCase() !== 'N/A') 
-                ? `<span class="key-badge">${item.key}</span>` 
-                : '';
+            if (result.length < 2) return [];
 
-            li.innerHTML = `
-                <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="song-item-link" title="Listen on YouTube">
-                    <div class="song-left">
-                        <span class="song-number">${index + 1}</span>
-                        <div class="song-info">
-                            <span class="song-title">${item.title}</span>
-                            <span class="song-artist">${item.artist}</span>
-                        </div>
-                    </div>
-                    <div class="actions-right">
-                        ${keyBadgeHtml}
-                        <i class="fa-brands fa-youtube yt-icon"></i>
-                    </div>
-                </a>
-            `;
-            listElement.appendChild(li);
-        });
-    } catch (err) {
-        console.error("Error fetching live sheet data:", err);
-        countElement.textContent = "Error";
-    }
-}
+            // Extract lowercase normalized headers
+            const headers = result[0].map(h => h.toLowerCase().replace(/^"|"$/g, ''));
+            
+            return result.slice(1).map(dataRow => {
+                const obj = {};
+                headers.forEach((header, idx) => {
+                    obj[header] = dataRow[idx] ? dataRow[idx].replace(/^"|"$/g, '') : '';
+                });
+                return obj;
+            });
+        }
 
-loadPlaylist();
+        /**
+         * HTML Entity Sanitizer preventing Cross-Site Scripting (XSS)
+         */
+        function sanitizeHTML(str) {
+            return String(str ?? '').replace(/[&<>"']/g, match => {
+                const entities = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                };
+                return entities[match];
+            });
+        }
+
+        /**
+         * Main Async Data Fetcher and UI Controller
+         */
+        async function loadPlaylist() {
+            const listElement = document.getElementById("songList");
+            const countElement = document.getElementById("songCount");
+
+            try {
+                // Fetch live CSV dataset with timestamp cache invalidation
+                const response = await fetch(`${SHEET_CSV_URL}&t=${Date.now()}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP network error status: ${response.status}`);
+                }
+
+                const csvText = await response.text();
+                const playlist = parseCSV(csvText);
+
+                countElement.textContent = `${playlist.length} Songs`;
+
+                // Use DocumentFragment to batch DOM inserts into a single layout reflow
+                const fragment = document.createDocumentFragment();
+
+                playlist.forEach((item, index) => {
+                    const li = document.createElement("li");
+
+                    const rawTitle = item.title || item.number || "Unknown Title";
+                    const rawArtist = item.artist || "";
+                    const rawKey = item.key || item.keys || "";
+
+                    const title = sanitizeHTML(rawTitle);
+                    const artist = sanitizeHTML(rawArtist);
+                    const key = sanitizeHTML(rawKey);
+
+                    const searchQuery = encodeURIComponent(`${rawTitle} ${rawArtist}`);
+                    const youtubeUrl = `https://www.youtube.com/results?search_query=${searchQuery}`;
+
+                    // Render key badge if signature exists and is valid
+                    const keyBadgeHtml = (key && key.toUpperCase() !== 'N/A' && key !== '???') 
+                        ? `<span class="key-badge">${key}</span>` 
+                        : '';
+
+                    li.innerHTML = `
+                        <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="song-item-link" title="Listen on YouTube">
+                            <div class="song-left">
+                                <span class="song-number">${index + 1}</span>
+                                <div class="song-info">
+                                    <span class="song-title">${title}</span>
+                                    <span class="song-artist">${artist}</span>
+                                </div>
+                            </div>
+                            <div class="actions-right">
+                                ${keyBadgeHtml}
+                                <i class="fa-brands fa-youtube yt-icon"></i>
+                            </div>
+                        </a>
+                    `;
+
+                    fragment.appendChild(li);
+                });
+
+                // Single atomic DOM replacement
+                listElement.innerHTML = "";
+                listElement.appendChild(fragment);
+
+            } catch (err) {
+                console.error("Pipeline failure in loadPlaylist():", err);
+                countElement.textContent = "Error";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadPlaylist);
+    </script>
+
+</body>
+</html>
