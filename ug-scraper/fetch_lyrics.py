@@ -1,23 +1,20 @@
 import os
 import re
-import sys
 import json
 import time
-import urllib.parse
-import urllib.request
-import unicodedata
 from pathlib import Path
-import cloudscraper
+import lyricsgenius
 
-# Configuration
-PLAYLIST_URL = os.getenv(
-    "PLAYLIST_URL", 
-    "https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r"
-)
+# Absolute path resolution
+# Current file: <ROOT>/ug-scraper/fetch_lyrics.py
+CURRENT_DIR = Path(__file__).resolve().parent
+ROOT_DIR = CURRENT_DIR.parent
 
-BASE_DIR = Path(__file__).resolve().parent
-OUTPUT_DIR = BASE_DIR / "songs"
-DEBUG_FILE = BASE_DIR / "debug_failed_page.html"
+PLAYLIST_PATH = ROOT_DIR / "playlist.json"
+OUTPUT_DIR = CURRENT_DIR / "songs"
+
+# Retrieve Genius Access Token from Secrets
+GENIUS_ACCESS_TOKEN = os.getenv("GENIUS_ACCESS_TOKEN")
 
 
 def sanitize_filename(name: str) -> str:
@@ -25,203 +22,104 @@ def sanitize_filename(name: str) -> str:
     return re.sub(r'[\\/*?:"<>|]', "", name).strip()
 
 
-def clean_lyrics_only(raw_text: str) -> str:
-    """
-    Transforms raw UG/Markup lyrics into clean, readable text.
-    Strips chords, BBCode markup, structural tags, and normalizes unicode.
-    """
+def clean_genius_lyrics(raw_text: str) -> str:
+    """Removes Genius-specific metadata artifacts (headers, footers, embed tags)."""
     if not raw_text:
         return ""
 
-    # 1. Strip chord tags and inner chord content completely
-    text = re.sub(r'\[ch\](.*?)\[\/ch\]', '', raw_text)
+    lines = raw_text.splitlines()
     
-    # 2. Strip remaining structural wrapper tags ([tab], [chords], etc.)
-    text = re.sub(r'\[\/?(tab|chords)[^\]]*\]', '', text)
+    # Strip typical Genius metadata from the first line if present
+    if lines and "Lyrics" in lines[0]:
+        lines[0] = re.sub(r'.*?Lyrics', '', lines[0])
 
-    # 3. Standardize section headers like [Verse 1], [Chorus]
-    text = re.sub(
-        r'\[(Verse|Chorus|Bridge|Intro|Outro|Solo|Hook|Pre-Chorus)[^\]]*\]', 
-        r'[\1]', 
-        text, 
-        flags=re.IGNORECASE
-    )
-    
-    # 4. Remove stray leftover brackets/tags
-    text = re.sub(r'\[\/?([a-zA-Z0-9_\-]+)[^\]]*\]', '', text)
-
-    # 5. Unicode Normalization
-    text = unicodedata.normalize("NFKD", text)
-    text = (
-        text.replace('\xa0', ' ')
-            .replace('’', "'")
-            .replace('‘', "'")
-            .replace('”', '"')
-            .replace('“', '"')
-            .replace('–', '-')
-            .replace('—', '-')
-    )
-
-    # 6. Cleanup whitespace
-    lines = [line.rstrip() for line in text.splitlines()]
     text = "\n".join(lines)
-    return re.sub(r'\n{3,}', '\n\n', text).strip()
-
-
-def fetch_lyrics_from_lrclib(artist: str, title: str) -> str:
-    """
-    Fallback lyrics provider using LRCLIB (Free, open-source, no API keys needed).
-    Returns plain lyrics string or empty string if not found.
-    """
-    params = urllib.parse.urlencode({'artist_name': artist, 'track_name': title})
-    url = f"https://lrclib.net/api/get?{params}"
+    # Remove trailing 'Embed' / numeric tag appended by Genius
+    text = re.sub(r'\d*Embed$', '', text)
     
-    headers = {'User-Agent': 'GitHubActions-LyricsFetcher/1.0'}
-    req = urllib.request.Request(url, headers=headers)
-    
+    return text.strip()
+
+
+def load_playlist() -> list:
+    """Loads and normalizes track data from root playlist.json."""
+    if not PLAYLIST_PATH.exists():
+        print(f"[-] CRITICAL ERROR: Target playlist file not found at path: {PLAYLIST_PATH}")
+        return []
+
     try:
-        with urllib.request.urlopen(req, timeout=10) as response:
-            if response.status == 200:
-                data = json.loads(response.read().decode('utf-8'))
-                return data.get('plainLyrics', '') or data.get('syncedLyrics', '')
-    except Exception:
-        # Secondary fuzzy search endpoint
-        search_url = f"https://lrclib.net/api/search?q={urllib.parse.quote(f'{artist} {title}')}"
-        try:
-            req_search = urllib.request.Request(search_url, headers=headers)
-            with urllib.request.urlopen(req_search, timeout=10) as resp:
-                if resp.status == 200:
-                    results = json.loads(resp.read().decode('utf-8'))
-                    if results and isinstance(results, list):
-                        return results[0].get('plainLyrics', '')
-        except Exception:
-            pass
-
-    return ""
+        with open(PLAYLIST_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            
+            # Handle both raw arrays [{...}] and wrapped objects {"items": [{...}]}
+            if isinstance(data, dict):
+                tracks = data.get("items", []) or data.get("tracks", [])
+            else:
+                tracks = data
+                
+            return tracks
+    except json.JSONDecodeError as e:
+        print(f"[-] CRITICAL ERROR: Failed to parse {PLAYLIST_PATH.name}: {e}")
+        return []
 
 
-def extract_store_from_html(html_content: str) -> dict:
-    """Parses window.UG_STORE page state from raw HTML string."""
-    match = re.search(r'window\.UG_STORE\s*=\s*(\{.*?\});\s*</script>', html_content, re.DOTALL)
-    if not match:
-        match = re.search(r'window\.UG_STORE\s*=\s*(\{.*?\});', html_content, re.DOTALL)
-        
-    if match:
-        try:
-            data = json.loads(match.group(1))
-            return data.get('store', {}).get('page', {}) or data.get('page', {})
-        except json.JSONDecodeError as e:
-            print(f"[-] JSON decode error on UG_STORE pattern: {e}")
+def main():
+    if not GENIUS_ACCESS_TOKEN:
+        print("[-] CRITICAL ERROR: GENIUS_ACCESS_TOKEN environment variable is missing.")
+        return
 
-    return {}
-
-
-def save_debug_snapshot(content: str):
-    """Saves raw response payload to disk for GitHub Action Artifact inspection."""
-    try:
-        with open(DEBUG_FILE, "w", encoding="utf-8") as f:
-            f.write(content)
-        print(f"[!] Saved debug HTML snapshot to: {DEBUG_FILE}")
-    except Exception as e:
-        print(f"[-] Failed to write debug snapshot: {e}")
-
-
-def scrape_playlist():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    
-    scraper = cloudscraper.create_scraper(
-        browser={
-            'browser': 'chrome',
-            'platform': 'windows',
-            'desktop': True
-        }
-    )
 
-    headers = {
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
-    }
+    tracks = load_playlist()
+    if not tracks:
+        print("[-] Aborting execution: No valid tracks found in playlist.")
+        return
 
-    print(f"[+] Fetching playlist: {PLAYLIST_URL}")
-    
-    try:
-        response = scraper.get(PLAYLIST_URL, headers=headers)
-    except Exception as e:
-        print(f"[-] Network Request Crash: {e}")
-        sys.exit(1)
+    # Initialize Genius API client
+    genius = lyricsgenius.Genius(GENIUS_ACCESS_TOKEN)
+    genius.verbose = False
+    genius.remove_section_headers = False  # Retains structural tags like [Verse], [Chorus]
 
-    if response.status_code != 200 or "just a moment" in response.text.lower():
-        print(f"[-] WARNING: UG Direct Access Blocked (HTTP {response.status_code} / Cloudflare Challenge).")
-        save_debug_snapshot(response.text)
-        sys.exit(1)
-
-    store = extract_store_from_html(response.text)
-    playlist_items = store.get('data', {}).get('playlist', {}).get('items', [])
-
-    if not playlist_items:
-        print("[-] CRITICAL FAILURE: Could not parse playlist items from UG_STORE.")
-        save_debug_snapshot(response.text)
-        sys.exit(1)
-
-    print(f"[+] Extracted {len(playlist_items)} tracks from playlist. Processing...")
+    print(f"[+] Successfully loaded {len(tracks)} tracks from root playlist.json. Starting pipeline...\n")
 
     saved_count = 0
-    for idx, item in enumerate(playlist_items, 1):
-        song_url = item.get('tab_url')
-        artist_name = item.get('artist_name', 'Unknown Artist')
-        song_title = item.get('song_name', 'Unknown Song')
+    for idx, track in enumerate(tracks, 1):
+        # Supports multiple naming conventions (e.g., 'artist' vs 'artist_name')
+        artist = track.get("artist") or track.get("artist_name") or "Unknown Artist"
+        title = track.get("title") or track.get("song_name") or track.get("track_name") or "Unknown Title"
 
-        filename = sanitize_filename(f"{artist_name} - {song_title}.txt")
+        filename = sanitize_filename(f"{artist} - {title}.txt")
         filepath = OUTPUT_DIR / filename
 
-        print(f"[{idx}/{len(playlist_items)}] {artist_name} - {song_title}")
+        print(f"[{idx}/{len(tracks)}] Querying: {artist} - {title}")
 
         if filepath.exists():
-            print(f"  [➜] Skipping: Already exists -> {filename}")
+            print(f"  [➜] Skip: Target file already exists -> {filename}")
             saved_count += 1
             continue
 
-        raw_content = ""
+        try:
+            song = genius.search_song(title, artist)
+            if song and song.lyrics:
+                cleaned_lyrics = clean_genius_lyrics(song.lyrics)
+                
+                with open(filepath, "w", encoding="utf-8") as out:
+                    out.write(f"Artist: {artist}\nTitle: {title}\n")
+                    out.write("=" * 50 + "\n\n")
+                    out.write(cleaned_lyrics)
 
-        # Primary extraction attempt: Ultimate Guitar
-        if song_url:
-            try:
-                tab_response = scraper.get(song_url, headers=headers)
-                if tab_response.status_code == 200 and "just a moment" not in tab_response.text.lower():
-                    tab_store = extract_store_from_html(tab_response.text)
-                    tab_view = tab_store.get('data', {}).get('tab_view', {})
-                    raw_content = (
-                        tab_view.get('wiki_tab', {}).get('content', '') or 
-                        tab_view.get('tab', {}).get('content', '')
-                    )
-            except Exception as e:
-                print(f"  [!] UG Fetch failed: {e}")
+                saved_count += 1
+                print(f"  [✓] Successfully saved -> {filename}")
+            else:
+                print(f"  [✗] Lyrics unavailable on Genius for: {artist} - {title}")
 
-        # Secondary fallback: LRCLIB API
-        if not raw_content:
-            print("  [!] UG tab content unavailable. Querying fallback API (LRCLIB)...")
-            raw_content = fetch_lyrics_from_lrclib(artist_name, song_title)
+        except Exception as e:
+            print(f"  [!] Genius API Exception on {artist} - {title}: {e}")
 
-        if raw_content:
-            clean_lyrics = clean_lyrics_only(raw_content)
-
-            with open(filepath, "w", encoding="utf-8") as f:
-                f.write(f"Artist: {artist_name}\nTitle: {song_title}\n")
-                if song_url:
-                    f.write(f"URL: {song_url}\n")
-                f.write("=" * 50 + "\n\n")
-                f.write(clean_lyrics)
-
-            saved_count += 1
-            print(f"  [✓] Saved -> {filename}")
-        else:
-            print(f"  [✗] Failed to fetch lyrics from all sources.")
-
+        # Throttling to respect Genius API rate limits
         time.sleep(1)
 
-    print(f"\n[+] SUCCESS: Finished processing. Total available songs: {saved_count}/{len(playlist_items)}.")
+    print(f"\n[+] PIPELINE COMPLETE: Processed {saved_count}/{len(tracks)} lyric files in {OUTPUT_DIR.name}/.")
 
 
 if __name__ == "__main__":
-    scrape_playlist()
+    main()
