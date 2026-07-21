@@ -113,7 +113,7 @@ def main():
         else:
             print(f"Skipping (already exists): {file_path}")
 
-        # Update JSON record with local file path
+        # Explicitly map file property into the schema
         song['file'] = file_path
         updated_playlist.append(song)
 
