@@ -37,7 +37,6 @@
             padding: 16px 8px;
         }
 
-        /* Fixed 2-Column Side-by-Side Layout for Mobile */
         .app-container {
             display: -webkit-box;
             display: -webkit-flex;
@@ -59,7 +58,7 @@
             -webkit-flex: 1 1 50%;
             flex: 1 1 50%;
             width: 50%;
-            min-width: 0; /* Prevents overflow from wide text content on iPhone */
+            min-width: 0;
             background: #121212;
             padding: 14px 10px;
             border-radius: 12px;
@@ -96,9 +95,7 @@
             white-space: nowrap;
         }
 
-        .header h1 i {
-            color: #ff4500;
-        }
+        .header h1 i { color: #ff4500; }
 
         .header-actions {
             display: -webkit-box;
@@ -110,8 +107,7 @@
             gap: 4px;
         }
 
-        /* Shuffle Button */
-        .btn-shuffle {
+        .btn-shuffle, .btn-setlist {
             background: #1a1a1a;
             color: #ff4500;
             border: 1px solid #282828;
@@ -136,24 +132,10 @@
             border-color: #ff4500;
         }
 
-        /* Orange Setlist Button */
         .btn-setlist {
             background: #ff4500;
             color: #ffffff;
-            border: 1px solid #ff4500;
-            padding: 4px 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: -webkit-inline-box;
-            display: -webkit-inline-flex;
-            display: inline-flex;
-            -webkit-box-align: center;
-            -webkit-align-items: center;
-            align-items: center;
-            gap: 4px;
-            transition: background 0.2s ease;
+            border-color: #ff4500;
         }
 
         .btn-setlist:hover, .btn-setlist:active {
@@ -171,7 +153,6 @@
             white-space: nowrap;
         }
 
-        /* Song List Styling */
         .song-list {
             list-style: none;
             display: -webkit-box;
@@ -188,13 +169,8 @@
             padding-right: 2px;
         }
 
-        .song-list::-webkit-scrollbar {
-            width: 3px;
-        }
-        .song-list::-webkit-scrollbar-thumb {
-            background: #282828;
-            border-radius: 2px;
-        }
+        .song-list::-webkit-scrollbar { width: 3px; }
+        .song-list::-webkit-scrollbar-thumb { background: #282828; border-radius: 2px; }
 
         .song-item-card {
             display: -webkit-box;
@@ -241,11 +217,10 @@
             font-size: 0.75rem;
             -webkit-flex-shrink: 0;
             flex-shrink: 0;
+            padding: 4px;
         }
 
-        .drag-handle:active {
-            cursor: grabbing;
-        }
+        .drag-handle:active { cursor: grabbing; }
 
         .song-number {
             font-size: 0.75rem;
@@ -300,7 +275,6 @@
             flex-shrink: 0;
         }
 
-        /* Key Badge UI Component */
         .key-badge {
             font-size: 0.65rem;
             font-weight: 700;
@@ -310,15 +284,6 @@
             padding: 2px 5px;
             border-radius: 4px;
             white-space: nowrap;
-        }
-
-        .btn-remove {
-            color: #ff4444;
-            background: transparent;
-            border: none;
-            padding: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
         }
 
         .yt-icon {
@@ -339,7 +304,6 @@
             font-style: italic;
         }
 
-        /* Dragging styles */
         .sortable-ghost {
             opacity: 0.4;
             background-color: #2a2a2a !important;
@@ -369,7 +333,6 @@
             <div class="header">
                 <h1><i class="fa-solid fa-circle-check"></i> Selected</h1>
                 <div class="header-actions">
-                    <!-- Orange Setlist Button -->
                     <button class="btn-setlist" onclick="openSetlist()">
                         <i class="fa-solid fa-list-check"></i> Setlist
                     </button>
@@ -385,29 +348,55 @@
         let selectedSongs = [];
         let sortableInstance = null;
 
-        async function loadPlaylist() {
-    const countElement = document.getElementById("songCount");
+        function normalizeTitle(str) {
+            return str
+                .toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-z0-9]/g, "");
+        }
 
-    try {
-        // Append timestamp parameter to force fetching fresh payload from server
-        const res = await fetch(`./playlist.json?t=${new Date().getTime()}`);
-        availablePlaylist = await res.json();
-        renderUI();
-        initSortable();
-    } catch (err) {
-        console.error(err);
-        countElement.textContent = "Error";
-    }
-}
+        async function loadPlaylist() {
+            const countElement = document.getElementById("songCount");
+
+            try {
+                const timestamp = new Date().getTime();
+                const [resPlaylist, resKeys] = await Promise.all([
+                    fetch(`./playlist.json?t=${timestamp}`),
+                    fetch(`./key-overrides.json?t=${timestamp}`)
+                ]);
+
+                const playlist = await resPlaylist.json();
+                const keyMap = await resKeys.json();
+
+                const normalizedKeyMap = {};
+                for (const [title, key] of Object.entries(keyMap)) {
+                    normalizedKeyMap[normalizeTitle(title)] = key;
+                }
+
+                availablePlaylist = playlist.map(item => {
+                    const normTitle = normalizeTitle(item.title);
+                    return {
+                        ...item,
+                        key: normalizedKeyMap[normTitle] || item.key || 'N/A'
+                    };
+                });
+
+                renderUI();
+                initSortable();
+            } catch (err) {
+                console.error(err);
+                countElement.textContent = "Error";
+            }
+        }
+
         function initSortable() {
             const selectedListElement = document.getElementById("selectedList");
             
             sortableInstance = new Sortable(selectedListElement, {
                 animation: 150,
-                handle: '.drag-handle', // Drag only by handle for better UX
+                handle: '.drag-handle',
                 ghostClass: 'sortable-ghost',
                 onEnd: function (evt) {
-                    // Update array order when dragging ends
                     const item = selectedSongs.splice(evt.oldIndex, 1)[0];
                     selectedSongs.splice(evt.newIndex, 0, item);
                     renderUI();
@@ -458,39 +447,16 @@
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>Setlist</title>
                     <style>
-                        body {
-                            background-color: #ffffff;
-                            color: #000000;
-                            font-family: 'Courier New', Courier, monospace;
-                            padding: 16px;
-                        }
-                        .setlist-frame {
-                            border: 2px solid #000000;
-                            padding: 12px;
-                            display: inline-block;
-                            width: 100%;
-                            box-sizing: border-box;
-                        }
-                        .setlist-title {
-                            font-weight: bold;
-                            font-size: 1.1rem;
-                            margin-bottom: 10px;
-                            text-transform: uppercase;
-                            border-bottom: 1px solid #000000;
-                            padding-bottom: 4px;
-                        }
-                        .song-line {
-                            font-size: 0.9rem;
-                            line-height: 1.5;
-                        }
+                        body { background-color: #ffffff; color: #000000; font-family: 'Courier New', Courier, monospace; padding: 16px; }
+                        .setlist-frame { border: 2px solid #000000; padding: 12px; display: inline-block; width: 100%; box-sizing: border-box; }
+                        .setlist-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #000000; padding-bottom: 4px; }
+                        .song-line { font-size: 0.9rem; line-height: 1.5; }
                     </style>
                 </head>
                 <body>
                     <div class="setlist-frame">
                         <div class="setlist-title">SETLIST</div>
-                        <div class="song-line">
-                            ${listHtml}
-                        </div>
+                        <div class="song-line">${listHtml}</div>
                     </div>
                 </body>
                 </html>
@@ -504,7 +470,7 @@
             const selectedListElement = document.getElementById("selectedList");
             const selectedCountElement = document.getElementById("selectedCount");
 
-            // 1. Render Available Songs
+            // 1. Render Available Songs (Playlist)
             listElement.innerHTML = "";
             countElement.textContent = `${availablePlaylist.length}`;
 
@@ -541,7 +507,7 @@
                 });
             }
 
-            // 2. Render Picked Songs
+            // 2. Render Picked Songs (Selected)
             selectedListElement.innerHTML = "";
             selectedCountElement.textContent = `${selectedSongs.length}`;
 
@@ -554,6 +520,10 @@
                     const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
 
                     li.className = "song-item-card";
+                    li.title = "Click to return to playlist";
+                    
+                    // Clicking the card anywhere returns it to the available playlist
+                    li.onclick = () => unpickSong(index);
 
                     const keyBadgeHtml = (item.key && item.key !== 'N/A') 
                         ? `<span class="key-badge">${item.key}</span>` 
@@ -561,7 +531,7 @@
 
                     li.innerHTML = `
                         <div class="song-left">
-                            <i class="fa-solid fa-grip-vertical drag-handle" title="Hold to drag"></i>
+                            <i class="fa-solid fa-grip-vertical drag-handle" title="Hold to drag" onclick="event.stopPropagation();"></i>
                             <span class="song-number">${index + 1}</span>
                             <div class="song-info">
                                 <span class="song-title">${item.title}</span>
@@ -570,10 +540,7 @@
                         </div>
                         <div class="actions-right">
                             ${keyBadgeHtml}
-                            <button class="btn-remove" title="Remove song" onclick="unpickSong(${index})">
-                                <i class="fa-solid fa-xmark"></i>
-                            </button>
-                            <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="fa-brands fa-youtube yt-icon" title="Listen on YouTube"></a>
+                            <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="fa-brands fa-youtube yt-icon" title="Listen on YouTube" onclick="event.stopPropagation();"></a>
                         </div>
                     `;
                     selectedListElement.appendChild(li);
