@@ -1,119 +1,100 @@
-import os
-import re
 import json
+import re
 import time
-import traceback
+import urllib.parse
+import urllib.request
 from pathlib import Path
-import lyricsgenius
 
-# Precise path calculations relative to execution subfolder
+# Path definitions: Script is inside ug-scraper/, playlist.json is at repository root
 CURRENT_DIR = Path(__file__).resolve().parent
 ROOT_DIR = CURRENT_DIR.parent
 
 PLAYLIST_PATH = ROOT_DIR / "playlist.json"
 OUTPUT_DIR = CURRENT_DIR / "songs"
-ERROR_LOG_PATH = CURRENT_DIR / "debug_execution_error.log"
-
-GENIUS_ACCESS_TOKEN = os.getenv("GENIUS_ACCESS_TOKEN")
 
 
 def sanitize_filename(name: str) -> str:
-    """Sanitizes strings for safe cross-platform file naming."""
+    """Removes invalid OS filename characters."""
     return re.sub(r'[\\/*?:"<>|]', "", name).strip()
 
 
-def clean_genius_lyrics(raw_text: str) -> str:
-    """Strips Genius metadata artifacts and trailing embed tags."""
-    if not raw_text:
-        return ""
+def fetch_lyrics_from_lrclib(artist: str, title: str) -> str:
+    """Queries LRCLIB API directly. Free, keyless, and headless-friendly."""
+    # 1. Direct Signature Query
+    params = urllib.parse.urlencode({'artist_name': artist, 'track_name': title})
+    url = f"https://lrclib.net/api/get?{params}"
+    headers = {'User-Agent': 'GitHubActions-LyricsFetcher/1.0'}
 
-    lines = raw_text.splitlines()
-    if lines and "Lyrics" in lines[0]:
-        lines[0] = re.sub(r'.*?Lyrics', '', lines[0])
+    try:
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode('utf-8'))
+                return data.get('plainLyrics', '') or data.get('syncedLyrics', '')
+    except Exception:
+        pass
 
-    text = "\n".join(lines)
-    text = re.sub(r'\d*Embed$', '', text)
-    return text.strip()
+    # 2. Fuzzy Search Endpoint Fallback
+    search_query = urllib.parse.quote(f"{artist} {title}")
+    search_url = f"https://lrclib.net/api/search?q={search_query}"
 
+    try:
+        req_search = urllib.request.Request(search_url, headers=headers)
+        with urllib.request.urlopen(req_search, timeout=10) as resp:
+            if resp.status == 200:
+                results = json.loads(resp.read().decode('utf-8'))
+                if results and isinstance(results, list) and len(results) > 0:
+                    return results[0].get('plainLyrics', '') or results[0].get('syncedLyrics', '')
+    except Exception as e:
+        print(f"  [!] Query error for {artist} - {title}: {e}")
 
-def load_playlist() -> list:
-    """Loads and parses the root-level playlist.json file."""
-    if not PLAYLIST_PATH.exists():
-        msg = f"Target playlist file missing at expected path: {PLAYLIST_PATH}"
-        print(f"[-] {msg}")
-        raise FileNotFoundError(msg)
-
-    with open(PLAYLIST_PATH, "r", encoding="utf-8") as f:
-        data = json.load(f)
-        if isinstance(data, dict):
-            return data.get("items", []) or data.get("tracks", [])
-        return data
+    return ""
 
 
 def main():
-    try:
-        if not GENIUS_ACCESS_TOKEN:
-            msg = "GENIUS_ACCESS_TOKEN secret is empty or missing from environment."
-            print(f"[-] {msg}")
-            raise ValueError(msg)
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    if not PLAYLIST_PATH.exists():
+        print(f"[-] CRITICAL ERROR: Target playlist file not found at: {PLAYLIST_PATH}")
+        raise FileNotFoundError(f"Missing {PLAYLIST_PATH}")
 
-        tracks = load_playlist()
-        if not tracks:
-            msg = "playlist.json parsed successfully but contained 0 track entries."
-            print(f"[-] {msg}")
-            raise ValueError(msg)
+    with open(PLAYLIST_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+        tracks = data.get("items", []) if isinstance(data, dict) else data
 
-        genius = lyricsgenius.Genius(GENIUS_ACCESS_TOKEN)
-        genius.verbose = False
-        genius.remove_section_headers = False
+    print(f"[+] Loaded {len(tracks)} tracks from root playlist.json. Starting API extraction...\n")
 
-        print(f"[+] Loaded {len(tracks)} tracks from {PLAYLIST_PATH.name}. Querying API...\n")
+    saved_count = 0
+    for idx, track in enumerate(tracks, 1):
+        artist = track.get("artist") or track.get("artist_name") or "Unknown Artist"
+        title = track.get("title") or track.get("song_name") or "Unknown Title"
 
-        saved_count = 0
-        for idx, track in enumerate(tracks, 1):
-            artist = track.get("artist") or track.get("artist_name") or "Unknown Artist"
-            title = track.get("title") or track.get("song_name") or track.get("track_name") or "Unknown Title"
+        filename = sanitize_filename(f"{artist} - {title}.txt")
+        filepath = OUTPUT_DIR / filename
 
-            filename = sanitize_filename(f"{artist} - {title}.txt")
-            filepath = OUTPUT_DIR / filename
+        print(f"[{idx}/{len(tracks)}] Searching: {artist} - {title}")
 
-            print(f"[{idx}/{len(tracks)}] Processing: {artist} - {title}")
+        if filepath.exists():
+            print(f"  [➜] Skip: File already exists -> {filename}")
+            saved_count += 1
+            continue
 
-            if filepath.exists():
-                print(f"  [➜] Skipping (File already exists): {filename}")
-                saved_count += 1
-                continue
+        lyrics = fetch_lyrics_from_lrclib(artist, title)
 
-            try:
-                song = genius.search_song(title, artist)
-                if song and song.lyrics:
-                    cleaned = clean_genius_lyrics(song.lyrics)
-                    with open(filepath, "w", encoding="utf-8") as out:
-                        out.write(f"Artist: {artist}\nTitle: {title}\n")
-                        out.write("=" * 50 + "\n\n")
-                        out.write(cleaned)
+        if lyrics:
+            with open(filepath, "w", encoding="utf-8") as out:
+                out.write(f"Artist: {artist}\nTitle: {title}\n")
+                out.write("=" * 50 + "\n\n")
+                out.write(lyrics.strip())
 
-                    saved_count += 1
-                    print(f"  [✓] Saved -> {filename}")
-                else:
-                    print(f"  [✗] Lyrics not found on Genius for: {artist} - {title}")
+            saved_count += 1
+            print(f"  [✓] Successfully saved -> {filename}")
+        else:
+            print(f"  [✗] Lyrics unavailable on LRCLIB.")
 
-            except Exception as e:
-                print(f"  [!] Exception during song query ({artist} - {title}): {e}")
+        time.sleep(0.5)
 
-            time.sleep(1)
-
-        print(f"\n[+] PIPELINE COMPLETED: Processed {saved_count}/{len(tracks)} files successfully.")
-
-    except Exception as err:
-        # Dump execution failure trace to file for GitHub Action Artifact uploading
-        with open(ERROR_LOG_PATH, "w", encoding="utf-8") as f:
-            f.write(f"Execution Error: {str(err)}\n\n")
-            f.write(traceback.format_exc())
-        print(f"[!] Critical Error logged to: {ERROR_LOG_PATH.name}")
-        raise err
+    print(f"\n[+] PIPELINE COMPLETE: Saved {saved_count}/{len(tracks)} lyric files in {OUTPUT_DIR.name}/.")
 
 
 if __name__ == "__main__":
