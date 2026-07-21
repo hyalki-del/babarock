@@ -295,7 +295,21 @@
             -webkit-box-align: center;
             -webkit-align-items: center;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
+            -webkit-flex-shrink: 0;
+            flex-shrink: 0;
+        }
+
+        /* Key Badge UI Component */
+        .key-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #ff4500;
+            background: #121212;
+            border: 1px solid #ff4500;
+            padding: 2px 5px;
+            border-radius: 4px;
+            white-space: nowrap;
         }
 
         .btn-remove {
@@ -432,7 +446,8 @@
             const win = window.open("", "_blank");
             
             let listHtml = selectedSongs.map((item, i) => {
-                return `<div>${i + 1}-${item.title}-${item.artist}</div>`;
+                const keyStr = (item.key && item.key !== 'N/A') ? ` (${item.key})` : '';
+                return `<div>${i + 1}-${item.title}-${item.artist}${keyStr}</div>`;
             }).join("");
 
             win.document.write(`
@@ -505,6 +520,10 @@
                     li.title = "Click to select this song";
                     li.onclick = () => pickSong(index);
 
+                    const keyBadgeHtml = (item.key && item.key !== 'N/A') 
+                        ? `<span class="key-badge">${item.key}</span>` 
+                        : '';
+
                     li.innerHTML = `
                         <div class="song-left">
                             <span class="song-number">${index + 1}</span>
@@ -513,7 +532,10 @@
                                 <span class="song-artist">${item.artist}</span>
                             </div>
                         </div>
-                        <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="fa-brands fa-youtube yt-icon" title="Listen on YouTube" onclick="event.stopPropagation();"></a>
+                        <div class="actions-right">
+                            ${keyBadgeHtml}
+                            <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="fa-brands fa-youtube yt-icon" title="Listen on YouTube" onclick="event.stopPropagation();"></a>
+                        </div>
                     `;
                     listElement.appendChild(li);
                 });
@@ -533,6 +555,10 @@
 
                     li.className = "song-item-card";
 
+                    const keyBadgeHtml = (item.key && item.key !== 'N/A') 
+                        ? `<span class="key-badge">${item.key}</span>` 
+                        : '';
+
                     li.innerHTML = `
                         <div class="song-left">
                             <i class="fa-solid fa-grip-vertical drag-handle" title="Hold to drag"></i>
@@ -543,6 +569,7 @@
                             </div>
                         </div>
                         <div class="actions-right">
+                            ${keyBadgeHtml}
                             <button class="btn-remove" title="Remove song" onclick="unpickSong(${index})">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
