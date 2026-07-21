@@ -53,7 +53,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 12px;
+            margin-bottom: 4px;
         }
 
         .header-top h1 {
@@ -66,6 +66,13 @@
 
         .header-top h1 i {
             color: var(--primary-color);
+        }
+
+        .header-instructions {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            font-weight: 400;
         }
 
         .btn-save-order {
@@ -168,9 +175,16 @@
             border-radius: 10px;
             transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
             cursor: grab;
-            user-select: none;
-            -webkit-user-select: none;
             position: relative;
+
+            /* Touch & Long-Press UX Enhancements */
+            -webkit-touch-callout: none; /* Disable iOS Callout popup */
+            -webkit-user-select: none;   /* Disable selection */
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .song-item-card:active {
@@ -323,10 +337,10 @@
 
         /* OS Specific Enhancements */
         .platform-android .song-item-card {
-            border-radius: 4px; /* Material Design hints */
+            border-radius: 4px;
         }
         .platform-ios .song-item-card {
-            border-radius: 12px; /* iOS Human Interface hints */
+            border-radius: 12px;
         }
     </style>
 </head>
@@ -339,9 +353,10 @@
                 <i class="fa-solid fa-floppy-disk"></i> Save Order
             </button>
         </div>
+        <p class="header-instructions">Ton bilgisi ayarı için şarkı üzerine basılı tutun.</p>
 
         <div class="sub-header">
-            <span class="drag-hint"><i class="fa-solid fa-grip-lines"></i> Drag to reorder</span>
+            <span class="drag-hint"><i class="fa-solid fa-grip-lines"></i> Hold 2s for key | Drag to reorder</span>
             <span class="song-count" id="songCount">Loading...</span>
         </div>
 
@@ -367,7 +382,6 @@
         let playlistData = [];
         let keyMapData = {};
         let activeEditSong = null;
-        let clickTimer = null;
         let draggedItemIndex = null;
 
         // Platform Detection
@@ -431,6 +445,76 @@
             }
         }
 
+        /* --- Cross-Platform 2-Second Hold & Tap Controller --- */
+        function setupItemGestures(element, songItem, detectedKey, txtPath) {
+            const HOLD_DURATION = 2000; // 2 seconds
+            const MOVE_THRESHOLD = 10;   // Cancel on scroll/swipe
+            let longPressTimer = null;
+            let isLongPressTriggered = false;
+            let startX = 0;
+            let startY = 0;
+
+            function startPress(e) {
+                isLongPressTriggered = false;
+                const point = e.touches ? e.touches[0] : e;
+                startX = point.clientX;
+                startY = point.clientY;
+
+                if (longPressTimer) clearTimeout(longPressTimer);
+
+                longPressTimer = setTimeout(() => {
+                    isLongPressTriggered = true;
+                    if (navigator.vibrate) navigator.vibrate(50);
+                    openModal(songItem, detectedKey);
+                }, HOLD_DURATION);
+            }
+
+            function cancelPress() {
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            }
+
+            function handleMove(e) {
+                if (!longPressTimer) return;
+                const point = e.touches ? e.touches[0] : e;
+                const deltaX = Math.abs(point.clientX - startX);
+                const deltaY = Math.abs(point.clientY - startY);
+
+                if (deltaX > MOVE_THRESHOLD || deltaY > MOVE_THRESHOLD) {
+                    cancelPress();
+                }
+            }
+
+            function handleEnd(e) {
+                cancelPress();
+                if (!isLongPressTriggered) {
+                    openTxtFileInNewTab(txtPath);
+                }
+            }
+
+            // Touch Listeners (iOS & Android)
+            element.addEventListener('touchstart', startPress, { passive: true });
+            element.addEventListener('touchmove', handleMove, { passive: true });
+            element.addEventListener('touchend', handleEnd);
+            element.addEventListener('touchcancel', cancelPress);
+
+            // Mouse Listeners (Desktop)
+            element.addEventListener('mousedown', (e) => {
+                if (e.button === 0) startPress(e);
+            });
+            element.addEventListener('mousemove', handleMove);
+            element.addEventListener('mouseup', (e) => {
+                if (!isLongPressTriggered && e.button === 0) {
+                    cancelPress();
+                    openTxtFileInNewTab(txtPath);
+                }
+            });
+            element.addEventListener('mouseleave', cancelPress);
+            element.addEventListener('contextmenu', (e) => e.preventDefault());
+        }
+
         async function loadPlaylist() {
             const countElement = document.getElementById("songCount");
 
@@ -461,7 +545,7 @@
             }
 
             listElement.innerHTML = "";
-            countElement.textContent = `${playlistData.length} Songs`;
+            countElement.textContent = `${playlistData.length} şarkı`;
 
             playlistData.forEach((item, index) => {
                 const li = document.createElement("li");
@@ -497,29 +581,22 @@
                     </div>
                 `;
 
-                // Single & Double Click Event Handling
-                li.onclick = (e) => {
-                    if (clickTimer) clearTimeout(clickTimer);
-                    clickTimer = setTimeout(() => {
-                        openTxtFileInNewTab(txtPath);
-                    }, 250);
-                };
+                // Attach Gesture Handler (Long Press -> Edit Key, Single Tap -> Open Lyrics)
+                setupItemGestures(li, item, detectedKey, txtPath);
 
-                li.ondblclick = (e) => {
-                    if (clickTimer) clearTimeout(clickTimer);
-                    openModal(item, detectedKey);
-                };
-
-                // Add Drag & Drop Listeners
+                // Attach Drag & Drop
                 addDragListeners(li);
 
                 listElement.appendChild(li);
 
                 // Stop propagation on YouTube icon click
-                document.getElementById(`yt-icon-${index}`).onclick = (e) => {
+                document.getElementById(`yt-icon-${index}`).addEventListener('click', (e) => {
                     e.stopPropagation();
                     window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
-                };
+                });
+                document.getElementById(`yt-icon-${index}`).addEventListener('touchstart', (e) => {
+                    e.stopPropagation();
+                });
             });
         }
 
@@ -552,11 +629,8 @@
                 const targetIndex = parseInt(element.dataset.index);
 
                 if (draggedItemIndex !== null && draggedItemIndex !== targetIndex) {
-                    // Reorder Array
                     const draggedItem = playlistData.splice(draggedItemIndex, 1)[0];
                     playlistData.splice(targetIndex, 0, draggedItem);
-                    
-                    // Re-render UI to update order and sequence numbers
                     renderUI();
                 }
             });
@@ -570,7 +644,7 @@
 
             try {
                 const songTitles = playlistData.map(item => item.title);
-                const response = await fetch(GOOGLE_SHEET_API_URL, {
+                await fetch(GOOGLE_SHEET_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({
