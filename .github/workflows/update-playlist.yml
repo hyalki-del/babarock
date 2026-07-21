@@ -20,101 +20,78 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install Dependencies & Playwright
-        run: |
-          npm install playwright-extra puppeteer-extra-plugin-stealth playwright
-          npx playwright install chromium --with-deps
-
-      - name: Fetch Playlist via Stealth Browser
+      - name: Fetch Playlist Data
         run: |
           node -e "
-          const { chromium } = require('playwright-extra');
-          const stealth = require('puppeteer-extra-plugin-stealth')();
-          chromium.use(stealth);
           const fs = require('fs');
 
+          function decodeHTMLEntities(str) {
+            return str
+              .replace(/&quot;/g, '\"')
+              .replace(/&amp;/g, '&')
+              .replace(/&lt;/g, '<')
+              .replace(/&gt;/g, '>')
+              .replace(/&#039;/g, \"'\");
+          }
+
           (async () => {
-            const browser = await chromium.launch({
-              headless: true,
-              args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-blink-features=AutomationControlled'
-              ]
+            const url = 'https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r';
+            
+            console.log('Fetching HTML directly...');
+            const response = await fetch(url, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Cache-Control': 'no-cache'
+              }
             });
 
-            const context = await browser.newContext({
-              userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-              viewport: { width: 1920, height: 1080 },
-              locale: 'en-US'
-            });
+            if (!response.ok) {
+              throw new Error('HTTP Request failed with status: ' + response.status);
+            }
 
-            const page = await context.newPage();
+            const html = await response.text();
 
-            try {
-              console.log('Navigating to Ultimate Guitar...');
-              await page.goto('https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r', {
-                waitUntil: 'networkidle',
-                timeout: 60000
-              });
+            // Match the embedded data payload inside div.js-store[data-content]
+            const match = html.match(/class=\"js-store\"[^\>]*data-content=\"([^\"]+)\"/i) || 
+                          html.match(/data-content=\"([^\"]+)\"[^\>]*class=\"js-store\"/i);
 
-              // Extract raw JSON from the server-side store container
-              const rawData = await page.evaluate(() => {
-                // Method A: Extract from DOM .js-store container
-                const storeEl = document.querySelector('.js-store');
-                if (storeEl && storeEl.getAttribute('data-content')) {
-                  try {
-                    return JSON.parse(storeEl.getAttribute('data-content'));
-                  } catch (e) {
-                    // ignore JSON parse error, fall through
-                  }
-                }
+            if (!match || !match[1]) {
+              console.error('HTML snippet sample:', html.substring(0, 500));
+              throw new Error('Could not locate js-store data-content attribute in page HTML.');
+            }
 
-                // Method B: Fallback to global window state
-                if (window.UGApp && window.UGApp.store && window.UGApp.store.page) {
-                  return window.UGApp.store.page;
-                }
+            const decodedJson = decodeHTMLEntities(match[1]);
+            const storeData = JSON.parse(decodedJson);
 
-                return null;
-              });
+            const pageData = storeData.store?.page?.data || storeData.data || {};
+            const rawItems = 
+              pageData.songbook?.tabs || 
+              pageData.playlist?.items || 
+              pageData.list?.list || 
+              pageData.tabs || 
+              [];
 
-              await browser.close();
+            const songs = rawItems.map(item => {
+              const tab = item.tab || item;
+              return {
+                title: tab.song_name || tab.song_title || tab.title || '',
+                artist: tab.artist_name || tab.band_name || tab.artist || ''
+              };
+            }).filter(s => s.title && s.artist);
 
-              if (!rawData) {
-                throw new Error('Could not find data payload in DOM or window object.');
-              }
-
-              // Extract tab items across multiple potential UG schema versions
-              const pageData = rawData.data || rawData;
-              const rawItems = 
-                pageData.songbook?.tabs || 
-                pageData.playlist?.items || 
-                pageData.list?.list || 
-                pageData.tabs || 
-                [];
-
-              const songs = rawItems.map(item => {
-                const tab = item.tab || item;
-                return {
-                  title: tab.song_name || tab.song_title || tab.title || '',
-                  artist: tab.artist_name || tab.band_name || tab.artist || ''
-                };
-              }).filter(s => s.title && s.artist);
-
-              if (songs.length > 0) {
-                fs.writeFileSync('playlist.json', JSON.stringify(songs, null, 2));
-                console.log('Successfully saved ' + songs.length + ' songs to playlist.json');
-              } else {
-                console.error('Data payload extracted, but 0 valid song items found.');
-                process.exit(1);
-              }
-
-            } catch (err) {
-              console.error('Execution failed:', err.message);
-              await browser.close();
+            if (songs.length > 0) {
+              fs.writeFileSync('playlist.json', JSON.stringify(songs, null, 2));
+              console.log('Successfully saved ' + songs.length + ' songs to playlist.json');
+            } else {
+              console.error('Data container parsed, but no song entries were found.');
               process.exit(1);
             }
-          })();
+          })().catch(err => {
+            console.error('Execution Error:', err.message);
+            process.exit(1);
+          });
           "
 
       - name: Commit & Push Changes
