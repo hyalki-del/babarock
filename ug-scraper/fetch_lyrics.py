@@ -2,139 +2,170 @@ import os
 import re
 import json
 import time
+import urllib.parse
+import urllib.request
 from pathlib import Path
-import lyricsgenius
 
+# Resolve directory paths
 CURRENT_DIR = Path(__file__).resolve().parent
+ROOT_DIR = CURRENT_DIR.parent
 
-# Check local subfolder first, then fallback to root
+# Check for playlist.json at repository root first, then local directory
+ROOT_PLAYLIST = ROOT_DIR / "playlist.json"
 LOCAL_PLAYLIST = CURRENT_DIR / "playlist.json"
-ROOT_PLAYLIST = CURRENT_DIR.parent / "playlist.json"
-PLAYLIST_PATH = LOCAL_PLAYLIST if LOCAL_PLAYLIST.exists() else ROOT_PLAYLIST
 
+PLAYLIST_PATH = ROOT_PLAYLIST if ROOT_PLAYLIST.exists() else LOCAL_PLAYLIST
 OUTPUT_DIR = CURRENT_DIR / "songs"
-GENIUS_ACCESS_TOKEN = os.getenv("GENIUS_ACCESS_TOKEN")
+
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
 
 
 def sanitize_filename(name: str) -> str:
+    """Sanitizes strings to create valid OS filenames."""
     return re.sub(r'[\\/*?:"<>|]', "", name).strip()
 
 
-def clean_genius_lyrics(raw_text: str) -> str:
-    if not raw_text:
-        return ""
-    lines = raw_text.splitlines()
-    if lines and "Lyrics" in lines[0]:
-        lines[0] = re.sub(r'.*?Lyrics', '', lines[0])
-    text = "\n".join(lines)
-    text = re.sub(r'\d*Embed$', '', text)
-    return text.strip()
-
-
 def load_playlist() -> list:
+    """Loads track data from root or local playlist.json."""
     if not PLAYLIST_PATH.exists():
         print(f"[-] CRITICAL ERROR: Target playlist file not found at: {PLAYLIST_PATH}")
         raise FileNotFoundError(f"Missing playlist.json at {PLAYLIST_PATH}")
 
-    print(f"[+] Reading playlist from: {PLAYLIST_PATH}")
+    print(f"[+] Reading playlist data from: {PLAYLIST_PATH}")
+    with open(PLAYLIST_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+        if isinstance(data, list):
+            return data
+
+        if isinstance(data, dict):
+            for key in ["items", "tracks", "songs", "data", "playlist"]:
+                if key in data and isinstance(data[key], list):
+                    return data[key]
+            for val in data.values():
+                if isinstance(val, list):
+                    return val
+
+    raise ValueError("Could not extract a valid array of songs from playlist.json")
+
+
+def clean_ug_content(raw_content: str) -> str:
+    """Strips UG BBCode tags while preserving readable text and chords."""
+    if not raw_content:
+        return ""
+    # Strip [ch]Am[/ch] tags to just show chord names
+    content = re.sub(r'\[ch\](.*?)\[/ch\]', r'\1', raw_content)
+    # Strip [tab] and [/tab] structural tags
+    content = re.sub(r'\[/?tab\]', '', content)
+    return content.strip()
+
+
+def fetch_tab_from_ug(artist: str, title: str) -> str:
+    """Searches Ultimate Guitar and extracts the raw chord/lyric text."""
+    query = f"{artist} {title}"
+    encoded_query = urllib.parse.quote(query)
+    search_url = f"https://www.ultimate-guitar.com/search.php?search_type=title&value={encoded_query}"
+
     try:
-        with open(PLAYLIST_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        # Step 1: Perform search
+        req = urllib.request.Request(search_url, headers=HEADERS)
+        with urllib.request.urlopen(req, timeout=12) as response:
+            html = response.read().decode("utf-8", errors="ignore")
 
-            if isinstance(data, list):
-                return data
+        match = re.search(r'class="js-store"\s+data-content="([^"]+)"', html)
+        if not match:
+            return ""
 
-            if isinstance(data, dict):
-                # Try common keys
-                for key in ["items", "tracks", "songs", "data", "playlist"]:
-                    if key in data and isinstance(data[key], list):
-                        return data[key]
-                
-                # If dictionary values are lists, return the first list found
-                for val in data.values():
-                    if isinstance(val, list):
-                        return val
+        raw_json_str = match.group(1).replace("&quot;", '"').replace("&amp;", "&")
+        search_data = json.loads(raw_json_str)
 
-            raise ValueError("Could not locate a valid list of tracks in playlist.json")
+        results = search_data.get("store", {}).get("page", {}).get("data", {}).get("results", [])
+        if not results:
+            return ""
 
-    except json.JSONDecodeError as e:
-        print(f"[-] CRITICAL ERROR: Failed to parse {PLAYLIST_PATH.name}: {e}")
-        raise e
+        # Step 2: Prioritize Chords or Lyrics tab types
+        tab_url = None
+        for item in results:
+            if item.get("type") in ["Chords", "Lyrics", "Ukulele"]:
+                tab_url = item.get("tab_url")
+                break
+
+        if not tab_url and results:
+            tab_url = results[0].get("tab_url")
+
+        if not tab_url:
+            return ""
+
+        # Step 3: Fetch the specific Tab page
+        tab_req = urllib.request.Request(tab_url, headers=HEADERS)
+        with urllib.request.urlopen(tab_req, timeout=12) as tab_resp:
+            tab_html = tab_resp.read().decode("utf-8", errors="ignore")
+
+        tab_match = re.search(r'class="js-store"\s+data-content="([^"]+)"', tab_html)
+        if not tab_match:
+            return ""
+
+        tab_json_str = tab_match.group(1).replace("&quot;", '"').replace("&amp;", "&")
+        tab_data = json.loads(tab_json_str)
+
+        wiki_tab = (
+            tab_data.get("store", {})
+            .get("page", {})
+            .get("data", {})
+            .get("tab_view", {})
+            .get("wiki_tab", {})
+        )
+
+        raw_content = wiki_tab.get("content", "")
+        return clean_ug_content(raw_content)
+
+    except Exception as e:
+        print(f"  [!] UG Engine Error for '{artist} - {title}': {e}")
+        return ""
 
 
 def main():
-    if not GENIUS_ACCESS_TOKEN:
-        print("[-] CRITICAL ERROR: GENIUS_ACCESS_TOKEN environment variable is missing.")
-        raise ValueError("Missing GENIUS_ACCESS_TOKEN environment secret.")
-
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
     tracks = load_playlist()
-    print(f"[+] Loaded {len(tracks)} tracks. Initializing Genius API client...\n")
 
-    if not tracks:
-        print("[-] WARNING: 0 tracks loaded. Please check structure of playlist.json.")
-        return
-
-    genius = lyricsgenius.Genius(GENIUS_ACCESS_TOKEN)
-    genius.verbose = False
-    genius.remove_section_headers = False
-    genius.skip_non_songs = True
-
+    print(f"[+] Successfully loaded {len(tracks)} tracks from {PLAYLIST_PATH.name}.\n")
     saved_count = 0
+
     for idx, track in enumerate(tracks, 1):
-        # Flexible key extraction
-        artist = (
-            track.get("artist") 
-            or track.get("artist_name") 
-            or track.get("performer") 
-            or "Unknown Artist"
-        )
-        title = (
-            track.get("title") 
-            or track.get("song_name") 
-            or track.get("track_name") 
-            or "Unknown Title"
-        )
+        artist = track.get("artist") or track.get("artist_name") or "Unknown Artist"
+        title = track.get("title") or track.get("song_name") or "Unknown Title"
+        key = track.get("key", "N/A")
 
         filename = sanitize_filename(f"{artist} - {title}.txt")
         filepath = OUTPUT_DIR / filename
 
-        print(f"[{idx}/{len(tracks)}] Searching Genius: {artist} - {title}")
+        print(f"[{idx}/{len(tracks)}] Searching UG: {artist} - {title}")
 
-        if filepath.exists():
+        if filepath.exists() and filepath.stat().st_size > 0:
             print(f"  [➜] Skipping: File already exists -> {filename}")
             saved_count += 1
             continue
 
-        try:
-            song = genius.search_song(title, artist)
-            
-            # Fallback search by title only if query with artist failed
-            if not song:
-                song = genius.search_song(f"{artist} {title}")
+        tab_content = fetch_tab_from_ug(artist, title)
 
-            if song and song.lyrics:
-                cleaned = clean_genius_lyrics(song.lyrics)
+        if tab_content:
+            with open(filepath, "w", encoding="utf-8") as out:
+                out.write(f"Artist: {artist}\nTitle: {title}\nKey: {key}\n")
+                out.write("=" * 50 + "\n\n")
+                out.write(tab_content)
 
-                with open(filepath, "w", encoding="utf-8") as out:
-                    out.write(f"Artist: {artist}\nTitle: {title}\n")
-                    if "key" in track:
-                        out.write(f"Key: {track['key']}\n")
-                    out.write("=" * 50 + "\n\n")
-                    out.write(cleaned)
+            saved_count += 1
+            print(f"  [✓] Successfully saved -> {filename}")
+        else:
+            print(f"  [✗] Could not retrieve tab/lyrics from UG for: {artist} - {title}")
 
-                saved_count += 1
-                print(f"  [✓] Successfully saved -> {filename}")
-            else:
-                print(f"  [✗] Lyrics not found on Genius for: {artist} - {title}")
+        time.sleep(1.2)  # Courteous delay between requests
 
-        except Exception as e:
-            print(f"  [!] Genius API Error on {artist} - {title}: {e}")
-
-        time.sleep(1)
-
-    print(f"\n[+] PIPELINE COMPLETE: Saved {saved_count}/{len(tracks)} lyric files in {OUTPUT_DIR.name}/.")
+    print(f"\n[+] PIPELINE COMPLETE: Saved {saved_count}/{len(tracks)} track files in {OUTPUT_DIR.name}/.")
 
 
 if __name__ == "__main__":
