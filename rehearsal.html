@@ -6,6 +6,8 @@
     <title>Baba Rock - Rehearsal</title>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SortableJS for Smooth Drag-and-Drop (Touch & Desktop) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     
     <style>
         /* Base Reset & Mobile WebKit Fixes */
@@ -211,6 +213,7 @@
             transition: border-color 0.2s ease, background-color 0.2s ease;
             cursor: pointer;
             min-width: 0;
+            touch-action: manipulation;
         }
 
         .song-item-card:hover, .song-item-card:active {
@@ -229,6 +232,19 @@
             -webkit-box-flex: 1;
             -webkit-flex-grow: 1;
             flex-grow: 1;
+        }
+
+        .drag-handle {
+            color: #555555;
+            margin-right: 6px;
+            cursor: grab;
+            font-size: 0.75rem;
+            -webkit-flex-shrink: 0;
+            flex-shrink: 0;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
         }
 
         .song-number {
@@ -272,10 +288,29 @@
             text-overflow: ellipsis;
         }
 
+        .actions-right {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-remove {
+            color: #ff4444;
+            background: transparent;
+            border: none;
+            padding: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
         .yt-icon {
             color: #ff0000;
             font-size: 1rem;
-            margin-left: 4px;
+            margin-left: 2px;
             -webkit-flex-shrink: 0;
             flex-shrink: 0;
             text-decoration: none;
@@ -288,6 +323,13 @@
             text-align: center;
             padding: 15px 0;
             font-style: italic;
+        }
+
+        /* Dragging styles */
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #2a2a2a !important;
+            border: 1px dashed #ff4500 !important;
         }
     </style>
 </head>
@@ -326,7 +368,8 @@
 
     <script>
         let availablePlaylist = [];
-        const selectedSongs = [];
+        let selectedSongs = [];
+        let sortableInstance = null;
 
         async function loadPlaylist() {
             const countElement = document.getElementById("songCount");
@@ -335,10 +378,27 @@
                 const res = await fetch("./playlist.json");
                 availablePlaylist = await res.json();
                 renderUI();
+                initSortable();
             } catch (err) {
                 console.error(err);
                 countElement.textContent = "Error";
             }
+        }
+
+        function initSortable() {
+            const selectedListElement = document.getElementById("selectedList");
+            
+            sortableInstance = new Sortable(selectedListElement, {
+                animation: 150,
+                handle: '.drag-handle', // Drag only by handle for better UX
+                ghostClass: 'sortable-ghost',
+                onEnd: function (evt) {
+                    // Update array order when dragging ends
+                    const item = selectedSongs.splice(evt.oldIndex, 1)[0];
+                    selectedSongs.splice(evt.newIndex, 0, item);
+                    renderUI();
+                }
+            });
         }
 
         function shufflePlaylist() {
@@ -472,18 +532,22 @@
                     const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
 
                     li.className = "song-item-card";
-                    li.title = "Click to remove and return to playlist";
-                    li.onclick = () => unpickSong(index);
 
                     li.innerHTML = `
                         <div class="song-left">
+                            <i class="fa-solid fa-grip-vertical drag-handle" title="Hold to drag"></i>
                             <span class="song-number">${index + 1}</span>
                             <div class="song-info">
                                 <span class="song-title">${item.title}</span>
                                 <span class="song-artist">${item.artist}</span>
                             </div>
                         </div>
-                        <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="fa-brands fa-youtube yt-icon" title="Listen on YouTube" onclick="event.stopPropagation();"></a>
+                        <div class="actions-right">
+                            <button class="btn-remove" title="Remove song" onclick="unpickSong(${index})">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="fa-brands fa-youtube yt-icon" title="Listen on YouTube"></a>
+                        </div>
                     `;
                     selectedListElement.appendChild(li);
                 });
