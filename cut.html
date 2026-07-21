@@ -1,175 +1,363 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Band Engine - Kurulum ve Yönetim Paneli</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0c0c0c;
+            --card-bg: #161616;
+            --border-color: #282828;
+            --primary-color: #ff4500;
+            --text-color: #ffffff;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .admin-container {
+            max-width: 700px;
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        h1 { font-size: 1.5rem; margin-bottom: 8px; color: var(--primary-color); display: flex; align-items: center; gap: 10px; }
+        p.subtitle { font-size: 0.85rem; color: #888; margin-bottom: 24px; }
+
+        .form-section {
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        .form-section h2 { font-size: 1.1rem; margin-bottom: 12px; color: #ddd; }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        label { font-size: 0.85rem; color: #aaa; font-weight: 600; }
+        input[type="text"], input[type="url"], input[type="password"] {
+            background: #222;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        input:focus { border-color: var(--primary-color); }
+
+        /* Dynamic Member Rows */
+        .member-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .member-row input[type="text"] { flex: 1; }
+        .member-row input[type="color"] {
+            border: none;
+            width: 40px;
+            height: 38px;
+            border-radius: 6px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .btn-icon {
+            background: #2a2a2a;
+            color: #ff3b30;
+            border: 1px solid #333;
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-add {
+            background: #1a1a1a;
+            color: #34c759;
+            border: 1px dashed #34c759;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 6px;
+        }
+
+        /* Actions */
+        .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+        .btn-primary {
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            background: #222;
+            color: #ccc;
+            border: 1px solid #333;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        pre {
+            background: #000;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #222;
+            font-size: 0.8rem;
+            max-height: 200px;
+            overflow-y: auto;
+            color: #34c759;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <h1><i class="fa-solid fa-sliders"></i> Band Engine Yapılandırması</h1>
+    <p class="subtitle">Grubunuza ait bilgileri güncelleyin ve yapılandırma dosyanızı indirin veya GitHub'a doğrudan push edin.</p>
+
+    <form id="configForm">
+        <!-- Genel Bilgiler -->
+        <div class="form-section">
+            <h2>1. Genel Grup Bilgileri</h2>
+            <div class="form-group">
+                <label>Grup Adı</label>
+                <input type="text" id="bandName" placeholder="Örn: Bandit" required>
+            </div>
+            <div class="form-group">
+                <label>Slogan / Alt Başlık</label>
+                <input type="text" id="tagline" placeholder="Örn: Müziğinize Odaklanın!">
+            </div>
+            <div class="form-group">
+                <label>Ultimate Guitar Çalma Listesi URL (UG Playlist)</label>
+                <input type="url" id="ugPlaylistUrl" placeholder="https://www.ultimate-guitar.com/user/playlist/shared?h=..." required>
+            </div>
+        </div>
+
+        <!-- Üye Yönetimi -->
+        <div class="form-section">
+            <h2>2. Grup Üyeleri ve Renk Kodları</h2>
+            <div id="membersContainer"></div>
+            <button type="button" class="btn-add" onclick="addMemberRow()"><i class="fa-solid fa-plus"></i> Üye Ekle</button>
+        </div>
+
+        <!-- Görsel & Tema -->
+        <div class="form-section">
+            <h2>3. Tema ve Görsel Ayarları</h2>
+            <div class="form-group">
+                <label>Ana Vurgu Rengi (Primary Color)</label>
+                <input type="color" id="primaryColor" value="#ff4500" style="width: 100%; height: 40px; cursor:pointer;">
+            </div>
+        </div>
+
+        <!-- Otomatik GitHub Sync (Opsiyonel) -->
+        <div class="form-section">
+            <h2>4. Doğrudan GitHub Senkronizasyonu (Opsiyonel)</h2>
+            <div class="form-group">
+                <label>GitHub Repository (Kullanıcı/Repo)</label>
+                <input type="text" id="ghRepo" placeholder="kullaniciadi/band-engine-repo">
+            </div>
+            <div class="form-group">
+                <label>GitHub Personal Access Token (PAT)</label>
+                <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
+            </div>
+        </div>
+
+        <!-- Butonlar -->
+        <div class="action-buttons">
+            <button type="button" class="btn-secondary" onclick="downloadJSON()"><i class="fa-solid fa-download"></i> config.json İndir</button>
+            <button type="button" class="btn-primary" onclick="pushToGitHub()"><i class="fa-solid fa-cloud-arrow-up"></i> GitHub'a Kaydet</button>
+        </div>
+    </form>
+
+    <h3 style="margin-top:20px; font-size:0.9rem; color:#888;">Canlı Oluşturulan config.json Önizlemesi:</h3>
+    <pre id="jsonPreview">{}</pre>
+</div>
+
 <script>
-    // Replace with your Google Apps Script Web App Endpoint URL
-    const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyrIg2w1eHU2fruqixpNKLCtvTtgZ1N4inHOx5g8z_DiAR8W9NiZkK0Cf0D106HHyrp/exec";
-    
-    let playlistData = [];
-    let keyMapData = {};
-    let activeEditSong = null;
-    let clickTimer = null;
+    // Varsayılan Yükleme
+    let members = [
+        { id: "member_1", name: "Serkan", color: "#ff3b30" },
+        { id: "member_2", name: "İlker", color: "#0071e3" }
+    ];
 
-    function normalizeTitle(str) {
-        return str
-            .toLowerCase()
-            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-z0-9]/g, "");
-    }
-
-    async function loadPlaylist() {
-        const countElement = document.getElementById("songCount");
-
+    async function loadCurrentConfig() {
         try {
-            const timestamp = new Date().getTime();
-            const [resPlaylist, resKeys] = await Promise.all([
-                fetch(`./playlist.json?t=${timestamp}`),
-                fetch(`${GOOGLE_SHEET_API_URL}?t=${timestamp}`)
-            ]);
-
-            playlistData = await resPlaylist.json();
-            keyMapData = await resKeys.json();
-
-            renderUI();
-
-            // Non-blocking background sync: Automatically adds missing songs from playlist.json to Google Sheets
-            syncPlaylistWithSheets(playlistData);
-
-        } catch (err) {
-            console.error(err);
-            countElement.textContent = "Error";
-        }
+            const res = await fetch('./config.json');
+            if(res.ok) {
+                const config = await res.json();
+                document.getElementById('bandName').value = config.bandName || '';
+                document.getElementById('tagline').value = config.tagline || '';
+                document.getElementById('ugPlaylistUrl').value = config.ugPlaylistUrl || '';
+                if(config.theme?.primaryColor) document.getElementById('primaryColor').value = config.theme.primaryColor;
+                if(config.members && config.members.length > 0) members = config.members;
+            }
+        } catch(e) { console.warn("Mevcut config.json okunamadı, varsayılanlar yükleniyor."); }
+        renderMembers();
+        updatePreview();
     }
 
-    function renderUI() {
-        const listElement = document.getElementById("songList");
-        const countElement = document.getElementById("songCount");
-
-        const normalizedKeyMap = {};
-        for (const [title, key] of Object.entries(keyMapData)) {
-            normalizedKeyMap[normalizeTitle(title)] = key;
-        }
-
-        listElement.innerHTML = "";
-        countElement.textContent = `${playlistData.length} Songs`;
-
-        playlistData.forEach((item, index) => {
-            const li = document.createElement("li");
-            const query = encodeURIComponent(`${item.title} ${item.artist}`);
-            const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
-            
-            const normTitle = normalizeTitle(item.title);
-            const detectedKey = normalizedKeyMap[normTitle] || item.key || null;
-            const keyBadgeHtml = (detectedKey && detectedKey !== 'N/A') 
-                ? `<span class="key-badge">${detectedKey}</span>` 
-                : '';
-
-            li.className = "song-item-card";
-
-            // Unified Click Handler using native UIEvent.detail
-            li.onclick = (e) => {
-                // e.detail returns 1 for first click, 2 for second click in rapid succession
-                if (e.detail === 1) {
-                    clickTimer = setTimeout(() => {
-                        window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
-                    }, 300); // 300ms window comfortably covers normal human double-click speed
-                } else if (e.detail === 2) {
-                    // Double click detected: cancel single-click timer & open modal
-                    if (clickTimer) {
-                        clearTimeout(clickTimer);
-                        clickTimer = null;
-                    }
-                    openModal(item, detectedKey);
-                }
-            };
-
-            li.innerHTML = `
-                <div class="song-left">
-                    <span class="song-number">${index + 1}</span>
-                    <div class="song-info">
-                        <span class="song-title">${item.title}</span>
-                        <span class="song-artist">${item.artist}</span>
-                    </div>
-                </div>
-                <div class="actions-right">
-                    ${keyBadgeHtml}
-                    <i class="fa-brands fa-youtube yt-icon"></i>
-                </div>
+    function renderMembers() {
+        const container = document.getElementById('membersContainer');
+        container.innerHTML = '';
+        members.forEach((m, index) => {
+            const row = document.createElement('div');
+            row.className = 'member-row';
+            row.innerHTML = `
+                <input type="text" value="${m.name}" placeholder="Üye Adı" oninput="updateMember(${index}, 'name', this.value)">
+                <input type="color" value="${m.color}" onchange="updateMember(${index}, 'color', this.value)">
+                <button type="button" class="btn-icon" onclick="removeMember(${index})"><i class="fa-solid fa-trash"></i></button>
             `;
-            listElement.appendChild(li);
+            container.appendChild(row);
         });
     }
 
-    function openModal(item, currentKey) {
-        activeEditSong = item;
-        document.getElementById("modalSongName").textContent = `${item.title} - ${item.artist}`;
-        document.getElementById("modalKeyInput").value = currentKey && currentKey !== 'N/A' ? currentKey : '';
-        document.getElementById("editModal").style.display = "flex";
-        document.getElementById("modalKeyInput").focus();
+    function addMemberRow() {
+        const id = "member_" + Date.now();
+        members.push({ id, name: "Yeni Üye", color: "#34c759" });
+        renderMembers();
+        updatePreview();
     }
 
-    function closeModal() {
-        document.getElementById("editModal").style.display = "none";
-        activeEditSong = null;
+    function updateMember(index, key, value) {
+        members[index][key] = value;
+        if(key === 'name') {
+            // Slugify ID
+            members[index].id = value.toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
+        updatePreview();
     }
 
-    async function submitKeyUpdate() {
-        if (!activeEditSong) return;
+    function removeMember(index) {
+        members.splice(index, 1);
+        renderMembers();
+        updatePreview();
+    }
 
-        const newKey = document.getElementById("modalKeyInput").value.trim();
-        const saveBtn = document.getElementById("saveBtn");
-        
-        saveBtn.disabled = true;
-        saveBtn.textContent = "Saving...";
+    function buildConfigObject() {
+        return {
+            bandName: document.getElementById('bandName').value || "Grup Adı",
+            tagline: document.getElementById('tagline').value || "",
+            ugPlaylistUrl: document.getElementById('ugPlaylistUrl').value || "",
+            members: members,
+            images: [
+                "./assets/band1.jpg",
+                "./assets/band2.jpg"
+            ],
+            theme: {
+                primaryColor: document.getElementById('primaryColor').value || "#ff4500",
+                bgGradient: "radial-gradient(circle, #161616 0%, #070707 100%)"
+            }
+        };
+    }
+
+    function updatePreview() {
+        const config = buildConfigObject();
+        document.getElementById('jsonPreview').textContent = JSON.stringify(config, null, 2);
+    }
+
+    document.querySelectorAll('input').forEach(i => i.addEventListener('input', updatePreview));
+
+    // Manuel İndirme
+    function downloadJSON() {
+        const config = buildConfigObject();
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "config.json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
+
+    // Doğrudan GitHub REST API ile Commmit Etme (Sıfır Backend)
+    async function pushToGitHub() {
+        const repo = document.getElementById('ghRepo').value.trim();
+        const token = document.getElementById('ghToken').value.trim();
+
+        if (!repo || !token) {
+            alert("Lütfen GitHub Repo (Kullanıcı/Repo) ve Access Token alanlarını doldurun!");
+            return;
+        }
+
+        const configObj = buildConfigObject();
+        const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(configObj, null, 2))));
+        const url = `https://api.github.com/repos/${repo}/contents/config.json`;
 
         try {
-            const response = await fetch(GOOGLE_SHEET_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            // 1. Mevcut dosyanın SHA değerini al (Güncelleme için zorunlu)
+            let sha = "";
+            const getRes = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+            if (getRes.ok) {
+                const getData = await getRes.json();
+                sha = getData.sha;
+            }
+
+            // 2. Güncelleme (Put) İsteği At
+            const putRes = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({
-                    song: activeEditSong.title,
-                    key: newKey || 'N/A'
+                    message: "build: update config.json via Admin Panel",
+                    content: contentEncoded,
+                    sha: sha || undefined
                 })
             });
 
-            const result = await response.json();
-
-            if (result.status === "success") {
-                keyMapData[activeEditSong.title] = newKey;
-                renderUI();
-                closeModal();
+            if (putRes.ok) {
+                alert("Başarılı! config.json repository'ye kaydedildi. Otomasyonlar tetiklenecek.");
             } else {
-                alert("Error updating key: " + result.message);
+                const err = await putRes.json();
+                alert("GitHub API Hatası: " + err.message);
             }
         } catch (err) {
-            console.error("Save failed:", err);
-            alert("Network error. Key could not be saved to Google Sheets.");
-        } finally {
-            saveBtn.disabled = false;
-            saveBtn.textContent = "Save";
+            console.error(err);
+            alert("Bağlantı hatası oluştu.");
         }
     }
 
-    // Background Auto-Reconciliation Routine
-    async function syncPlaylistWithSheets(playlist) {
-        try {
-            const songTitles = playlist.map(item => item.title);
-            fetch(GOOGLE_SHEET_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({
-                    action: "sync_playlist",
-                    songs: songTitles
-                })
-            });
-        } catch (e) {
-            console.warn("Background sheet reconciliation skipped:", e);
-        }
-    }
-
-    // Allow 'Enter' key inside input field to trigger save action
-    document.getElementById("modalKeyInput").addEventListener("keyup", function(event) {
-        if (event.key === "Enter") {
-            submitKeyUpdate();
-        }
-    });
-
-    loadPlaylist();
+    window.onload = loadCurrentConfig;
 </script>
+
+</body>
+</html>
