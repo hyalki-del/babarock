@@ -1,0 +1,57 @@
+name: Run Subfolder Playlist Scraper
+
+on:
+  workflow_dispatch:  # Manual trigger button in GitHub UI
+  schedule:
+    - cron: '0 0 * * 0' # Optional: Automatically runs every Sunday at 00:00 UTC
+
+jobs:
+  scrape-and-commit:
+    runs-on: ubuntu-latest
+
+    # Direct all execution steps to run inside the ug-scraper directory
+    defaults:
+      run:
+        working-directory: ug-scraper
+
+    permissions:
+      contents: write  # Grants permission to push generated txt files to the repo
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'ug-scraper/requirements.txt'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright & Chromium
+        run: |
+          playwright install --with-deps chromium
+
+      - name: Execute Scraper Script
+        run: |
+          python scraper.py
+
+      - name: Save Scraped Songs to Repository
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Stage the songs subfolder
+          git add songs/
+          
+          if git diff --staged --quiet; then
+            echo "No changes detected."
+          else
+            git commit -m "Automated update: Scraped songs into ug-scraper/songs"
+            git push
+          fi
