@@ -3,7 +3,7 @@ name: Run Subfolder Playlist Scraper
 on:
   workflow_dispatch:  # Manual execution trigger
   schedule:
-    - cron: '0 0 * * 0' # Weekly run (Sunday 00:00 UTC)
+    - cron: '0 0 * * 0' # Automated weekly execution (Sunday 00:00 UTC)
 
 jobs:
   scrape-and-commit:
@@ -43,5 +43,5 @@ jobs:
             git commit -m "chore(data): automated lyrics update [skip ci]"
             git push origin HEAD:${{ github.ref_name }}
           else
-            echo "[+] No new lyric files detected. Skipping commit step."
+            echo "[+] No new files detected. Skipping commit."
           fi
