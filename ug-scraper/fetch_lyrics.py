@@ -5,7 +5,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-# Path definitions: Script is inside ug-scraper/, playlist.json is at repository root
+# Path resolution: Script is in ug-scraper/, playlist.json is in root
 CURRENT_DIR = Path(__file__).resolve().parent
 ROOT_DIR = CURRENT_DIR.parent
 
@@ -14,16 +14,16 @@ OUTPUT_DIR = CURRENT_DIR / "songs"
 
 
 def sanitize_filename(name: str) -> str:
-    """Removes invalid OS filename characters."""
+    """Removes illegal OS characters from filenames."""
     return re.sub(r'[\\/*?:"<>|]', "", name).strip()
 
 
 def fetch_lyrics_from_lrclib(artist: str, title: str) -> str:
     """Queries LRCLIB API directly. Free, keyless, and headless-friendly."""
-    # 1. Direct Signature Query
+    # 1. Direct Signature Search
     params = urllib.parse.urlencode({'artist_name': artist, 'track_name': title})
     url = f"https://lrclib.net/api/get?{params}"
-    headers = {'User-Agent': 'GitHubActions-LyricsFetcher/1.0'}
+    headers = {'User-Agent': 'GitHubActions-LyricsFetcher/2.0'}
 
     try:
         req = urllib.request.Request(url, headers=headers)
@@ -34,7 +34,7 @@ def fetch_lyrics_from_lrclib(artist: str, title: str) -> str:
     except Exception:
         pass
 
-    # 2. Fuzzy Search Endpoint Fallback
+    # 2. Fuzzy Query Fallback
     search_query = urllib.parse.quote(f"{artist} {title}")
     search_url = f"https://lrclib.net/api/search?q={search_query}"
 
@@ -46,7 +46,7 @@ def fetch_lyrics_from_lrclib(artist: str, title: str) -> str:
                 if results and isinstance(results, list) and len(results) > 0:
                     return results[0].get('plainLyrics', '') or results[0].get('syncedLyrics', '')
     except Exception as e:
-        print(f"  [!] Query error for {artist} - {title}: {e}")
+        print(f"  [!] Search error for {artist} - {title}: {e}")
 
     return ""
 
@@ -55,7 +55,7 @@ def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     if not PLAYLIST_PATH.exists():
-        print(f"[-] CRITICAL ERROR: Target playlist file not found at: {PLAYLIST_PATH}")
+        print(f"[-] CRITICAL ERROR: Could not find playlist.json at: {PLAYLIST_PATH}")
         raise FileNotFoundError(f"Missing {PLAYLIST_PATH}")
 
     with open(PLAYLIST_PATH, "r", encoding="utf-8") as f:
@@ -72,10 +72,10 @@ def main():
         filename = sanitize_filename(f"{artist} - {title}.txt")
         filepath = OUTPUT_DIR / filename
 
-        print(f"[{idx}/{len(tracks)}] Searching: {artist} - {title}")
+        print(f"[{idx}/{len(tracks)}] Processing: {artist} - {title}")
 
         if filepath.exists():
-            print(f"  [➜] Skip: File already exists -> {filename}")
+            print(f"  [➜] Skip: Already exists -> {filename}")
             saved_count += 1
             continue
 
@@ -94,7 +94,7 @@ def main():
 
         time.sleep(0.5)
 
-    print(f"\n[+] PIPELINE COMPLETE: Saved {saved_count}/{len(tracks)} lyric files in {OUTPUT_DIR.name}/.")
+    print(f"\n[+] PIPELINE COMPLETE: Saved {saved_count}/{len(tracks)} files in {OUTPUT_DIR.name}/.")
 
 
 if __name__ == "__main__":
