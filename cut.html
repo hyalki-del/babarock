@@ -13,23 +13,22 @@
     
     <style>
         /* ==========================================================================
-           1. GLOBAL RESET & CROSS-PLATFORM CONTAINMENT (YAZILIM Core)
+           1. GLOBAL RESET & CROSS-PLATFORM CONTAINMENT
            ========================================================================== */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             -webkit-tap-highlight-color: transparent;
-            user-select: none; /* Prevents text selection during interaction */
+            user-select: none;
             -webkit-user-select: none;
         }
 
         html, body {
             width: 100vw;
             height: 100vh;
-            /* Fix for iOS Safari viewport height inconsistencies */
             height: 100dvh;
-            overflow: hidden; /* Lock scroll, strict HUD containment */
+            overflow: hidden;
             background-color: #000;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             color: #ffffff;
@@ -44,27 +43,27 @@
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Stretch/crop dynamically */
-            z-index: 1; /* Lowest layer */
-            transition: opacity 0.3s ease; /* Smooth image swap */
+            object-fit: cover;
+            z-index: 1;
+            transition: opacity 0.3s ease;
         }
 
-        /* The 65% Black Dotted Curtain Overlay (YAZILIM Shader Simulation) */
+        /* The 75% Black Dotted Curtain Overlay */
         .shader-curtain {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 2; /* Over image, under UI */
+            z-index: 2;
             
-            /* Layer 1: 65% Black Mask */
-            background-color: rgba(0, 0, 0, 0.65);
+            /* Layer 1: 75% Black Mask */
+            background-color: rgba(0, 0, 0, 0.75);
             
-            /* Layer 2: SVG Dot Matrix (Simulated via Radial Gradient) */
+            /* Layer 2: SVG Dot Matrix */
             background-image: radial-gradient(rgba(0, 0, 0, 0.9) 1.2px, transparent 1.2px);
-            background-size: 5px 5px; /* Spacing of the thin curtain effect */
-            pointer-events: none; /* Allows clicks to pass through */
+            background-size: 5px 5px;
+            pointer-events: none;
         }
 
         /* ==========================================================================
@@ -72,13 +71,12 @@
            ========================================================================== */
         .app-viewport {
             position: relative;
-            z-index: 3; /* Active UI Layer */
+            z-index: 3;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* LED Top, Grid Bottom */
+            justify-content: space-between;
             width: 100%;
             height: 100%;
-            /* Strict Safe Area padding for iOS/Android notches */
             padding-top: env(safe-area-inset-top, 0px);
             padding-bottom: env(safe-area-inset-bottom, 12px);
         }
@@ -90,17 +88,16 @@
             width: 100%;
             height: 65px;
             background-color: rgba(2, 2, 2, 0.9);
-            border-bottom: 2px solid #ff3300; /* Rock Red instead of Cyan */
+            border-bottom: 2px solid #ff3300;
             box-shadow: 0 4px 15px rgba(255, 51, 0, 0.4);
             overflow: hidden;
             position: relative;
             display: flex;
             align-items: center;
-            backdrop-filter: blur(5px); /* Cinematic Glass effect */
+            backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
         }
 
-        /* Dotted overlay just for the LED screen itself */
         .led-screen-banner::after {
             content: "";
             position: absolute;
@@ -130,7 +127,7 @@
             padding-right: 25px;
             font-family: 'VT323', monospace;
             font-size: 2.2rem;
-            color: #ff3300; /* Stark Red Glow */
+            color: #ff3300;
             text-transform: uppercase;
             text-shadow: 0 0 5px #ff3300;
         }
@@ -145,39 +142,30 @@
            5. MARVEL STUDIOS DESIGNER REDESIGN: 2x2 GRID (50% SCREEN HEIGHT)
            ========================================================================== */
         .hud-controls-container {
-            height: 50vh; /* Rigorous 50% Screen Allocation requested */
+            height: 50vh;
             width: 100%;
             padding: 16px;
             display: grid;
-            grid-template-columns: 1fr 1fr; /* Symmetric 2-Column */
-            grid-template-rows: 1fr 1fr;    /* Symmetric 2-Row */
-            gap: 16px; /* Optimized spacing */
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 16px;
         }
 
         .action-button {
             position: relative;
             background: linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(5, 5, 5, 0.95));
-            
-            /* Stark/Marvel Geometry: Chamfered Corners */
             clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
             -webkit-clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
-
-            /* Interactive Red Glow border */
             border: 1.5px solid #ff3300;
             text-decoration: none;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            
-            /* Bevel & Depth Simulation */
             box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7);
-            
-            /* Flex layout for internal button content */
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             padding: 20px;
         }
 
-        /* Metallic Bevel overlay */
         .action-button::before {
             content: "";
             position: absolute;
@@ -186,7 +174,6 @@
             pointer-events: none;
         }
 
-        /* Interaction States (Optimized for Mobile/Desktop) */
         .action-button:hover, .action-button:active {
             transform: scale(0.97);
             background: rgba(30, 30, 30, 0.9);
@@ -198,11 +185,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 2; /* Over bevel */
+            z-index: 2;
         }
 
         .btn-icon {
-            font-size: 2rem; /* Big Icons requested */
+            font-size: 2rem;
             color: #ff3300;
             filter: drop-shadow(0 0 5px #ff3300);
         }
@@ -216,7 +203,7 @@
         }
 
         .btn-title {
-            font-size: clamp(1.1rem, 4vw, 1.8rem); /* Responsive Font Optimization */
+            font-size: clamp(1.1rem, 4vw, 1.8rem);
             font-weight: 900;
             letter-spacing: 2px;
             color: #ffffff;
@@ -225,7 +212,6 @@
             z-index: 2;
         }
 
-        /* Preserve Flickering Animation Logic from original code */
         @keyframes bulbFlicker {
             0%, 100% { opacity: 1; filter: brightness(1); }
             10%, 50% { opacity: 0.3; filter: brightness(0.5); }
@@ -240,16 +226,16 @@
 </head>
 <body>
 
-    <!-- 1. FULLSCREEN BACKGROUND IMAGE (Preserving Original JS Rotation) -->
+    <!-- 1. FULLSCREEN BACKGROUND IMAGE -->
     <img id="bgLayer" src="https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg" alt="Baba Rock Immersive Background">
 
-    <!-- 2. THE 65% DOTTED CURTAIN (SHADER SIMULATION) -->
+    <!-- 2. THE 75% DOTTED CURTAIN (SHADER SIMULATION) -->
     <div class="shader-curtain"></div>
 
     <!-- 3. ACTIVE UI VIEWPORT -->
     <main class="app-viewport">
         
-        <!-- TOP LED BANNER (Edge-to-Edge Optimized) -->
+        <!-- TOP LED BANNER -->
         <header class="led-screen-banner">
             <div class="led-track">
                 <div class="led-content">
@@ -259,7 +245,6 @@
                     <span><i class="fa-solid fa-calendar-check"></i> TAKVİMİ KONTROL ET</span>
                     <span><i class="fa-solid fa-guitar"></i> LET'S ROCK AND ROLL</span>
                 </div>
-                <!-- ARIA Hidden Duplicate for seamless marquee loop -->
                 <div class="led-content" aria-hidden="true">
                     <span><i class="fa-solid fa-bolt"></i> BABA ROCK LIVE EXPERIENCE</span>
                     <span><i class="fa-solid fa-microphone-lines"></i> STAGE REHEARSAL</span>
@@ -273,7 +258,6 @@
         <!-- 2x2 SYMMETRIC MARVEL BUTTON GRID (50% SCREEN HEIGHT) -->
         <nav class="hud-controls-container">
             
-            <!-- Button 1 -->
             <a href="https://hyalki-del.github.io/babarock/takvim.html" class="action-button" target="_blank" rel="noopener">
                 <div class="btn-header">
                     <i class="fa-solid fa-calendar-days btn-icon"></i>
@@ -282,7 +266,6 @@
                 <div class="btn-title">Takvim</div>
             </a>
 
-            <!-- Button 2 -->
             <a href="https://hyalki-del.github.io/babarock/playlist.html" class="action-button" target="_blank" rel="noopener">
                 <div class="btn-header">
                     <i class="fa-solid fa-music btn-icon"></i>
@@ -291,7 +274,6 @@
                 <div class="btn-title">Playlist</div>
             </a>
 
-            <!-- Button 3 -->
             <a href="https://hyalki-del.github.io/babarock/rehearsal.html" class="action-button" target="_blank" rel="noopener">
                 <div class="btn-header">
                     <i class="fa-solid fa-microphone-lines btn-icon"></i>
@@ -300,7 +282,6 @@
                 <div class="btn-title">Prova/Setlist</div>
             </a>
             
-            <!-- Button 4 -->
             <a href="https://hyalki-del.github.io/babarock/advisor.html" class="action-button" target="_blank" rel="noopener">
                 <div class="btn-header">
                     <i class="fa-solid fa-dice btn-icon"></i>
@@ -312,7 +293,6 @@
         </nav>
     </main>
 
-    <!-- Preserve and Adapt Original JS Image Rotation Logic -->
     <script>
         const images = [
             "https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg",
@@ -325,35 +305,27 @@
             "https://hyalki-del.github.io/babarock/b7.jpg"
         ];
 
-        // Preload Images (YAZILIM Optimization)
         images.forEach(src => {
             const img = new Image();
             img.src = src;
         });
 
-        // Initialize Shuffled Rotation
         const shuffledImages = [...images].sort(() => Math.random() - 0.5);
         let currentIndex = 0;
         
-        // Target the Fullscreen Background Layer instead of a Card Logo
         const bgImgElement = document.getElementById("bgLayer");
 
         if (bgImgElement && shuffledImages.length > 0) {
-            // Set initial random image
             bgImgElement.src = shuffledImages[currentIndex];
 
-            // Rotation Interval (2.5s)
             setInterval(() => {
-                // Apply original Flickering animation to the Background itself
                 bgImgElement.classList.add("bulb-buzz");
                 
-                // Swap image midway through flicker (180ms)
                 setTimeout(() => {
                     currentIndex = (currentIndex + 1) % shuffledImages.length;
                     bgImgElement.src = shuffledImages[currentIndex];
                 }, 180);
 
-                // Clean up animation class (450ms)
                 setTimeout(() => {
                     bgImgElement.classList.remove("bulb-buzz");
                 }, 450);
