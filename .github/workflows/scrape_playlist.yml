@@ -1,9 +1,9 @@
 name: Run Subfolder Playlist Scraper
 
 on:
-  workflow_dispatch:  # Manual trigger button in GitHub UI
+  workflow_dispatch:  # Manual execution button in GitHub UI
   schedule:
-    - cron: '0 0 * * 0' # Automated run: Every Sunday at midnight UTC
+    - cron: '0 0 * * 0' # Automated trigger: Every Sunday at midnight UTC
 
 jobs:
   scrape-and-commit:
@@ -20,7 +20,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history ensures clean branch pushing
+          fetch-depth: 0 # Fetches full history for branch context
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -34,7 +34,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install Playwright & Chromium Browsers
+      - name: Install Playwright & Chromium
         run: |
           playwright install --with-deps chromium
 
@@ -43,25 +43,26 @@ jobs:
           python scraper.py
 
       - name: Commit and Push Scraped Songs
+        if: success()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Stage the output directory
+          # Stage the songs directory
           git add songs/
           
-          # Commit only if new or modified files exist
+          # Check for changes inside ug-scraper/songs/
           if [ -n "$(git status --porcelain songs/)" ]; then
-            git commit -m "chore(data): automated playlist scrape [skip ci]"
+            git commit -m "chore(data): automated playlist update [skip ci]"
             git push origin HEAD:${{ github.ref_name }}
           else
-            echo "No changes found in songs directory. Skipping commit."
+            echo "No new changes detected in songs directory. Skipping commit."
           fi
 
-      - name: Upload Debug Artifacts on Failure
+      - name: Upload Debug Artifact on Failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: debug-artifacts
-          path: ug-scraper/debug/
-          retention-days: 3
+          name: debug-failure-snapshot
+          path: ug-scraper/debug_failed_page.html
+          retention-days: 7
