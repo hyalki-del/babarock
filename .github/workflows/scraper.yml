@@ -25,7 +25,7 @@ jobs:
           pip install requests
 
       - name: Fetch Lyrics
-        run: python fetch_playlist.py
+        run: python ug-scraper/fetch_playlist.py
 
       - name: Commit and Push Changes
         run: |
