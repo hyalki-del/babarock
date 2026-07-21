@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetches all history for clean branch pushing
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -48,10 +50,10 @@ jobs:
           # Stage the songs directory
           git add songs/
           
-          # Safely check if there are changed files before committing
-          if git status --porcelain | grep -q 'songs/'; then
+          # Check if changes exist in the songs subfolder
+          if [ -n "$(git status --porcelain songs/)" ]; then
             git commit -m "Automated update: Scraped songs into ug-scraper/songs"
-            git push
+            git push origin HEAD:${{ github.ref_name }}
           else
             echo "No changes found in songs directory. Skipping commit."
           fi
