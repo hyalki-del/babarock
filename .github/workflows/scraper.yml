@@ -1,9 +1,9 @@
 name: Run Subfolder Playlist Scraper
 
 on:
-  workflow_dispatch:  # Manual execution trigger
+  workflow_dispatch:
   schedule:
-    - cron: '0 0 * * 0' # Automated weekly run (Sunday 00:00 UTC)
+    - cron: '0 0 * * 0'
 
 jobs:
   scrape-and-commit:
@@ -18,12 +18,12 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -38,13 +38,19 @@ jobs:
         run: |
           python fetch_lyrics.py
 
+      - name: Debug Output Directory
+        run: |
+          echo "=== Contents of ug-scraper/songs ==="
+          ls -la songs/ || echo "Directory does not exist"
+
       - name: Commit and Push Scraped Lyrics
         if: success()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           
-          git add songs/
+          # Force add in case directory is ignored by root .gitignore
+          git add -f songs/
           
           if [ -n "$(git status --porcelain songs/)" ]; then
             git commit -m "chore(data): automated Genius lyrics update [skip ci]"
