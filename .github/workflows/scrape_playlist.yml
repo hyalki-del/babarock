@@ -1,9 +1,9 @@
 name: Run Subfolder Playlist Scraper
 
 on:
-  workflow_dispatch:  # Manual trigger button
+  workflow_dispatch:  # Manual trigger button in GitHub UI
   schedule:
-    - cron: '0 0 * * 0' # Weekly run
+    - cron: '0 0 * * 0' # Automated run: Every Sunday at midnight UTC
 
 jobs:
   scrape-and-commit:
@@ -20,7 +20,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetches all history for clean branch pushing
+          fetch-depth: 0  # Full history ensures clean branch pushing
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -34,7 +34,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install Playwright & Chromium
+      - name: Install Playwright & Chromium Browsers
         run: |
           playwright install --with-deps chromium
 
@@ -42,18 +42,26 @@ jobs:
         run: |
           python scraper.py
 
-      - name: Commit and Push Songs
+      - name: Commit and Push Scraped Songs
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Stage the songs directory
+          # Stage the output directory
           git add songs/
           
-          # Check if changes exist in the songs subfolder
+          # Commit only if new or modified files exist
           if [ -n "$(git status --porcelain songs/)" ]; then
-            git commit -m "Automated update: Scraped songs into ug-scraper/songs"
+            git commit -m "chore(data): automated playlist scrape [skip ci]"
             git push origin HEAD:${{ github.ref_name }}
           else
             echo "No changes found in songs directory. Skipping commit."
           fi
+
+      - name: Upload Debug Artifacts on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-artifacts
+          path: ug-scraper/debug/
+          retention-days: 3
