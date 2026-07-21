@@ -4,17 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baba Rock - Playlist</title>
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Base Reset & Dark Metal Theme */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background-color: #0c0c0c;
             background: radial-gradient(circle, #161616 0%, #070707 100%);
@@ -26,7 +19,6 @@
             align-items: flex-start;
             padding: 40px 20px;
         }
-
         .playlist-card {
             max-width: 480px;
             width: 100%;
@@ -36,7 +28,6 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             border: 1px solid #222222;
         }
-
         .header {
             display: flex;
             align-items: center;
@@ -45,19 +36,8 @@
             border-bottom: 1px solid #222222;
             padding-bottom: 15px;
         }
-
-        .header h1 {
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #ffffff;
-        }
-
-        .header h1 i {
-            color: #ff4500;
-        }
-
+        .header h1 { font-size: 1.3rem; display: flex; align-items: center; gap: 12px; color: #ffffff; }
+        .header h1 i { color: #ff4500; }
         .song-count {
             font-size: 0.85rem;
             color: #888888;
@@ -66,8 +46,6 @@
             border-radius: 12px;
             border: 1px solid #282828;
         }
-
-        /* Song List Styling */
         .song-list {
             list-style: none;
             display: flex;
@@ -77,17 +55,9 @@
             overflow-y: auto;
             padding-right: 5px;
         }
-
-        /* Custom Scrollbar */
-        .song-list::-webkit-scrollbar {
-            width: 6px;
-        }
-        .song-list::-webkit-scrollbar-thumb {
-            background: #282828;
-            border-radius: 3px;
-        }
-
-        /* Full Clickable Song Item Frame */
+        .song-list::-webkit-scrollbar { width: 6px; }
+        .song-list::-webkit-scrollbar-thumb { background: #282828; border-radius: 3px; }
+        
         .song-item-link {
             text-decoration: none;
             color: inherit;
@@ -101,90 +71,32 @@
             transition: border-color 0.25s ease, background-color 0.25s ease, transform 0.15s ease;
             cursor: pointer;
         }
-
         .song-item-link:hover {
             border-color: #ff4500;
             background-color: #222222;
             transform: translateY(-1px);
         }
-
-        .song-item-link:hover .song-title {
-            color: #ff4500;
-        }
-
-        .song-item-link:hover .yt-icon {
-            transform: scale(1.15);
-            color: #ff4500;
-        }
-
-        .song-left {
-            display: flex;
-            align-items: center;
-            min-width: 0;
-            flex-grow: 1;
-        }
-
-        .song-number {
-            font-size: 0.85rem;
-            color: #ff4500;
-            font-weight: bold;
-            width: 28px;
-            flex-shrink: 0;
-        }
-
-        .song-info {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            flex-grow: 1;
-        }
-
-        .song-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #ffffff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            transition: color 0.2s ease;
-        }
-
-        .song-artist {
-            font-size: 0.8rem;
-            color: #a0a0a0;
-            margin-top: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Right Actions Layout Container */
-        .actions-right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-
-        /* Key Badge Component */
+        .song-item-link:hover .song-title { color: #ff4500; }
+        .song-item-link:hover .yt-icon { transform: scale(1.15); color: #ff4500; }
+        .song-left { display: flex; align-items: center; min-width: 0; flex-grow: 1; }
+        .song-number { font-size: 0.85rem; color: #ff4500; font-weight: bold; width: 28px; flex-shrink: 0; }
+        .song-info { display: flex; flex-direction: column; min-width: 0; flex-grow: 1; }
+        .song-title { font-weight: 600; font-size: 0.95rem; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.2s ease; }
+        .song-artist { font-size: 0.8rem; color: #a0a0a0; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* Actions & Key Badge */
+        .actions-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
         .key-badge {
             font-size: 0.7rem;
             font-weight: 700;
             color: #ff4500;
             background: #121212;
             border: 1px solid #ff4500;
-            padding: 3px 6px;
+            padding: 2px 6px;
             border-radius: 4px;
             white-space: nowrap;
         }
-
-        .yt-icon {
-            color: #ff0000;
-            font-size: 1.2rem;
-            margin-left: 4px;
-            flex-shrink: 0;
-            transition: transform 0.2s ease, color 0.2s ease;
-        }
+        .yt-icon { color: #ff0000; font-size: 1.2rem; flex-shrink: 0; transition: transform 0.2s ease, color 0.2s ease; }
     </style>
 </head>
 <body>
@@ -199,122 +111,46 @@
     </div>
 
     <script>
-        const SPREADSHEET_ID = "1cY4MJ8zFP5HWg8msUFGSy5dAIpJso8iUr5DgR6t64wE";
-        const SHEET_NAME = "keys";
-        
-        // Direct CSV Endpoint via Google Visualization Query API
-        const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
-
-        /**
-         * RFC 4180 Compliant Finite State Machine (FSM) CSV Parser
-         * Accurately parses escaped quotes (""), embedded commas, and multiline text.
-         */
-        function parseCSV(text) {
-            const result = [];
-            let row = [];
-            let field = '';
-            let inQuotes = false;
-
-            for (let i = 0; i < text.length; i++) {
-                const char = text[i];
-                const nextChar = text[i + 1];
-
-                if (char === '"') {
-                    if (inQuotes && nextChar === '"') {
-                        field += '"';
-                        i++; // Skip escaped double quote
-                    } else {
-                        inQuotes = !inQuotes; // Toggle quote state
-                    }
-                } else if (char === ',' && !inQuotes) {
-                    row.push(field.trim());
-                    field = '';
-                } else if ((char === '\r' || char === '\n') && !inQuotes) {
-                    if (char === '\r' && nextChar === '\n') i++; // Handle CRLF line endings
-                    row.push(field.trim());
-                    if (row.some(cell => cell.length > 0)) result.push(row);
-                    row = [];
-                    field = '';
-                } else {
-                    field += char;
-                }
-            }
-            
-            if (field || row.length > 0) {
-                row.push(field.trim());
-                if (row.some(cell => cell.length > 0)) result.push(row);
-            }
-
-            if (result.length < 2) return [];
-
-            // Extract lowercase normalized headers
-            const headers = result[0].map(h => h.toLowerCase().replace(/^"|"$/g, ''));
-            
-            return result.slice(1).map(dataRow => {
-                const obj = {};
-                headers.forEach((header, idx) => {
-                    obj[header] = dataRow[idx] ? dataRow[idx].replace(/^"|"$/g, '') : '';
-                });
-                return obj;
-            });
+        function normalizeTitle(str) {
+            return str
+                .toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-z0-9]/g, "");
         }
 
-        /**
-         * HTML Entity Sanitizer preventing Cross-Site Scripting (XSS)
-         */
-        function sanitizeHTML(str) {
-            return String(str ?? '').replace(/[&<>"']/g, match => {
-                const entities = {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#39;'
-                };
-                return entities[match];
-            });
-        }
-
-        /**
-         * Main Async Data Fetcher and UI Controller
-         */
         async function loadPlaylist() {
             const listElement = document.getElementById("songList");
             const countElement = document.getElementById("songCount");
 
             try {
-                // Fetch live CSV dataset with timestamp cache invalidation
-                const response = await fetch(`${SHEET_CSV_URL}&t=${Date.now()}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP network error status: ${response.status}`);
+                const timestamp = new Date().getTime();
+                const [resPlaylist, resKeys] = await Promise.all([
+                    fetch(`./playlist.json?t=${timestamp}`),
+                    fetch(`./song_keys.json?t=${timestamp}`)
+                ]);
+
+                const playlist = await resPlaylist.json();
+                const keyMap = await resKeys.json();
+
+                // Normalize keys lookup table
+                const normalizedKeyMap = {};
+                for (const [title, key] of Object.entries(keyMap)) {
+                    normalizedKeyMap[normalizeTitle(title)] = key;
                 }
 
-                const csvText = await response.text();
-                const playlist = parseCSV(csvText);
-
+                listElement.innerHTML = "";
                 countElement.textContent = `${playlist.length} Songs`;
-
-                // Use DocumentFragment to batch DOM inserts into a single layout reflow
-                const fragment = document.createDocumentFragment();
 
                 playlist.forEach((item, index) => {
                     const li = document.createElement("li");
-
-                    const rawTitle = item.title || item.number || "Unknown Title";
-                    const rawArtist = item.artist || "";
-                    const rawKey = item.key || item.keys || "";
-
-                    const title = sanitizeHTML(rawTitle);
-                    const artist = sanitizeHTML(rawArtist);
-                    const key = sanitizeHTML(rawKey);
-
-                    const searchQuery = encodeURIComponent(`${rawTitle} ${rawArtist}`);
-                    const youtubeUrl = `https://www.youtube.com/results?search_query=${searchQuery}`;
-
-                    // Render key badge if signature exists and is valid
-                    const keyBadgeHtml = (key && key.toUpperCase() !== 'N/A' && key !== '???') 
-                        ? `<span class="key-badge">${key}</span>` 
+                    const query = encodeURIComponent(`${item.title} ${item.artist}`);
+                    const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
+                    
+                    // Match key dynamically or fallback to item.key
+                    const normTitle = normalizeTitle(item.title);
+                    const detectedKey = normalizedKeyMap[normTitle] || item.key || null;
+                    const keyBadgeHtml = (detectedKey && detectedKey !== 'N/A') 
+                        ? `<span class="key-badge">${detectedKey}</span>` 
                         : '';
 
                     li.innerHTML = `
@@ -322,8 +158,8 @@
                             <div class="song-left">
                                 <span class="song-number">${index + 1}</span>
                                 <div class="song-info">
-                                    <span class="song-title">${title}</span>
-                                    <span class="song-artist">${artist}</span>
+                                    <span class="song-title">${item.title}</span>
+                                    <span class="song-artist">${item.artist}</span>
                                 </div>
                             </div>
                             <div class="actions-right">
@@ -332,21 +168,15 @@
                             </div>
                         </a>
                     `;
-
-                    fragment.appendChild(li);
+                    listElement.appendChild(li);
                 });
-
-                // Single atomic DOM replacement
-                listElement.innerHTML = "";
-                listElement.appendChild(fragment);
-
             } catch (err) {
-                console.error("Pipeline failure in loadPlaylist():", err);
+                console.error(err);
                 countElement.textContent = "Error";
             }
         }
 
-        document.addEventListener("DOMContentLoaded", loadPlaylist);
+        loadPlaylist();
     </script>
 
 </body>
