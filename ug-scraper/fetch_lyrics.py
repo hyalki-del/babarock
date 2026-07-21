@@ -1,172 +1,127 @@
 import os
 import re
 import json
-import time
-import urllib.parse
-import urllib.request
-from pathlib import Path
+import requests
+from bs4 import BeautifulSoup
 
-# Resolve directory paths
-CURRENT_DIR = Path(__file__).resolve().parent
-ROOT_DIR = CURRENT_DIR.parent
+# Direct URL to your shared Ultimate Guitar playlist
+PLAYLIST_URL = "https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r"
+SONGS_DIR = "./songs"
 
-# Check for playlist.json at repository root first, then local directory
-ROOT_PLAYLIST = ROOT_DIR / "playlist.json"
-LOCAL_PLAYLIST = CURRENT_DIR / "playlist.json"
-
-PLAYLIST_PATH = ROOT_PLAYLIST if ROOT_PLAYLIST.exists() else LOCAL_PLAYLIST
-OUTPUT_DIR = CURRENT_DIR / "songs"
+os.makedirs(SONGS_DIR, exist_ok=True)
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.9",
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 }
 
-
 def sanitize_filename(name: str) -> str:
-    """Sanitizes strings to create valid OS filenames."""
-    return re.sub(r'[\\/*?:"<>|]', "", name).strip()
+    """Creates filesystem-safe slugs (e.g. 'Hotel California!' -> 'hotel-california')."""
+    name = name.lower()
+    name = re.sub(r'[^a-z0-9]+', '-', name)
+    return name.strip('-')
 
+def fetch_playlist_tabs() -> list:
+    """Scrapes the shared playlist page and extracts song metadata."""
+    print(f"Fetching playlist from UG: {PLAYLIST_URL}")
+    res = requests.get(PLAYLIST_URL, headers=HEADERS)
+    if res.status_code != 200:
+        raise Exception(f"Failed to load playlist page. Status code: {res.status_code}")
 
-def load_playlist() -> list:
-    """Loads track data from root or local playlist.json."""
-    if not PLAYLIST_PATH.exists():
-        print(f"[-] CRITICAL ERROR: Target playlist file not found at: {PLAYLIST_PATH}")
-        raise FileNotFoundError(f"Missing playlist.json at {PLAYLIST_PATH}")
+    soup = BeautifulSoup(res.text, 'html.parser')
+    js_store = soup.find('script', class_='js-store')
+    
+    if not js_store or not js_store.string:
+        raise Exception("Could not find window.UG_STORE.page data on the page.")
 
-    print(f"[+] Reading playlist data from: {PLAYLIST_PATH}")
-    with open(PLAYLIST_PATH, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    data = json.loads(js_store.string)
+    
+    # Locate tabs array within UG JSON structure
+    page_data = data.get('store', {}).get('page', {}).get('data', {})
+    
+    # Shared playlists store items in 'songbook' -> 'tabs' or 'list'
+    tabs_data = page_data.get('songbook', {}).get('tabs', [])
+    if not tabs_data and 'list' in page_data:
+        tabs_data = page_data['list']
 
-        if isinstance(data, list):
-            return data
+    extracted_songs = []
+    for item in tabs_data:
+        tab_info = item.get('tab', item)
+        artist = tab_info.get('artist_name', 'Unknown Artist')
+        title = tab_info.get('song_name', 'Unknown Title')
+        tab_url = tab_info.get('tab_url', '')
 
-        if isinstance(data, dict):
-            for key in ["items", "tracks", "songs", "data", "playlist"]:
-                if key in data and isinstance(data[key], list):
-                    return data[key]
-            for val in data.values():
-                if isinstance(val, list):
-                    return val
+        if tab_url:
+            extracted_songs.append({
+                "artist": artist,
+                "title": title,
+                "url": tab_url
+            })
 
-    raise ValueError("Could not extract a valid array of songs from playlist.json")
+    print(f"Extracted {len(extracted_songs)} songs from playlist.")
+    return extracted_songs
 
-
-def clean_ug_content(raw_content: str) -> str:
-    """Strips UG BBCode tags while preserving readable text and chords."""
-    if not raw_content:
-        return ""
-    # Strip [ch]Am[/ch] tags to just show chord names
-    content = re.sub(r'\[ch\](.*?)\[/ch\]', r'\1', raw_content)
-    # Strip [tab] and [/tab] structural tags
-    content = re.sub(r'\[/?tab\]', '', content)
-    return content.strip()
-
-
-def fetch_tab_from_ug(artist: str, title: str) -> str:
-    """Searches Ultimate Guitar and extracts the raw chord/lyric text."""
-    query = f"{artist} {title}"
-    encoded_query = urllib.parse.quote(query)
-    search_url = f"https://www.ultimate-guitar.com/search.php?search_type=title&value={encoded_query}"
-
+def fetch_ug_tab_content(tab_url: str) -> str | None:
+    """Extracts raw chords/lyrics text block from an individual song page."""
     try:
-        # Step 1: Perform search
-        req = urllib.request.Request(search_url, headers=HEADERS)
-        with urllib.request.urlopen(req, timeout=12) as response:
-            html = response.read().decode("utf-8", errors="ignore")
+        res = requests.get(tab_url, headers=HEADERS, timeout=10)
+        if res.status_code != 200:
+            return None
 
-        match = re.search(r'class="js-store"\s+data-content="([^"]+)"', html)
-        if not match:
-            return ""
-
-        raw_json_str = match.group(1).replace("&quot;", '"').replace("&amp;", "&")
-        search_data = json.loads(raw_json_str)
-
-        results = search_data.get("store", {}).get("page", {}).get("data", {}).get("results", [])
-        if not results:
-            return ""
-
-        # Step 2: Prioritize Chords or Lyrics tab types
-        tab_url = None
-        for item in results:
-            if item.get("type") in ["Chords", "Lyrics", "Ukulele"]:
-                tab_url = item.get("tab_url")
-                break
-
-        if not tab_url and results:
-            tab_url = results[0].get("tab_url")
-
-        if not tab_url:
-            return ""
-
-        # Step 3: Fetch the specific Tab page
-        tab_req = urllib.request.Request(tab_url, headers=HEADERS)
-        with urllib.request.urlopen(tab_req, timeout=12) as tab_resp:
-            tab_html = tab_resp.read().decode("utf-8", errors="ignore")
-
-        tab_match = re.search(r'class="js-store"\s+data-content="([^"]+)"', tab_html)
-        if not tab_match:
-            return ""
-
-        tab_json_str = tab_match.group(1).replace("&quot;", '"').replace("&amp;", "&")
-        tab_data = json.loads(tab_json_str)
-
-        wiki_tab = (
-            tab_data.get("store", {})
-            .get("page", {})
-            .get("data", {})
-            .get("tab_view", {})
-            .get("wiki_tab", {})
-        )
-
-        raw_content = wiki_tab.get("content", "")
-        return clean_ug_content(raw_content)
-
+        soup = BeautifulSoup(res.text, 'html.parser')
+        js_store = soup.find('script', class_='js-store')
+        
+        if js_store and js_store.string:
+            data = json.loads(js_store.string)
+            content = data['store']['page']['data']['tab_view']['wiki_tab']['content']
+            
+            # Strip UG formatting tags ([ch]Am[/ch] -> Am)
+            cleaned = re.sub(r'\[\/?ch\]', '', content)
+            cleaned = re.sub(r'\[\/?tab\]', '', cleaned)
+            return cleaned
     except Exception as e:
-        print(f"  [!] UG Engine Error for '{artist} - {title}': {e}")
-        return ""
-
+        print(f"Error fetching tab from {tab_url}: {e}")
+        return None
 
 def main():
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    tracks = load_playlist()
+    try:
+        raw_songs = fetch_playlist_tabs()
+    except Exception as e:
+        print(f"Error: {e}")
+        return
 
-    print(f"[+] Successfully loaded {len(tracks)} tracks from {PLAYLIST_PATH.name}.\n")
-    saved_count = 0
+    playlist_output = []
 
-    for idx, track in enumerate(tracks, 1):
-        artist = track.get("artist") or track.get("artist_name") or "Unknown Artist"
-        title = track.get("title") or track.get("song_name") or "Unknown Title"
-        key = track.get("key", "N/A")
+    for song in raw_songs:
+        artist = song['artist']
+        title = song['title']
+        song_url = song['url']
 
-        filename = sanitize_filename(f"{artist} - {title}.txt")
-        filepath = OUTPUT_DIR / filename
+        slug = f"{sanitize_filename(artist)}-{sanitize_filename(title)}"
+        file_path = f"songs/{slug}.txt"
 
-        print(f"[{idx}/{len(tracks)}] Searching UG: {artist} - {title}")
+        # Incremental fetch: only download if missing
+        if not os.path.exists(file_path):
+            print(f"Downloading lyrics: {artist} - {title}")
+            lyrics_text = fetch_ug_tab_content(song_url)
+            
+            if lyrics_text:
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(f"{artist} - {title}\n{'=' * 40}\n\n{lyrics_text}")
+            else:
+                print(f"Failed to fetch lyrics for {artist} - {title}")
+        
+        playlist_output.append({
+            "artist": artist,
+            "title": title,
+            "url": song_url,
+            "file": file_path
+        })
 
-        if filepath.exists() and filepath.stat().st_size > 0:
-            print(f"  [➜] Skipping: File already exists -> {filename}")
-            saved_count += 1
-            continue
+    # Save to root playlist.json
+    with open("playlist.json", "w", encoding="utf-8") as f:
+        json.dump(playlist_output, f, indent=2, ensure_ascii=False)
 
-        tab_content = fetch_tab_from_ug(artist, title)
-
-        if tab_content:
-            with open(filepath, "w", encoding="utf-8") as out:
-                out.write(f"Artist: {artist}\nTitle: {title}\nKey: {key}\n")
-                out.write("=" * 50 + "\n\n")
-                out.write(tab_content)
-
-            saved_count += 1
-            print(f"  [✓] Successfully saved -> {filename}")
-        else:
-            print(f"  [✗] Could not retrieve tab/lyrics from UG for: {artist} - {title}")
-
-        time.sleep(1.2)  # Courteous delay between requests
-
-    print(f"\n[+] PIPELINE COMPLETE: Saved {saved_count}/{len(tracks)} track files in {OUTPUT_DIR.name}/.")
-
+    print("Pipeline finished successfully. 'playlist.json' updated.")
 
 if __name__ == "__main__":
     main()
