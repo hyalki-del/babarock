@@ -386,19 +386,19 @@
         let sortableInstance = null;
 
         async function loadPlaylist() {
-            const countElement = document.getElementById("songCount");
+    const countElement = document.getElementById("songCount");
 
-            try {
-                const res = await fetch("./playlist.json");
-                availablePlaylist = await res.json();
-                renderUI();
-                initSortable();
-            } catch (err) {
-                console.error(err);
-                countElement.textContent = "Error";
-            }
-        }
-
+    try {
+        // Append timestamp parameter to force fetching fresh payload from server
+        const res = await fetch(`./playlist.json?t=${new Date().getTime()}`);
+        availablePlaylist = await res.json();
+        renderUI();
+        initSortable();
+    } catch (err) {
+        console.error(err);
+        countElement.textContent = "Error";
+    }
+}
         function initSortable() {
             const selectedListElement = document.getElementById("selectedList");
             
