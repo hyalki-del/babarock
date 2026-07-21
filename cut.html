@@ -1,337 +1,175 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Baba Rock HUD :: Stark_OS V4.8</title>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- LED Matrix Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<script>
+    // Replace with your Google Apps Script Web App Endpoint URL
+    const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyrIg2w1eHU2fruqixpNKLCtvTtgZ1N4inHOx5g8z_DiAR8W9NiZkK0Cf0D106HHyrp/exec";
     
-    <style>
-        /* ==========================================================================
-           1. GLOBAL RESET & CROSS-PLATFORM CONTAINMENT
-           ========================================================================== */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            -webkit-user-select: none;
+    let playlistData = [];
+    let keyMapData = {};
+    let activeEditSong = null;
+    let clickTimer = null;
+
+    function normalizeTitle(str) {
+        return str
+            .toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]/g, "");
+    }
+
+    async function loadPlaylist() {
+        const countElement = document.getElementById("songCount");
+
+        try {
+            const timestamp = new Date().getTime();
+            const [resPlaylist, resKeys] = await Promise.all([
+                fetch(`./playlist.json?t=${timestamp}`),
+                fetch(`${GOOGLE_SHEET_API_URL}?t=${timestamp}`)
+            ]);
+
+            playlistData = await resPlaylist.json();
+            keyMapData = await resKeys.json();
+
+            renderUI();
+
+            // Non-blocking background sync: Automatically adds missing songs from playlist.json to Google Sheets
+            syncPlaylistWithSheets(playlistData);
+
+        } catch (err) {
+            console.error(err);
+            countElement.textContent = "Error";
+        }
+    }
+
+    function renderUI() {
+        const listElement = document.getElementById("songList");
+        const countElement = document.getElementById("songCount");
+
+        const normalizedKeyMap = {};
+        for (const [title, key] of Object.entries(keyMapData)) {
+            normalizedKeyMap[normalizeTitle(title)] = key;
         }
 
-        html, body {
-            width: 100vw;
-            height: 100vh;
-            height: 100dvh;
-            overflow: hidden;
-            background-color: #000;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #ffffff;
-        }
+        listElement.innerHTML = "";
+        countElement.textContent = `${playlistData.length} Songs`;
 
-        /* ==========================================================================
-           2. DYNAMIC FULLSCREEN BACKGROUND LAYER & DOTTED SHADER
-           ========================================================================== */
-        #bgLayer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 1;
-            transition: opacity 0.3s ease;
-        }
-
-        /* The 75% Black Dotted Curtain Overlay */
-        .shader-curtain {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
+        playlistData.forEach((item, index) => {
+            const li = document.createElement("li");
+            const query = encodeURIComponent(`${item.title} ${item.artist}`);
+            const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
             
-            /* Layer 1: 75% Black Mask */
-            background-color: rgba(0, 0, 0, 0.75);
-            
-            /* Layer 2: SVG Dot Matrix */
-            background-image: radial-gradient(rgba(0, 0, 0, 0.9) 1.2px, transparent 1.2px);
-            background-size: 5px 5px;
-            pointer-events: none;
-        }
+            const normTitle = normalizeTitle(item.title);
+            const detectedKey = normalizedKeyMap[normTitle] || item.key || null;
+            const keyBadgeHtml = (detectedKey && detectedKey !== 'N/A') 
+                ? `<span class="key-badge">${detectedKey}</span>` 
+                : '';
 
-        /* ==========================================================================
-           3. APPLICATION VIEWPORT (Safe Area Aware)
-           ========================================================================== */
-        .app-viewport {
-            position: relative;
-            z-index: 3;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            width: 100%;
-            height: 100%;
-            padding-top: env(safe-area-inset-top, 0px);
-            padding-bottom: env(safe-area-inset-bottom, 12px);
-        }
+            li.className = "song-item-card";
 
-        /* ==========================================================================
-           4. TOP LED MARQUEE DISPLAY (Edge-to-Edge Optimised)
-           ========================================================================== */
-        .led-screen-banner {
-            width: 100%;
-            height: 65px;
-            background-color: rgba(2, 2, 2, 0.9);
-            border-bottom: 2px solid #ff3300;
-            box-shadow: 0 4px 15px rgba(255, 51, 0, 0.4);
-            overflow: hidden;
-            position: relative;
-            display: flex;
-            align-items: center;
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-        }
+            // Unified Click Handler using native UIEvent.detail
+            li.onclick = (e) => {
+                // e.detail returns 1 for first click, 2 for second click in rapid succession
+                if (e.detail === 1) {
+                    clickTimer = setTimeout(() => {
+                        window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
+                    }, 300); // 300ms window comfortably covers normal human double-click speed
+                } else if (e.detail === 2) {
+                    // Double click detected: cancel single-click timer & open modal
+                    if (clickTimer) {
+                        clearTimeout(clickTimer);
+                        clickTimer = null;
+                    }
+                    openModal(item, detectedKey);
+                }
+            };
 
-        .led-screen-banner::after {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: radial-gradient(circle, rgba(0, 0, 0, 0.5) 40%, transparent 45%);
-            background-size: 3px 3px;
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        .led-track {
-            display: flex;
-            white-space: nowrap;
-            width: max-content;
-            animation: marqueeSlide 25s linear infinite;
-        }
-
-        @keyframes marqueeSlide {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-
-        .led-content {
-            display: flex;
-            align-items: center;
-            gap: 25px;
-            padding-right: 25px;
-            font-family: 'VT323', monospace;
-            font-size: 2.2rem;
-            color: #ff3300;
-            text-transform: uppercase;
-            text-shadow: 0 0 5px #ff3300;
-        }
-
-        .led-content i {
-            font-size: 1.6rem;
-            color: #ffb700;
-            text-shadow: 0 0 3px #ffb700;
-        }
-
-        /* ==========================================================================
-           5. MARVEL STUDIOS DESIGNER REDESIGN: 2x2 GRID (50% SCREEN HEIGHT)
-           ========================================================================== */
-        .hud-controls-container {
-            height: 50vh;
-            width: 100%;
-            padding: 16px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-            gap: 16px;
-        }
-
-        .action-button {
-            position: relative;
-            background: linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(5, 5, 5, 0.95));
-            clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
-            -webkit-clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
-            border: 1.5px solid #ff3300;
-            text-decoration: none;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-        }
-
-        .action-button::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, rgba(255, 51, 0, 0.15), transparent 60%);
-            pointer-events: none;
-        }
-
-        .action-button:hover, .action-button:active {
-            transform: scale(0.97);
-            background: rgba(30, 30, 30, 0.9);
-            border-width: 2.5px;
-            box-shadow: 0 0 25px rgba(255, 51, 0, 0.6);
-        }
-
-        .btn-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 2;
-        }
-
-        .btn-icon {
-            font-size: 2rem;
-            color: #ff3300;
-            filter: drop-shadow(0 0 5px #ff3300);
-        }
-
-        .btn-status-text {
-            font-family: 'VT323', monospace;
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.7);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .btn-title {
-            font-size: clamp(1.1rem, 4vw, 1.8rem);
-            font-weight: 900;
-            letter-spacing: 2px;
-            color: #ffffff;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.9);
-            text-transform: uppercase;
-            z-index: 2;
-        }
-
-        @keyframes bulbFlicker {
-            0%, 100% { opacity: 1; filter: brightness(1); }
-            10%, 50% { opacity: 0.3; filter: brightness(0.5); }
-            20%, 80% { opacity: 0.8; filter: brightness(1.2); }
-            35% { opacity: 0.1; filter: brightness(0.2); }
-        }
-
-        .bulb-buzz {
-            animation: bulbFlicker 0.45s ease-in-out;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- 1. FULLSCREEN BACKGROUND IMAGE -->
-    <img id="bgLayer" src="https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg" alt="Baba Rock Immersive Background">
-
-    <!-- 2. THE 75% DOTTED CURTAIN (SHADER SIMULATION) -->
-    <div class="shader-curtain"></div>
-
-    <!-- 3. ACTIVE UI VIEWPORT -->
-    <main class="app-viewport">
-        
-        <!-- TOP LED BANNER -->
-        <header class="led-screen-banner">
-            <div class="led-track">
-                <div class="led-content">
-                    <span><i class="fa-solid fa-bolt"></i> BABA ROCK LIVE EXPERIENCE</span>
-                    <span><i class="fa-solid fa-microphone-lines"></i> STAGE REHEARSAL</span>
-                    <span><i class="fa-solid fa-compact-disc"></i> NON-STOP ROCK & METAL</span>
-                    <span><i class="fa-solid fa-calendar-check"></i> TAKVİMİ KONTROL ET</span>
-                    <span><i class="fa-solid fa-guitar"></i> LET'S ROCK AND ROLL</span>
+            li.innerHTML = `
+                <div class="song-left">
+                    <span class="song-number">${index + 1}</span>
+                    <div class="song-info">
+                        <span class="song-title">${item.title}</span>
+                        <span class="song-artist">${item.artist}</span>
+                    </div>
                 </div>
-                <div class="led-content" aria-hidden="true">
-                    <span><i class="fa-solid fa-bolt"></i> BABA ROCK LIVE EXPERIENCE</span>
-                    <span><i class="fa-solid fa-microphone-lines"></i> STAGE REHEARSAL</span>
-                    <span><i class="fa-solid fa-compact-disc"></i> NON-STOP ROCK & METAL</span>
-                    <span><i class="fa-solid fa-calendar-check"></i> TAKVİMİ KONTROL ET</span>
-                    <span><i class="fa-solid fa-guitar"></i> LET'S ROCK AND ROLL</span>
+                <div class="actions-right">
+                    ${keyBadgeHtml}
+                    <i class="fa-brands fa-youtube yt-icon"></i>
                 </div>
-            </div>
-        </header>
-
-        <!-- 2x2 SYMMETRIC MARVEL BUTTON GRID (50% SCREEN HEIGHT) -->
-        <nav class="hud-controls-container">
-            
-            <a href="https://hyalki-del.github.io/babarock/takvim.html" class="action-button" target="_blank" rel="noopener">
-                <div class="btn-header">
-                    <i class="fa-solid fa-calendar-days btn-icon"></i>
-                    <span class="btn-status-text">SYS_CHECK // OK</span>
-                </div>
-                <div class="btn-title">Takvim</div>
-            </a>
-
-            <a href="https://hyalki-del.github.io/babarock/playlist.html" class="action-button" target="_blank" rel="noopener">
-                <div class="btn-header">
-                    <i class="fa-solid fa-music btn-icon"></i>
-                    <span class="btn-status-text">AUD_FEED // LINK</span>
-                </div>
-                <div class="btn-title">Playlist</div>
-            </a>
-
-            <a href="https://hyalki-del.github.io/babarock/rehearsal.html" class="action-button" target="_blank" rel="noopener">
-                <div class="btn-header">
-                    <i class="fa-solid fa-microphone-lines btn-icon"></i>
-                    <span class="btn-status-text">LIVE_SET // ACTIVE</span>
-                </div>
-                <div class="btn-title">Prova/Setlist</div>
-            </a>
-            
-            <a href="https://hyalki-del.github.io/babarock/advisor.html" class="action-button" target="_blank" rel="noopener">
-                <div class="btn-header">
-                    <i class="fa-solid fa-dice btn-icon"></i>
-                    <span class="btn-status-text">RND_SEL // READY</span>
-                </div>
-                <div class="btn-title">Şarkı seçici</div>
-            </a>
-            
-        </nav>
-    </main>
-
-    <script>
-        const images = [
-            "https://hyalki-del.github.io/babarock/9E3DB23C-F5C1-438B-91E7-323E8FEE34AD_4_5005_c.jpeg",
-            "https://hyalki-del.github.io/babarock/b1.jpg",
-            "https://hyalki-del.github.io/babarock/b2.jpg",
-            "https://hyalki-del.github.io/babarock/b3.jpg",
-            "https://hyalki-del.github.io/babarock/b4.jpg",
-            "https://hyalki-del.github.io/babarock/b5.jpg",
-            "https://hyalki-del.github.io/babarock/b6.jpg",
-            "https://hyalki-del.github.io/babarock/b7.jpg"
-        ];
-
-        images.forEach(src => {
-            const img = new Image();
-            img.src = src;
+            `;
+            listElement.appendChild(li);
         });
+    }
 
-        const shuffledImages = [...images].sort(() => Math.random() - 0.5);
-        let currentIndex = 0;
+    function openModal(item, currentKey) {
+        activeEditSong = item;
+        document.getElementById("modalSongName").textContent = `${item.title} - ${item.artist}`;
+        document.getElementById("modalKeyInput").value = currentKey && currentKey !== 'N/A' ? currentKey : '';
+        document.getElementById("editModal").style.display = "flex";
+        document.getElementById("modalKeyInput").focus();
+    }
+
+    function closeModal() {
+        document.getElementById("editModal").style.display = "none";
+        activeEditSong = null;
+    }
+
+    async function submitKeyUpdate() {
+        if (!activeEditSong) return;
+
+        const newKey = document.getElementById("modalKeyInput").value.trim();
+        const saveBtn = document.getElementById("saveBtn");
         
-        const bgImgElement = document.getElementById("bgLayer");
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Saving...";
 
-        if (bgImgElement && shuffledImages.length > 0) {
-            bgImgElement.src = shuffledImages[currentIndex];
+        try {
+            const response = await fetch(GOOGLE_SHEET_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    song: activeEditSong.title,
+                    key: newKey || 'N/A'
+                })
+            });
 
-            setInterval(() => {
-                bgImgElement.classList.add("bulb-buzz");
-                
-                setTimeout(() => {
-                    currentIndex = (currentIndex + 1) % shuffledImages.length;
-                    bgImgElement.src = shuffledImages[currentIndex];
-                }, 180);
+            const result = await response.json();
 
-                setTimeout(() => {
-                    bgImgElement.classList.remove("bulb-buzz");
-                }, 450);
-            }, 2500);
+            if (result.status === "success") {
+                keyMapData[activeEditSong.title] = newKey;
+                renderUI();
+                closeModal();
+            } else {
+                alert("Error updating key: " + result.message);
+            }
+        } catch (err) {
+            console.error("Save failed:", err);
+            alert("Network error. Key could not be saved to Google Sheets.");
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = "Save";
         }
-    </script>
+    }
 
-</body>
-</html>
+    // Background Auto-Reconciliation Routine
+    async function syncPlaylistWithSheets(playlist) {
+        try {
+            const songTitles = playlist.map(item => item.title);
+            fetch(GOOGLE_SHEET_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: "sync_playlist",
+                    songs: songTitles
+                })
+            });
+        } catch (e) {
+            console.warn("Background sheet reconciliation skipped:", e);
+        }
+    }
+
+    // Allow 'Enter' key inside input field to trigger save action
+    document.getElementById("modalKeyInput").addEventListener("keyup", function(event) {
+        if (event.key === "Enter") {
+            submitKeyUpdate();
+        }
+    });
+
+    loadPlaylist();
+</script>
