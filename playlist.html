@@ -129,7 +129,14 @@
             border-radius: 10px;
             user-select: none;
             -webkit-user-select: none;
-            transition: background-color 0.15s ease, border-color 0.15s ease;
+            transition: background-color 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        /* Active selection styling (Red frame effect) */
+        .song-item-card.active-selected {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 10px rgba(255, 69, 0, 0.35);
+            background-color: #221512;
         }
 
         .song-item-card.dragging {
@@ -144,7 +151,7 @@
             font-size: 1rem;
             cursor: grab;
             padding: 6px 4px;
-            touch-action: none; /* Crucial for Mobile Touch Dragging */
+            touch-action: none;
             flex-shrink: 0;
         }
 
@@ -290,7 +297,7 @@
         <ul class="song-list" id="songList"></ul>
     </div>
 
-    <!-- Modal -->
+    <!-- Key Edit Modal -->
     <div class="modal-overlay" id="editModal">
         <div class="modal-card">
             <div class="modal-title">Edit Song Key</div>
@@ -310,6 +317,7 @@
         let keyMapData = {};
         let activeEditSong = null;
         let activeDragNode = null;
+        let clickTimer = null;
 
         function normalizeTitle(str) {
             return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
@@ -417,32 +425,48 @@
                     </div>
                     <div class="actions-right">
                         ${keyBadgeHtml}
-                        <button class="btn-action-icon edit-btn" title="Edit Key"><i class="fa-solid fa-pen-to-square"></i></button>
                         <button class="btn-action-icon yt-btn" title="YouTube"><i class="fa-brands fa-youtube yt-icon"></i></button>
                     </div>
                 `;
 
-                // Single Click Handler on Main Card
-                li.querySelector('.song-left').onclick = () => openTxtFileInNewTab(txtPath);
-                
-                // Explicit Edit Action Button
-                li.querySelector('.edit-btn').onclick = () => openModal(item, detectedKey);
+                const songLeft = li.querySelector('.song-left');
 
-                // Explicit YouTube Action
-                li.querySelector('.yt-btn').onclick = () => window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
+                // Single Click Handler: Highlight Red Frame & Open Document
+                songLeft.onclick = () => {
+                    // Remove red active frame from all items
+                    document.querySelectorAll('.song-item-card').forEach(el => el.classList.remove('active-selected'));
+                    // Add red active frame to current selected card
+                    li.classList.add('active-selected');
 
-                // Attach Cross-Platform Drag Listeners
+                    if (clickTimer) clearTimeout(clickTimer);
+                    clickTimer = setTimeout(() => {
+                        openTxtFileInNewTab(txtPath);
+                    }, 250);
+                };
+
+                // Double Click Handler: Open Key Editing Modal
+                songLeft.ondblclick = () => {
+                    if (clickTimer) clearTimeout(clickTimer);
+                    openModal(item, detectedKey);
+                };
+
+                // YouTube Action
+                li.querySelector('.yt-btn').onclick = (e) => {
+                    e.stopPropagation();
+                    window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
+                };
+
+                // Drag & Drop Handlers
                 attachDragAndDropHandlers(li);
 
                 listElement.appendChild(li);
             });
         }
 
-        /* --- Cross-Platform Touch & Mouse Drag Handler --- */
+        /* --- Cross-Platform Drag & Drop Handler --- */
         function attachDragAndDropHandlers(li) {
             const handle = li.querySelector('.drag-handle');
 
-            // 1. Touch Events (iOS & Android)
             handle.addEventListener('touchstart', (e) => {
                 activeDragNode = li;
                 li.classList.add('dragging');
@@ -472,7 +496,6 @@
 
             handle.addEventListener('touchend', () => endDrag());
 
-            // 2. Desktop Mouse HTML5 DnD Fallback
             li.draggable = true;
             li.addEventListener('dragstart', (e) => {
                 activeDragNode = li;
