@@ -7,17 +7,17 @@
   {
     "title": "The Look",
     "artist": "Roxette",
-    "key": "D"
+    "key": "Am"
   },
   {
     "title": "Hold The Line",
     "artist": "Toto",
-    "key": "F#m"
+    "key": "Em"
   },
   {
     "title": "Sari Cizmeli Mehmet Aga",
     "artist": "Kurban",
-    "key": "N/A"
+    "key": "F#m"
   },
   {
     "title": "Wasting Love",
@@ -32,17 +32,17 @@
   {
     "title": "Perfect Strangers",
     "artist": "Deep Purple",
-    "key": "Dm"
+    "key": "Am"
   },
   {
     "title": "Its My Life",
     "artist": "Bon Jovi",
-    "key": "Cm"
+    "key": "Am"
   },
   {
     "title": "Give In To Me",
     "artist": "Three Days Grace",
-    "key": "N/A"
+    "key": "Am"
   },
   {
     "title": "Symphony Of Destruction",
@@ -52,12 +52,12 @@
   {
     "title": "Islak Islak",
     "artist": "Baris Akarsu",
-    "key": "N/A"
+    "key": "Am"
   },
   {
     "title": "Bebek",
     "artist": "Acil Servis",
-    "key": "N/A"
+    "key": "Dm"
   },
   {
     "title": "Dont Chain My Heart",
@@ -67,7 +67,7 @@
   {
     "title": "You Give Love A Bad Name",
     "artist": "Bon Jovi",
-    "key": "Cm"
+    "key": "Am"
   },
   {
     "title": "Sometimes I Feel Like Screaming",
@@ -77,67 +77,67 @@
   {
     "title": "No Prayer For The Dying",
     "artist": "Iron Maiden",
-    "key": "N/A"
+    "key": "Em"
   },
   {
     "title": "Walking By Myself",
     "artist": "Gary Moore",
-    "key": "E"
+    "key": "Em"
   },
   {
     "title": "Since You Been Gone",
     "artist": "Rainbow",
-    "key": "G"
+    "key": "C"
   },
   {
     "title": "Long Train Runnin",
     "artist": "The Doobie Brothers",
-    "key": "Gm"
+    "key": "Em"
   },
   {
     "title": "I Surrender",
     "artist": "Rainbow",
-    "key": "Gm"
+    "key": "Cm"
   },
   {
     "title": "Oh Pretty Woman",
     "artist": "Gary Moore",
-    "key": "Cm"
+    "key": "Bm"
   },
   {
     "title": "Born To Be Wild",
     "artist": "Steppenwolf",
-    "key": "E"
+    "key": "Em"
   },
   {
     "title": "Here I Go Again",
     "artist": "Whitesnake",
-    "key": "G"
+    "key": "E"
   },
   {
     "title": "Livin On A Prayer",
     "artist": "Bon Jovi",
-    "key": "Em"
+    "key": "Am"
   },
   {
     "title": "Smoke On The Water",
     "artist": "Deep Purple",
-    "key": "Gm"
+    "key": "G"
   },
   {
     "title": "Johnny B Goode",
     "artist": "Chuck Berry",
-    "key": "Bb"
+    "key": "Am"
   },
   {
     "title": "Blue Suede Shoes",
     "artist": "Elvis Presley",
-    "key": "A"
+    "key": "Am"
   },
   {
     "title": "Jailhouse Rock",
     "artist": "The Blues Brothers",
-    "key": "N/A"
+    "key": "Am"
   },
   {
     "title": "Fool For Your Loving",
@@ -147,22 +147,22 @@
   {
     "title": "Burning Heart",
     "artist": "Survivor",
-    "key": "Am"
+    "key": "Em"
   },
   {
     "title": "Eye Of The Tiger",
     "artist": "Survivor",
-    "key": "Cm"
+    "key": "Dm"
   },
   {
     "title": "The Final Countdown",
     "artist": "Europe",
-    "key": "F#m"
+    "key": "Am"
   },
   {
     "title": "Burn",
     "artist": "Deep Purple",
-    "key": "Gm"
+    "key": "Em"
   },
   {
     "title": "Stormbringer",
@@ -172,7 +172,7 @@
   {
     "title": "In These Arms",
     "artist": "Bon Jovi",
-    "key": "E"
+    "key": "C"
   },
   {
     "title": "For Whom The Bell Tolls",
