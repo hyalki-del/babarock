@@ -18,10 +18,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -48,10 +48,10 @@ jobs:
           # Stage the songs directory
           git add songs/
           
-          # Safely check for changes without throwing exit code 1
+          # Safely check if there are changed files before committing
           if git status --porcelain | grep -q 'songs/'; then
             git commit -m "Automated update: Scraped songs into ug-scraper/songs"
             git push
           else
-            echo "No changes in songs directory. Skipping commit."
+            echo "No changes found in songs directory. Skipping commit."
           fi
