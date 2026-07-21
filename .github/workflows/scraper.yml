@@ -1,9 +1,9 @@
 name: Run Subfolder Playlist Scraper
 
 on:
-  workflow_dispatch:  # Manual trigger option
+  workflow_dispatch:  # Manual execution trigger
   schedule:
-    - cron: '0 0 * * 0' # Automated weekly run (Sunday 00:00 UTC)
+    - cron: '0 0 * * 0' # Weekly run (Sunday 00:00 UTC)
 
 jobs:
   scrape-and-commit:
@@ -26,17 +26,8 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: 'ug-scraper/requirements.txt'
 
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; else pip install lyricsgenius; fi
-
-      - name: Execute Scraper Pipeline
-        env:
-          GENIUS_ACCESS_TOKEN: ${{ secrets.GENIUS_ACCESS_TOKEN }}
+      - name: Execute Lyrics Fetcher
         run: |
           python fetch_lyrics.py
 
@@ -52,14 +43,5 @@ jobs:
             git commit -m "chore(data): automated lyrics update [skip ci]"
             git push origin HEAD:${{ github.ref_name }}
           else
-            echo "[+] No new lyric files detected. Skipping commit."
+            echo "[+] No new lyric files detected. Skipping commit step."
           fi
-
-      - name: Upload Debug Error Logs on Failure
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: execution-error-log
-          path: ug-scraper/debug_execution_error.log
-          if-no-files-found: ignore
-          retention-days: 3
