@@ -14,7 +14,7 @@ def sanitize_filename(name: str) -> str:
     return re.sub(r'[\\/*?:"<>|]', "", name).strip()
 
 def extract_ug_store(page) -> dict:
-    """Extracts the global application state object (window.UG_STORE.page)."""
+    """Safely extracts window.UG_STORE.page from the hydration DOM."""
     try:
         page.wait_for_function("() => window.UG_STORE && window.UG_STORE.page", timeout=15000)
         store_data = page.evaluate("window.UG_STORE.page")
@@ -57,12 +57,12 @@ def scrape_playlist():
 
         store = extract_ug_store(page)
         
-        # Defensive traversal through JSON payload
+        # Safely traverse the JSON dictionary without raising KeyError
         playlist_data = store.get('data', {}).get('playlist', {})
         playlist_items = playlist_data.get('items', [])
 
         if not playlist_items:
-            print("[-] No items found in store tree. Page format may have shifted or anti-bot triggered.")
+            print("[-] No items found in store tree. Ultimate Guitar state tree structure may have shifted.")
             browser.close()
             return
 
