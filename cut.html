@@ -4,10 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baba Rock - Playlist</title>
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        /* Base Reset & Dark Metal Theme */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             background-color: #0c0c0c;
             background: radial-gradient(circle, #161616 0%, #070707 100%);
@@ -19,6 +26,7 @@
             align-items: flex-start;
             padding: 40px 20px;
         }
+
         .playlist-card {
             max-width: 480px;
             width: 100%;
@@ -28,6 +36,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             border: 1px solid #222222;
         }
+
         .header {
             display: flex;
             align-items: center;
@@ -36,8 +45,19 @@
             border-bottom: 1px solid #222222;
             padding-bottom: 15px;
         }
-        .header h1 { font-size: 1.3rem; display: flex; align-items: center; gap: 12px; color: #ffffff; }
-        .header h1 i { color: #ff4500; }
+
+        .header h1 {
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #ffffff;
+        }
+
+        .header h1 i {
+            color: #ff4500;
+        }
+
         .song-count {
             font-size: 0.85rem;
             color: #888888;
@@ -46,6 +66,8 @@
             border-radius: 12px;
             border: 1px solid #282828;
         }
+
+        /* Song List Styling */
         .song-list {
             list-style: none;
             display: flex;
@@ -55,9 +77,16 @@
             overflow-y: auto;
             padding-right: 5px;
         }
-        .song-list::-webkit-scrollbar { width: 6px; }
-        .song-list::-webkit-scrollbar-thumb { background: #282828; border-radius: 3px; }
-        
+
+        .song-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .song-list::-webkit-scrollbar-thumb {
+            background: #282828;
+            border-radius: 3px;
+        }
+
+        /* Interactive Song Card */
         .song-item-card {
             display: flex;
             align-items: center;
@@ -71,21 +100,70 @@
             user-select: none;
             -webkit-user-select: none;
         }
+
         .song-item-card:hover {
             border-color: #ff4500;
             background-color: #222222;
             transform: translateY(-1px);
         }
-        .song-item-card:hover .song-title { color: #ff4500; }
-        .song-item-card:hover .yt-icon { transform: scale(1.15); color: #ff4500; }
 
-        .song-left { display: flex; align-items: center; min-width: 0; flex-grow: 1; }
-        .song-number { font-size: 0.85rem; color: #ff4500; font-weight: bold; width: 28px; flex-shrink: 0; }
-        .song-info { display: flex; flex-direction: column; min-width: 0; flex-grow: 1; }
-        .song-title { font-weight: 600; font-size: 0.95rem; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.2s ease; }
-        .song-artist { font-size: 0.8rem; color: #a0a0a0; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        .actions-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .song-item-card:hover .song-title {
+            color: #ff4500;
+        }
+
+        .song-item-card:hover .yt-icon {
+            transform: scale(1.15);
+            color: #ff4500;
+        }
+
+        .song-left {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            flex-grow: 1;
+        }
+
+        .song-number {
+            font-size: 0.85rem;
+            color: #ff4500;
+            font-weight: bold;
+            width: 28px;
+            flex-shrink: 0;
+        }
+
+        .song-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            flex-grow: 1;
+        }
+
+        .song-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color 0.2s ease;
+        }
+
+        .song-artist {
+            font-size: 0.8rem;
+            color: #a0a0a0;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .actions-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
         .key-badge {
             font-size: 0.7rem;
             font-weight: 700;
@@ -96,7 +174,13 @@
             border-radius: 4px;
             white-space: nowrap;
         }
-        .yt-icon { color: #ff0000; font-size: 1.2rem; flex-shrink: 0; transition: transform 0.2s ease, color 0.2s ease; }
+
+        .yt-icon {
+            color: #ff0000;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
 
         /* Modal Overlay for Editing Key */
         .modal-overlay {
@@ -109,6 +193,7 @@
             align-items: center;
             z-index: 1000;
         }
+
         .modal-card {
             background: #121212;
             border: 1px solid #ff4500;
@@ -118,8 +203,10 @@
             max-width: 360px;
             box-shadow: 0 10px 25px rgba(255, 69, 0, 0.2);
         }
+
         .modal-title { font-size: 1rem; margin-bottom: 8px; color: #ffffff; }
         .modal-song-name { font-size: 0.85rem; color: #ff4500; margin-bottom: 16px; word-break: break-all; }
+        
         .modal-input {
             width: 100%;
             padding: 10px;
@@ -131,8 +218,11 @@
             margin-bottom: 16px;
             outline: none;
         }
+
         .modal-input:focus { border-color: #ff4500; }
+        
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        
         .btn-cancel, .btn-save {
             padding: 8px 16px;
             border-radius: 6px;
@@ -141,6 +231,7 @@
             cursor: pointer;
             border: none;
         }
+
         .btn-cancel { background: #282828; color: #cccccc; }
         .btn-save { background: #ff4500; color: #ffffff; }
         .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -153,10 +244,11 @@
             <h1><i class="fa-solid fa-music"></i> Playlist</h1>
             <span class="song-count" id="songCount">Loading...</span>
         </div>
+
         <ul class="song-list" id="songList"></ul>
     </div>
 
-    <!-- Key Edit Modal -->
+    <!-- Key Edit Modal Form -->
     <div class="modal-overlay" id="editModal">
         <div class="modal-card">
             <div class="modal-title">Edit Song Key</div>
@@ -170,6 +262,7 @@
     </div>
 
     <script>
+        // Replace with your Google Apps Script Web App Endpoint URL
         const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyrIg2w1eHU2fruqixpNKLCtvTtgZ1N4inHOx5g8z_DiAR8W9NiZkK0Cf0D106HHyrp/exec";
         
         let playlistData = [];
@@ -198,6 +291,10 @@
                 keyMapData = await resKeys.json();
 
                 renderUI();
+
+                // Non-blocking background sync: Automatically adds missing songs from playlist.json to Google Sheets
+                syncPlaylistWithSheets(playlistData);
+
             } catch (err) {
                 console.error(err);
                 countElement.textContent = "Error";
@@ -229,17 +326,17 @@
 
                 li.className = "song-item-card";
 
-                // Single Click Handler (Debounced to open YouTube)
+                // 1. Single-Click Handler: Debounced redirect to YouTube
                 li.onclick = (e) => {
                     if (clickTimer) clearTimeout(clickTimer);
                     clickTimer = setTimeout(() => {
                         window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
-                    }, 250); // 250ms delay waits to see if a second click arrives
+                    }, 250); // Wait 250ms for possible second click
                 };
 
-                // Double Click Handler (Opens Edit Key Modal)
+                // 2. Double-Click Handler: Cancels YouTube click and opens edit key modal
                 li.ondblclick = (e) => {
-                    if (clickTimer) clearTimeout(clickTimer); // Cancel single-click YouTube action
+                    if (clickTimer) clearTimeout(clickTimer);
                     openModal(item, detectedKey);
                 };
 
@@ -310,7 +407,24 @@
             }
         }
 
-        // Allow 'Enter' key inside input field to trigger save
+        // Background Auto-Reconciliation Routine
+        async function syncPlaylistWithSheets(playlist) {
+            try {
+                const songTitles = playlist.map(item => item.title);
+                fetch(GOOGLE_SHEET_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: "sync_playlist",
+                        songs: songTitles
+                    })
+                });
+            } catch (e) {
+                console.warn("Background sheet reconciliation skipped:", e);
+            }
+        }
+
+        // Allow 'Enter' key inside input field to trigger save action
         document.getElementById("modalKeyInput").addEventListener("keyup", function(event) {
             if (event.key === "Enter") {
                 submitKeyUpdate();
