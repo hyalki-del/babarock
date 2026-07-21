@@ -1,9 +1,9 @@
 name: Run Subfolder Playlist Scraper
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger button
   schedule:
-    - cron: '0 0 * * 0'
+    - cron: '0 0 * * 0' # Automated weekly run (Sunday UTC)
 
 jobs:
   scrape-and-commit:
@@ -41,8 +41,10 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
+          # Stage the output directory
           git add songs/
           
+          # Check if changed files exist before pushing
           if [ -n "$(git status --porcelain songs/)" ]; then
             git commit -m "chore(data): automated playlist update [skip ci]"
             git push origin HEAD:${{ github.ref_name }}
