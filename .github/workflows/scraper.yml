@@ -1,71 +1,35 @@
-name: Run Ultimate Guitar Playlist Scraper
+name: Update Playlist and Download Songs
 
 on:
-  workflow_dispatch:  # Manual execution trigger via GitHub Actions UI
+  workflow_dispatch: # Allows manual trigger from GitHub UI
   schedule:
-    - cron: '0 0 * * 0' # Automated weekly run (Sunday 00:00 UTC)
+    - cron: '0 0 * * *' # Optional: Runs automatically once a day at midnight UTC
 
 jobs:
-  scrape-and-commit:
+  build:
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: ug-scraper
-
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
-      - name: Verify or Fetch Playlist JSON
-        working-directory: .  # Run at repository root level
+      - name: Install Dependencies
         run: |
-          if [ ! -f "playlist.json" ]; then
-            echo "[!] Notice: playlist.json not found at root. Checking if ug-scraper/playlist.json exists..."
-            if [ -f "ug-scraper/playlist.json" ]; then
-              cp ug-scraper/playlist.json ./playlist.json
-              echo "[+] Copied ug-scraper/playlist.json to repository root."
-            else
-              echo "[-] CRITICAL ERROR: Neither root playlist.json nor ug-scraper/playlist.json exists."
-              exit 1
-            fi
-          else
-            echo "[+] Found playlist.json at repository root."
-          fi
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4
 
-      - name: Execute Ultimate Guitar Tab Fetcher
-        run: |
-          python fetch_lyrics.py
+      - name: Run Fetch Script
+        run: python fetch_playlist.py
 
-      - name: Debug Output Directory
+      - name: Commit and Push Changes
         run: |
-          echo "=== Contents of Generated Songs Directory ==="
-          ls -la songs/ || echo "[-] Warning: songs/ directory was not created or is empty."
-
-      - name: Commit and Push Scraped Tabs & Lyrics
-        if: success()
-        working-directory: .  # Commit from repository root to capture subfolder changes
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          
-          # Force-add songs folder in case it is caught by any parent .gitignore rules
-          git add -f ug-scraper/songs/ || git add -f songs/
-          
-          if [ -n "$(git status --porcelain ug-scraper/songs/)" ] || [ -n "$(git status --porcelain songs/)" ]; then
-            git commit -m "chore(data): automated Ultimate Guitar tabs & lyrics update [skip ci]"
-            git push origin HEAD:${{ github.ref_name }}
-            echo "[+] Successfully committed and pushed new song tabs."
-          else
-            echo "[+] No new lyric or tab files detected. Skipping commit."
-          fi
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add playlist.json songs/
+          git diff-index --quiet HEAD || git commit -m "Auto-update playlist and song lyrics"
+          git push
