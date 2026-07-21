@@ -20,56 +20,98 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install Playwright
+      - name: Install Dependencies & Playwright
         run: |
-          npm install playwright
-          npx playwright install chromium
+          npm install playwright-extra puppeteer-extra-plugin-stealth playwright
+          npx playwright install chromium --with-deps
 
-      - name: Fetch Playlist via Browser
+      - name: Fetch Playlist via Stealth Browser
         run: |
           node -e "
-          const { chromium } = require('playwright');
+          const { chromium } = require('playwright-extra');
+          const stealth = require('puppeteer-extra-plugin-stealth')();
+          chromium.use(stealth);
           const fs = require('fs');
 
           (async () => {
-            const browser = await chromium.launch({ headless: true });
+            const browser = await chromium.launch({
+              headless: true,
+              args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-blink-features=AutomationControlled'
+              ]
+            });
+
             const context = await browser.newContext({
-              userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+              userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+              viewport: { width: 1920, height: 1080 },
+              locale: 'en-US'
             });
+
             const page = await context.newPage();
-            
-            await page.goto('https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r', { 
-              waitUntil: 'domcontentloaded',
-              timeout: 60000 
-            });
-            
-            // Wait up to 15 seconds for window.UGApp state to be ready
+
             try {
-              await page.waitForFunction(() => !!(window.UGApp && window.UGApp.store && window.UGApp.store.page), { timeout: 15000 });
-            } catch (e) {
-              console.log('Timed out waiting for UGApp object.');
-            }
-            
-            const songs = await page.evaluate(() => {
-              const data = window.UGApp?.store?.page?.data;
-              if (!data) return [];
-              const rawItems = data.songbook?.tabs || data.playlist?.items || data.list?.list || [];
-              return rawItems.map(item => {
+              console.log('Navigating to Ultimate Guitar...');
+              await page.goto('https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r', {
+                waitUntil: 'networkidle',
+                timeout: 60000
+              });
+
+              // Extract raw JSON from the server-side store container
+              const rawData = await page.evaluate(() => {
+                // Method A: Extract from DOM .js-store container
+                const storeEl = document.querySelector('.js-store');
+                if (storeEl && storeEl.getAttribute('data-content')) {
+                  try {
+                    return JSON.parse(storeEl.getAttribute('data-content'));
+                  } catch (e) {
+                    // ignore JSON parse error, fall through
+                  }
+                }
+
+                // Method B: Fallback to global window state
+                if (window.UGApp && window.UGApp.store && window.UGApp.store.page) {
+                  return window.UGApp.store.page;
+                }
+
+                return null;
+              });
+
+              await browser.close();
+
+              if (!rawData) {
+                throw new Error('Could not find data payload in DOM or window object.');
+              }
+
+              // Extract tab items across multiple potential UG schema versions
+              const pageData = rawData.data || rawData;
+              const rawItems = 
+                pageData.songbook?.tabs || 
+                pageData.playlist?.items || 
+                pageData.list?.list || 
+                pageData.tabs || 
+                [];
+
+              const songs = rawItems.map(item => {
                 const tab = item.tab || item;
                 return {
-                  title: tab.song_name || tab.song_title || '',
-                  artist: tab.artist_name || tab.band_name || ''
+                  title: tab.song_name || tab.song_title || tab.title || '',
+                  artist: tab.artist_name || tab.band_name || tab.artist || ''
                 };
               }).filter(s => s.title && s.artist);
-            });
 
-            await browser.close();
+              if (songs.length > 0) {
+                fs.writeFileSync('playlist.json', JSON.stringify(songs, null, 2));
+                console.log('Successfully saved ' + songs.length + ' songs to playlist.json');
+              } else {
+                console.error('Data payload extracted, but 0 valid song items found.');
+                process.exit(1);
+              }
 
-            if (songs.length > 0) {
-              fs.writeFileSync('playlist.json', JSON.stringify(songs, null, 2));
-              console.log('Saved ' + songs.length + ' songs.');
-            } else {
-              console.error('No songs found.');
+            } catch (err) {
+              console.error('Execution failed:', err.message);
+              await browser.close();
               process.exit(1);
             }
           })();
