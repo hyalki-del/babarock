@@ -2,8 +2,14 @@ name: Run Subfolder Playlist Scraper
 
 on:
   workflow_dispatch:  # Manual execution trigger
+    inputs:
+      playlist_url:
+        description: 'Ultimate Guitar Playlist URL (Optional)'
+        required: false
+        type: string
+        default: ''
   schedule:
-    - cron: '0 0 * * 0' # Automated weekly run (Sunday UTC)
+    - cron: '0 0 * * 0' # Automated weekly run (Sunday 00:00 UTC)
 
 jobs:
   scrape-and-commit:
@@ -18,10 +24,12 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history ensures reliable commit/push operations
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -30,30 +38,34 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; else pip install cloudscraper; fi
 
       - name: Execute Scraper
+        env:
+          # Uses manual input URL if provided, otherwise defaults to the hardcoded Python fallback
+          PLAYLIST_URL: ${{ inputs.playlist_url }}
         run: |
-          python scraper.py
+          python fetch_lyrics.py
 
       - name: Commit and Push Scraped Lyrics
         if: success()
         run: |
           git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           
+          # Target songs directory inside working-directory (ug-scraper/songs)
           git add songs/
           
           if [ -n "$(git status --porcelain songs/)" ]; then
             git commit -m "chore(data): automated lyrics update [skip ci]"
             git push origin HEAD:${{ github.ref_name }}
           else
-            echo "No changes found in songs directory."
+            echo "[+] No changes detected in songs directory. Nothing to commit."
           fi
 
       - name: Upload Debug Snapshot on Failure
         if: failure()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: failure-debug-snapshot
           path: ug-scraper/debug_failed_page.html
