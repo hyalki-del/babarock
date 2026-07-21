@@ -1,9 +1,10 @@
-name: Update Playlist and Download Songs
+name: Fetch Lyrics from LRCLIB
 
 on:
-  workflow_dispatch: # Allows manual trigger from GitHub UI
-  schedule:
-    - cron: '0 0 * * *' # Optional: Runs automatically once a day at midnight UTC
+  workflow_dispatch:
+  push:
+    paths:
+      - 'playlist.json'
 
 jobs:
   build:
@@ -21,15 +22,15 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests beautifulsoup4
+          pip install requests
 
-      - name: Run Fetch Script
-        run: python ug-scraper/fetch_playlist.py
+      - name: Fetch Lyrics
+        run: python fetch_playlist.py
 
       - name: Commit and Push Changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add playlist.json songs/
-          git diff-index --quiet HEAD || git commit -m "Auto-update playlist and song lyrics"
+          git diff-index --quiet HEAD || git commit -m "Auto-fetch lyrics from LRCLIB"
           git push
