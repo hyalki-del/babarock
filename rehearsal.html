@@ -344,48 +344,75 @@
     </div>
 
     <script>
+        const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyrIg2w1eHU2fruqixpNKLCtvTtgZ1N4inHOx5g8z_DiAR8W9NiZkK0Cf0D106HHyrp/exec";
+
         let availablePlaylist = [];
         let selectedSongs = [];
+        let keyMapData = {};
         let sortableInstance = null;
 
         function normalizeTitle(str) {
+            if (!str) return "";
             return str
                 .toLowerCase()
                 .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
                 .replace(/[^a-z0-9]/g, "");
         }
 
+        async function fetchWithTimeout(url, timeoutMs = 5000) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                const response = await fetch(url, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                return response;
+            } catch (err) {
+                clearTimeout(timeoutId);
+                throw err;
+            }
+        }
+
         async function loadPlaylist() {
             const countElement = document.getElementById("songCount");
+            const timestamp = new Date().getTime();
 
+            // STEP 1: Fast local load (Immediate UI rendering)
             try {
-                const timestamp = new Date().getTime();
-                const [resPlaylist, resKeys] = await Promise.all([
-                    fetch(`./playlist.json?t=${timestamp}`),
-                    fetch(`./key-overrides.json?t=${timestamp}`)
-                ]);
-
-                const playlist = await resPlaylist.json();
-                const keyMap = await resKeys.json();
-
-                const normalizedKeyMap = {};
-                for (const [title, key] of Object.entries(keyMap)) {
-                    normalizedKeyMap[normalizeTitle(title)] = key;
-                }
-
-                availablePlaylist = playlist.map(item => {
-                    const normTitle = normalizeTitle(item.title);
-                    return {
-                        ...item,
-                        key: normalizedKeyMap[normTitle] || item.key || 'N/A'
-                    };
-                });
-
+                const resPlaylist = await fetch(`./playlist.json?t=${timestamp}`);
+                availablePlaylist = await resPlaylist.json();
                 renderUI();
                 initSortable();
             } catch (err) {
-                console.error(err);
+                console.error("Critical: Could not load playlist.json", err);
                 countElement.textContent = "Error";
+                return;
+            }
+
+            // STEP 2: Fetch Google Sheet Keys in background with a strict 4-second timeout
+            try {
+                const resKeys = await fetchWithTimeout(`${GOOGLE_SHEET_API_URL}?t=${timestamp}`, 4000);
+                keyMapData = await resKeys.json();
+                
+                const normalizedKeyMap = {};
+                for (const [title, key] of Object.entries(keyMapData)) {
+                    normalizedKeyMap[normalizeTitle(title)] = key;
+                }
+
+                // Update keys in availablePlaylist
+                availablePlaylist = availablePlaylist.map(item => ({
+                    ...item,
+                    key: normalizedKeyMap[normalizeTitle(item.title)] || item.key || 'N/A'
+                }));
+
+                // Update keys in selectedSongs if user already dragged items
+                selectedSongs = selectedSongs.map(item => ({
+                    ...item,
+                    key: normalizedKeyMap[normalizeTitle(item.title)] || item.key || 'N/A'
+                }));
+
+                renderUI();
+            } catch (err) {
+                console.warn("Google Sheets keys unavailable or timed out:", err);
             }
         }
 
@@ -522,7 +549,6 @@
                     li.className = "song-item-card";
                     li.title = "Click to return to playlist";
                     
-                    // Clicking the card anywhere returns it to the available playlist
                     li.onclick = () => unpickSong(index);
 
                     const keyBadgeHtml = (item.key && item.key !== 'N/A') 
