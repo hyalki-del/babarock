@@ -350,14 +350,14 @@
         <div class="header-top">
             <h1><i class="fa-solid fa-music"></i> Playlist</h1>
             <button class="btn-save-order" id="saveOrderBtn" onclick="savePlaylistOrder()">
-                <i class="fa-solid fa-floppy-disk"></i> Save Order
+                <i class="fa-solid fa-floppy-disk"></i> Sıralamayı kaydet
             </button>
         </div>
         <p class="header-instructions">Ton bilgisi ayarı için şarkı üzerine basılı tutun.</p>
 
         <div class="sub-header">
-            <span class="drag-hint"><i class="fa-solid fa-grip-lines"></i> Hold 2s for key | Drag to reorder</span>
-            <span class="song-count" id="songCount">Loading...</span>
+            <span class="drag-hint"><i class="fa-solid fa-grip-lines"></i>Şarkı sırasını değiştirmek için </span>
+            <span class="song-count" id="songCount">Yükleniyor...</span>
         </div>
 
         <ul class="song-list" id="songList"></ul>
@@ -366,7 +366,7 @@
     <!-- Key Edit Modal Form -->
     <div class="modal-overlay" id="editModal">
         <div class="modal-card">
-            <div class="modal-title">Edit Song Key</div>
+            <div class="modal-title">Şarkı tonunu değiştir</div>
             <div class="modal-song-name" id="modalSongName"></div>
             <input type="text" class="modal-input" id="modalKeyInput" placeholder="e.g. Am, Em, F#m" />
             <div class="modal-actions">
@@ -447,7 +447,7 @@
 
         /* --- Cross-Platform 2-Second Hold & Tap Controller --- */
         function setupItemGestures(element, songItem, detectedKey, txtPath) {
-            const HOLD_DURATION = 2000; // 2 seconds
+            const HOLD_DURATION = 1000; // 2 seconds
             const MOVE_THRESHOLD = 10;   // Cancel on scroll/swipe
             let longPressTimer = null;
             let isLongPressTriggered = false;
@@ -640,7 +640,7 @@
         async function savePlaylistOrder() {
             const btn = document.getElementById("saveOrderBtn");
             btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...`;
 
             try {
                 const songTitles = playlistData.map(item => item.title);
@@ -654,16 +654,16 @@
                     })
                 });
 
-                btn.innerHTML = `<i class="fa-solid fa-check"></i> Saved!`;
+                btn.innerHTML = `<i class="fa-solid fa-check"></i> Kayıt başarılı!`;
                 setTimeout(() => {
                     btn.disabled = false;
-                    btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Save Order`;
+                    btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Sıralamayı kaydet`;
                 }, 2000);
             } catch (err) {
                 console.error("Failed to save playlist order:", err);
                 alert("Could not sync playlist order to back-end.");
                 btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Save Order`;
+                btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Sıralamayı kaydet`;
             }
         }
 
@@ -688,7 +688,7 @@
             const saveBtn = document.getElementById("saveBtn");
             
             saveBtn.disabled = true;
-            saveBtn.textContent = "Saving...";
+            saveBtn.textContent = "Kaydediliyor...";
 
             try {
                 const response = await fetch(GOOGLE_SHEET_API_URL, {
