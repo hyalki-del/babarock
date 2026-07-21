@@ -180,6 +180,7 @@
             font-size: 1.2rem;
             flex-shrink: 0;
             transition: transform 0.2s ease, color 0.2s ease;
+            padding: 4px;
         }
 
         /* Modal Overlay for Editing Key */
@@ -262,7 +263,6 @@
     </div>
 
     <script>
-        // Replace with your Google Apps Script Web App Endpoint URL
         const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyrIg2w1eHU2fruqixpNKLCtvTtgZ1N4inHOx5g8z_DiAR8W9NiZkK0Cf0D106HHyrp/exec";
         
         let playlistData = [];
@@ -275,6 +275,51 @@
                 .toLowerCase()
                 .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
                 .replace(/[^a-z0-9]/g, "");
+        }
+
+        function slugify(str) {
+            return str
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+
+        async function openTxtFileInNewTab(txtPath) {
+            try {
+                const response = await fetch(txtPath);
+                if (!response.ok) throw new Error("File not found");
+                const text = await response.text();
+
+                // Open formatted document view in new tab with 2x font size
+                const newWindow = window.open("", "_blank");
+                if (newWindow) {
+                    newWindow.document.write(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Song View</title>
+                            <style>
+                                body {
+                                    background-color: #0c0c0c;
+                                    color: #ffffff;
+                                    font-family: monospace;
+                                    font-size: 2em;
+                                    padding: 28px;
+                                    white-space: pre-wrap;
+                                    word-wrap: break-word;
+                                    line-height: 1.4;
+                                }
+                            </style>
+                        </head>
+                        <body>${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</body>
+                        </html>
+                    `);
+                    newWindow.document.close();
+                }
+            } catch (err) {
+                // Fallback direct URL trigger
+                window.open(txtPath, "_blank");
+            }
         }
 
         async function loadPlaylist() {
@@ -291,8 +336,6 @@
                 keyMapData = await resKeys.json();
 
                 renderUI();
-
-                // Non-blocking background sync: Automatically adds missing songs from playlist.json to Google Sheets
                 syncPlaylistWithSheets(playlistData);
 
             } catch (err) {
@@ -318,6 +361,11 @@
                 const query = encodeURIComponent(`${item.title} ${item.artist}`);
                 const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
                 
+                // Determine file path: prefer item.file schema key, else fallback to slug
+                const txtPath = item.file 
+                    ? `./${item.file}` 
+                    : `./songs/${slugify(item.artist)}-${slugify(item.title)}.txt`;
+                
                 const normTitle = normalizeTitle(item.title);
                 const detectedKey = normalizedKeyMap[normTitle] || item.key || null;
                 const keyBadgeHtml = (detectedKey && detectedKey !== 'N/A') 
@@ -326,15 +374,15 @@
 
                 li.className = "song-item-card";
 
-                // 1. Single-Click Handler: Debounced redirect to YouTube
+                // Single Click Handler: Open lyrics file at 2x font size
                 li.onclick = (e) => {
                     if (clickTimer) clearTimeout(clickTimer);
                     clickTimer = setTimeout(() => {
-                        window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
-                    }, 250); // Wait 250ms for possible second click
+                        openTxtFileInNewTab(txtPath);
+                    }, 250);
                 };
 
-                // 2. Double-Click Handler: Cancels YouTube click and opens edit key modal
+                // Double Click Handler: Edit key modal
                 li.ondblclick = (e) => {
                     if (clickTimer) clearTimeout(clickTimer);
                     openModal(item, detectedKey);
@@ -350,10 +398,16 @@
                     </div>
                     <div class="actions-right">
                         ${keyBadgeHtml}
-                        <i class="fa-brands fa-youtube yt-icon"></i>
+                        <i class="fa-brands fa-youtube yt-icon" id="yt-icon-${index}"></i>
                     </div>
                 `;
                 listElement.appendChild(li);
+
+                // Isolate YouTube click event so card click isn't triggered
+                document.getElementById(`yt-icon-${index}`).onclick = (e) => {
+                    e.stopPropagation();
+                    window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
+                };
             });
         }
 
@@ -407,7 +461,6 @@
             }
         }
 
-        // Background Auto-Reconciliation Routine
         async function syncPlaylistWithSheets(playlist) {
             try {
                 const songTitles = playlist.map(item => item.title);
@@ -424,7 +477,6 @@
             }
         }
 
-        // Allow 'Enter' key inside input field to trigger save action
         document.getElementById("modalKeyInput").addEventListener("keyup", function(event) {
             if (event.key === "Enter") {
                 submitKeyUpdate();
