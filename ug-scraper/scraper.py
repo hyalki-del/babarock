@@ -11,6 +11,7 @@ import cloudscraper
 
 PLAYLIST_URL = "https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r"
 
+# Absolute path resolution inside ug-scraper directory
 BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = BASE_DIR / "songs"
 DEBUG_FILE = BASE_DIR / "debug_failed_page.html"
@@ -26,11 +27,13 @@ def clean_lyrics_only(raw_text: str) -> str:
     if not raw_text:
         return ""
 
+    # Strip chord tags and inner content
     text = re.sub(r'\[ch\](.*?)\[\/ch\]', '', raw_text)
     text = re.sub(r'\[\/?(tab|chords)[^\]]*\]', '', text)
     text = re.sub(r'\[(Verse|Chorus|Bridge|Intro|Outro|Solo|Hook|Pre-Chorus)[^\]]*\]', r'[\1]', text, flags=re.IGNORECASE)
     text = re.sub(r'\[\/?([a-zA-Z0-9_\-]+)[^\]]*\]', '', text)
 
+    # Unicode normalization
     text = unicodedata.normalize("NFKD", text)
     text = (
         text.replace('\xa0', ' ')
@@ -71,11 +74,11 @@ def extract_store_from_html(html_content: str) -> dict:
 
 
 def save_debug_snapshot(content: str):
-    """Guarantees a debug file is dumped to disk on failure."""
+    """Guarantees a debug HTML file is dumped to disk on failure."""
     try:
         with open(DEBUG_FILE, "w", encoding="utf-8") as f:
             f.write(content)
-        print(f"[!] Saved debug HTML snapshot to {DEBUG_FILE}")
+        print(f"[!] Saved debug HTML snapshot to: {DEBUG_FILE}")
     except Exception as e:
         print(f"[-] Failed to write debug snapshot: {e}")
 
@@ -102,7 +105,6 @@ def scrape_playlist():
 
     print(f"[+] HTTP Response Status: {response.status_code}")
 
-    # Always save raw response snapshot if request fails or isn't 200
     if response.status_code != 200:
         print(f"[-] CRITICAL FAILURE: HTTP {response.status_code} received.")
         save_debug_snapshot(response.text)
@@ -113,6 +115,7 @@ def scrape_playlist():
 
     if not playlist_items:
         print("[-] CRITICAL FAILURE: Failed to parse playlist items from window.UG_STORE.")
+        print("[-] Saving raw HTML page snapshot for diagnosis...")
         save_debug_snapshot(response.text)
         sys.exit(1)
 
