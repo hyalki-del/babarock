@@ -20,10 +20,17 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Fetch Playlist Data via Native Fetch
+      - name: Fetch Playlist Data & Merge Key Overrides
         run: |
           node -e "
           const fs = require('fs');
+
+          // Normalizes strings for robust, fault-tolerant title matching
+          function normalize(str) {
+            return (str || '')
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, '');
+          }
 
           function decodeHTMLEntities(str) {
             return str
@@ -35,9 +42,26 @@ jobs:
           }
 
           (async () => {
+            // 1. Load custom key overrides dictionary
+            let overrides = {};
+            if (fs.existsSync('key-overrides.json')) {
+              try {
+                overrides = JSON.parse(fs.readFileSync('key-overrides.json', 'utf8'));
+                console.log('Loaded ' + Object.keys(overrides).length + ' key overrides.');
+              } catch (e) {
+                console.warn('Warning: Failed to parse key-overrides.json. Falling back to defaults.');
+              }
+            }
+
+            const normalizedOverrides = {};
+            for (const [title, key] of Object.entries(overrides)) {
+              normalizedOverrides[normalize(title)] = key;
+            }
+
+            // 2. Fetch live payload from Ultimate Guitar
             const url = 'https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r';
             
-            console.log('Fetching HTML directly via Node.js native engine...');
+            console.log('Fetching live payload from Ultimate Guitar...');
             const response = await fetch(url, {
               headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -48,17 +72,17 @@ jobs:
             });
 
             if (!response.ok) {
-              throw new Error('HTTP Request failed with status: ' + response.status);
+              throw new Error('HTTP request failed with status code: ' + response.status);
             }
 
             const html = await response.text();
 
+            // 3. Extract SSR JSON store from DOM attribute
             const match = html.match(/class=\"js-store\"[^\>]*data-content=\"([^\"]+)\"/i) || 
                           html.match(/data-content=\"([^\"]+)\"[^\>]*class=\"js-store\"/i);
 
             if (!match || !match[1]) {
-              console.error('HTML snippet sample:', html.substring(0, 500));
-              throw new Error('Could not locate js-store data-content attribute in page HTML.');
+              throw new Error('Failed to locate target data store inside document body.');
             }
 
             const decodedJson = decodeHTMLEntities(match[1]);
@@ -72,31 +96,38 @@ jobs:
               pageData.tabs || 
               [];
 
+            // 4. Construct final normalized schema
             const songs = rawItems.map(item => {
               const tab = item.tab || item;
-              const key = 
+              const title = tab.song_name || tab.song_title || tab.title || '';
+              const artist = tab.artist_name || tab.band_name || tab.artist || '';
+              
+              const defaultKey = 
                 tab.tonality_name || 
                 tab.meta?.tonality_name || 
                 tab.tonality || 
                 tab.key_name || 
                 'N/A';
 
+              const matchedKey = normalizedOverrides[normalize(title)];
+
               return {
-                title: tab.song_name || tab.song_title || tab.title || '',
-                artist: tab.artist_name || tab.band_name || tab.artist || '',
-                key: key
+                title,
+                artist,
+                key: matchedKey ? matchedKey : defaultKey
               };
             }).filter(s => s.title && s.artist);
 
+            // 5. Atomic write operation
             if (songs.length > 0) {
               fs.writeFileSync('playlist.json', JSON.stringify(songs, null, 2));
-              console.log('Successfully saved ' + songs.length + ' songs to playlist.json with tonality data.');
+              console.log('Successfully saved ' + songs.length + ' songs to playlist.json');
             } else {
-              console.error('Data container parsed, but no song entries were found.');
+              console.error('Data payload extracted, but 0 valid song entries found.');
               process.exit(1);
             }
           })().catch(err => {
-            console.error('Execution Error:', err.message);
+            console.error('Fatal Execution Error:', err.message);
             process.exit(1);
           });
           "
@@ -106,4 +137,4 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add playlist.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update playlist.json with key info" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update playlist.json with matched keys" && git push)
