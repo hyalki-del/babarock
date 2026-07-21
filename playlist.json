@@ -2,223 +2,181 @@
   {
     "title": "Separate Ways",
     "artist": "Journey",
-    "key": "Bm",
-    "file": "songs/journey-separate-ways.txt"
+    "key": "Bm"
   },
   {
     "title": "The Look",
     "artist": "Roxette",
-    "key": "Am",
-    "file": "songs/roxette-the-look.txt"
+    "key": "Am"
   },
   {
     "title": "Hold The Line",
     "artist": "Toto",
-    "key": "Em",
-    "file": "songs/toto-hold-the-line.txt"
+    "key": "Em"
   },
   {
     "title": "Sari Cizmeli Mehmet Aga",
     "artist": "Kurban",
-    "key": "F#m",
-    "file": "songs/kurban-sari-cizmeli-mehmet-aga.txt"
+    "key": "F#m"
   },
   {
     "title": "Wasting Love",
     "artist": "Iron Maiden",
-    "key": "Em",
-    "file": "songs/iron-maiden-wasting-love.txt"
+    "key": "Em"
   },
   {
     "title": "Kryptonite",
     "artist": "3 Doors Down",
-    "key": "Bm",
-    "file": "songs/3-doors-down-kryptonite.txt"
+    "key": "Bm"
   },
   {
     "title": "Perfect Strangers",
     "artist": "Deep Purple",
-    "key": "Bm",
-    "file": "songs/deep-purple-perfect-strangers.txt"
+    "key": "Bm"
   },
   {
     "title": "Its My Life",
     "artist": "Bon Jovi",
-    "key": "Am",
-    "file": "songs/bon-jovi-its-my-life.txt"
+    "key": "Am"
   },
   {
     "title": "Give In To Me",
     "artist": "Three Days Grace",
-    "key": "Am",
-    "file": "songs/three-days-grace-give-in-to-me.txt"
+    "key": "Am"
   },
   {
     "title": "Symphony Of Destruction",
     "artist": "Megadeth",
-    "key": "Em",
-    "file": "songs/megadeth-symphony-of-destruction.txt"
+    "key": "Em"
   },
   {
     "title": "Islak Islak",
     "artist": "Baris Akarsu",
-    "key": "Am",
-    "file": "songs/baris-akarsu-islak-islak.txt"
+    "key": "Am"
   },
   {
     "title": "Bebek",
     "artist": "Acil Servis",
-    "key": "Dm",
-    "file": "songs/acil-servis-bebek.txt"
+    "key": "Dm"
   },
   {
     "title": "Dont Chain My Heart",
     "artist": "Toto",
-    "key": "Bm",
-    "file": "songs/toto-dont-chain-my-heart.txt"
+    "key": "Bm"
   },
   {
     "title": "You Give Love A Bad Name",
     "artist": "Bon Jovi",
-    "key": "Am",
-    "file": "songs/bon-jovi-you-give-love-a-bad-name.txt"
+    "key": "Am"
   },
   {
     "title": "Sometimes I Feel Like Screaming",
     "artist": "Deep Purple",
-    "key": "Dm",
-    "file": "songs/deep-purple-sometimes-i-feel-like-screaming.txt"
+    "key": "Dm"
   },
   {
     "title": "No Prayer For The Dying",
     "artist": "Iron Maiden",
-    "key": "Em",
-    "file": "songs/iron-maiden-no-prayer-for-the-dying.txt"
+    "key": "Em"
   },
   {
     "title": "Walking By Myself",
     "artist": "Gary Moore",
-    "key": "Em",
-    "file": "songs/gary-moore-walking-by-myself.txt"
+    "key": "Em"
   },
   {
     "title": "Since You Been Gone",
     "artist": "Rainbow",
-    "key": "C",
-    "file": "songs/rainbow-since-you-been-gone.txt"
+    "key": "C"
   },
   {
     "title": "Long Train Runnin",
     "artist": "The Doobie Brothers",
-    "key": "Em",
-    "file": "songs/the-doobie-brothers-long-train-runnin.txt"
+    "key": "Em"
   },
   {
     "title": "I Surrender",
     "artist": "Rainbow",
-    "key": "Cm",
-    "file": "songs/rainbow-i-surrender.txt"
+    "key": "Cm"
   },
   {
     "title": "Oh Pretty Woman",
     "artist": "Gary Moore",
-    "key": "Bm",
-    "file": "songs/gary-moore-oh-pretty-woman.txt"
+    "key": "Bm"
   },
   {
     "title": "Born To Be Wild",
     "artist": "Steppenwolf",
-    "key": "Em",
-    "file": "songs/steppenwolf-born-to-be-wild.txt"
+    "key": "Em"
   },
   {
     "title": "Here I Go Again",
     "artist": "Whitesnake",
-    "key": "E",
-    "file": "songs/whitesnake-here-i-go-again.txt"
+    "key": "E"
   },
   {
     "title": "Livin On A Prayer",
     "artist": "Bon Jovi",
-    "key": "Am",
-    "file": "songs/bon-jovi-livin-on-a-prayer.txt"
+    "key": "Am"
   },
   {
     "title": "Smoke On The Water",
     "artist": "Deep Purple",
-    "key": "G",
-    "file": "songs/deep-purple-smoke-on-the-water.txt"
+    "key": "G"
   },
   {
     "title": "Johnny B Goode",
     "artist": "Chuck Berry",
-    "key": "Am",
-    "file": "songs/chuck-berry-johnny-b-goode.txt"
+    "key": "Am"
   },
   {
     "title": "Blue Suede Shoes",
     "artist": "Elvis Presley",
-    "key": "Am",
-    "file": "songs/elvis-presley-blue-suede-shoes.txt"
+    "key": "Am"
   },
   {
     "title": "Jailhouse Rock",
     "artist": "The Blues Brothers",
-    "key": "Am",
-    "file": "songs/the-blues-brothers-jailhouse-rock.txt"
+    "key": "Am"
   },
   {
     "title": "Fool For Your Loving",
     "artist": "Whitesnake",
-    "key": "Am",
-    "file": "songs/whitesnake-fool-for-your-loving.txt"
+    "key": "Am"
   },
   {
     "title": "Burning Heart",
     "artist": "Survivor",
-    "key": "Em",
-    "file": "songs/survivor-burning-heart.txt"
+    "key": "Em"
   },
   {
     "title": "Eye Of The Tiger",
     "artist": "Survivor",
-    "key": "Dm",
-    "file": "songs/survivor-eye-of-the-tiger.txt"
+    "key": "Dm"
   },
   {
     "title": "The Final Countdown",
     "artist": "Europe",
-    "key": "Am",
-    "file": "songs/europe-the-final-countdown.txt"
+    "key": "Am"
   },
   {
     "title": "Burn",
     "artist": "Deep Purple",
-    "key": "Em",
-    "file": "songs/deep-purple-burn.txt"
-  },
-  {
-    "title": "Stormbringer",
-    "artist": "Deep Purple",
-    "key": "Em",
-    "file": "songs/deep-purple-stormbringer.txt"
+    "key": "Em"
   },
   {
     "title": "In These Arms",
     "artist": "Bon Jovi",
-    "key": "C",
-    "file": "songs/bon-jovi-in-these-arms.txt"
+    "key": "C"
   },
   {
     "title": "For Whom The Bell Tolls",
     "artist": "Metallica",
-    "key": "Em",
-    "file": "songs/metallica-for-whom-the-bell-tolls.txt"
+    "key": "Em"
   },
   {
     "title": "Diamonds And Rust",
     "artist": "Judas Priest",
-    "key": "Em",
-    "file": "songs/judas-priest-diamonds-and-rust.txt"
+    "key": "Em"
   }
 ]
