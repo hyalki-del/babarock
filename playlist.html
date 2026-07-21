@@ -4,17 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baba Rock - Playlist</title>
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Base Reset & Dark Metal Theme */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background-color: #0c0c0c;
             background: radial-gradient(circle, #161616 0%, #070707 100%);
@@ -26,7 +19,6 @@
             align-items: flex-start;
             padding: 40px 20px;
         }
-
         .playlist-card {
             max-width: 480px;
             width: 100%;
@@ -36,7 +28,6 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             border: 1px solid #222222;
         }
-
         .header {
             display: flex;
             align-items: center;
@@ -45,19 +36,8 @@
             border-bottom: 1px solid #222222;
             padding-bottom: 15px;
         }
-
-        .header h1 {
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #ffffff;
-        }
-
-        .header h1 i {
-            color: #ff4500;
-        }
-
+        .header h1 { font-size: 1.3rem; display: flex; align-items: center; gap: 12px; color: #ffffff; }
+        .header h1 i { color: #ff4500; }
         .song-count {
             font-size: 0.85rem;
             color: #888888;
@@ -66,8 +46,6 @@
             border-radius: 12px;
             border: 1px solid #282828;
         }
-
-        /* Song List Styling */
         .song-list {
             list-style: none;
             display: flex;
@@ -77,17 +55,9 @@
             overflow-y: auto;
             padding-right: 5px;
         }
-
-        /* Scrollbar */
-        .song-list::-webkit-scrollbar {
-            width: 6px;
-        }
-        .song-list::-webkit-scrollbar-thumb {
-            background: #282828;
-            border-radius: 3px;
-        }
-
-        /* Full Clickable Song Frame */
+        .song-list::-webkit-scrollbar { width: 6px; }
+        .song-list::-webkit-scrollbar-thumb { background: #282828; border-radius: 3px; }
+        
         .song-item-link {
             text-decoration: none;
             color: inherit;
@@ -101,70 +71,32 @@
             transition: border-color 0.25s ease, background-color 0.25s ease, transform 0.15s ease;
             cursor: pointer;
         }
-
         .song-item-link:hover {
             border-color: #ff4500;
             background-color: #222222;
             transform: translateY(-1px);
         }
-
-        .song-item-link:hover .song-title {
+        .song-item-link:hover .song-title { color: #ff4500; }
+        .song-item-link:hover .yt-icon { transform: scale(1.15); color: #ff4500; }
+        .song-left { display: flex; align-items: center; min-width: 0; flex-grow: 1; }
+        .song-number { font-size: 0.85rem; color: #ff4500; font-weight: bold; width: 28px; flex-shrink: 0; }
+        .song-info { display: flex; flex-direction: column; min-width: 0; flex-grow: 1; }
+        .song-title { font-weight: 600; font-size: 0.95rem; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.2s ease; }
+        .song-artist { font-size: 0.8rem; color: #a0a0a0; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* Actions & Key Badge */
+        .actions-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .key-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
             color: #ff4500;
-        }
-
-        .song-item-link:hover .yt-icon {
-            transform: scale(1.15);
-            color: #ff4500;
-        }
-
-        .song-left {
-            display: flex;
-            align-items: center;
-            min-width: 0;
-            flex-grow: 1;
-        }
-
-        .song-number {
-            font-size: 0.85rem;
-            color: #ff4500;
-            font-weight: bold;
-            width: 28px;
-            flex-shrink: 0;
-        }
-
-        .song-info {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            flex-grow: 1;
-        }
-
-        .song-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #ffffff;
+            background: #121212;
+            border: 1px solid #ff4500;
+            padding: 2px 6px;
+            border-radius: 4px;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            transition: color 0.2s ease;
         }
-
-        .song-artist {
-            font-size: 0.8rem;
-            color: #a0a0a0;
-            margin-top: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .yt-icon {
-            color: #ff0000;
-            font-size: 1.2rem;
-            margin-left: 12px;
-            flex-shrink: 0;
-            transition: transform 0.2s ease, color 0.2s ease;
-        }
+        .yt-icon { color: #ff0000; font-size: 1.2rem; flex-shrink: 0; transition: transform 0.2s ease, color 0.2s ease; }
     </style>
 </head>
 <body>
@@ -179,22 +111,47 @@
     </div>
 
     <script>
+        function normalizeTitle(str) {
+            return str
+                .toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-z0-9]/g, "");
+        }
+
         async function loadPlaylist() {
             const listElement = document.getElementById("songList");
             const countElement = document.getElementById("songCount");
 
             try {
-                const res = await fetch("./playlist.json");
-                const playlist = await res.json();
+                const timestamp = new Date().getTime();
+                const [resPlaylist, resKeys] = await Promise.all([
+                    fetch(`./playlist.json?t=${timestamp}`),
+                    fetch(`./song_keys.json?t=${timestamp}`)
+                ]);
+
+                const playlist = await resPlaylist.json();
+                const keyMap = await resKeys.json();
+
+                // Normalize keys lookup table
+                const normalizedKeyMap = {};
+                for (const [title, key] of Object.entries(keyMap)) {
+                    normalizedKeyMap[normalizeTitle(title)] = key;
+                }
 
                 listElement.innerHTML = "";
                 countElement.textContent = `${playlist.length} Songs`;
 
                 playlist.forEach((item, index) => {
                     const li = document.createElement("li");
-
                     const query = encodeURIComponent(`${item.title} ${item.artist}`);
                     const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
+                    
+                    // Match key dynamically or fallback to item.key
+                    const normTitle = normalizeTitle(item.title);
+                    const detectedKey = normalizedKeyMap[normTitle] || item.key || null;
+                    const keyBadgeHtml = (detectedKey && detectedKey !== 'N/A') 
+                        ? `<span class="key-badge">${detectedKey}</span>` 
+                        : '';
 
                     li.innerHTML = `
                         <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="song-item-link" title="Listen on YouTube">
@@ -205,7 +162,10 @@
                                     <span class="song-artist">${item.artist}</span>
                                 </div>
                             </div>
-                            <i class="fa-brands fa-youtube yt-icon"></i>
+                            <div class="actions-right">
+                                ${keyBadgeHtml}
+                                <i class="fa-brands fa-youtube yt-icon"></i>
+                            </div>
                         </a>
                     `;
                     listElement.appendChild(li);
