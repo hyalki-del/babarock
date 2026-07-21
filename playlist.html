@@ -90,14 +90,8 @@
             transition: opacity 0.2s ease, transform 0.1s ease;
         }
 
-        .btn-save-order:hover {
-            opacity: 0.9;
-        }
-
-        .btn-save-order:active {
-            transform: scale(0.97);
-        }
-
+        .btn-save-order:hover { opacity: 0.9; }
+        .btn-save-order:active { transform: scale(0.97); }
         .btn-save-order:disabled {
             background: #444;
             cursor: not-allowed;
@@ -144,18 +138,14 @@
 
         /* Platform Scrollbars */
         .platform-mac .song-list::-webkit-scrollbar,
-        .platform-ios .song-list::-webkit-scrollbar {
-            width: 5px;
-        }
+        .platform-ios .song-list::-webkit-scrollbar { width: 5px; }
         .platform-mac .song-list::-webkit-scrollbar-thumb,
         .platform-ios .song-list::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.2);
             border-radius: 10px;
         }
 
-        .platform-windows .song-list::-webkit-scrollbar {
-            width: 8px;
-        }
+        .platform-windows .song-list::-webkit-scrollbar { width: 8px; }
         .platform-windows .song-list::-webkit-scrollbar-thumb {
             background: #333333;
             border-radius: 4px;
@@ -182,9 +172,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        .song-item-card:active {
-            cursor: grabbing;
-        }
+        .song-item-card:active { cursor: grabbing; }
 
         .song-item-card.dragging {
             opacity: 0.4;
@@ -203,11 +191,10 @@
             cursor: grab;
             padding: 4px;
             flex-shrink: 0;
+            touch-action: none; /* Prevents iOS scrolling while dragging from handle */
         }
 
-        .song-item-card:hover .drag-handle {
-            color: #aaa;
-        }
+        .song-item-card:hover .drag-handle { color: #aaa; }
 
         .song-left {
             display: flex;
@@ -275,9 +262,7 @@
             transition: transform 0.2s ease;
         }
 
-        .yt-icon:hover {
-            transform: scale(1.2);
-        }
+        .yt-icon:hover { transform: scale(1.2); }
 
         /* Modal styling */
         .modal-overlay {
@@ -476,13 +461,11 @@
                 keyMapData = backendData.keys || (typeof backendData === 'object' ? backendData : {});
                 const savedOrder = backendData.savedOrder || [];
 
-                // 1. Map full catalog records by normalized song title
                 const catalogMap = new Map();
                 rawCatalog.forEach(song => {
                     catalogMap.set(normalizeTitle(song.title), song);
                 });
 
-                // 2. Reconstruct playlist maintaining master order
                 const reconciledPlaylist = [];
 
                 if (Array.isArray(savedOrder) && savedOrder.length > 0) {
@@ -495,7 +478,6 @@
                     });
                 }
 
-                // 3. Append new songs discovered in playlist.json overnight
                 catalogMap.forEach(song => {
                     reconciledPlaylist.push(song);
                 });
@@ -503,7 +485,6 @@
                 playlistData = reconciledPlaylist;
                 renderUI();
 
-                // 4. Silently trigger sync to add any new overnight songs into Google Sheets
                 syncPlaylistWithBackend(rawCatalog.map(s => s.title));
 
             } catch (err) {
@@ -589,8 +570,9 @@
             });
         }
 
-        /* --- Drag and Drop Handlers --- */
+        /* --- Cross-Platform Drag & Drop Handlers (HTML5 + iOS Touch Support) --- */
         function addDragListeners(element) {
+            // Standard Desktop HTML5 Drag Events
             element.addEventListener('dragstart', (e) => {
                 draggedItemIndex = parseInt(element.dataset.index);
                 element.classList.add('dragging');
@@ -622,6 +604,58 @@
                     playlistData.splice(targetIndex, 0, draggedItem);
                     renderUI();
                 }
+            });
+
+            // Native Mobile Touch Drag Handlers (iOS / Safari / Android)
+            const handle = element.querySelector('.drag-handle');
+            let initialTouchY = 0;
+            let activeTouchItem = null;
+
+            handle.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+                activeTouchItem = element;
+                draggedItemIndex = parseInt(element.dataset.index);
+                initialTouchY = e.touches[0].clientY;
+                element.classList.add('dragging');
+            }, { passive: false });
+
+            handle.addEventListener('touchmove', (e) => {
+                if (!activeTouchItem) return;
+                e.preventDefault(); // Prevent iOS page scroll while reordering
+
+                const touchLocation = e.touches[0];
+                const targetElement = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
+                
+                if (targetElement) {
+                    const card = targetElement.closest('.song-item-card');
+                    document.querySelectorAll('.song-item-card').forEach(el => el.classList.remove('drag-over'));
+                    if (card && card !== activeTouchItem) {
+                        card.classList.add('drag-over');
+                    }
+                }
+            }, { passive: false });
+
+            handle.addEventListener('touchend', (e) => {
+                if (!activeTouchItem) return;
+                element.classList.remove('dragging');
+                
+                const touchLocation = e.changedTouches[0];
+                const targetElement = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
+                document.querySelectorAll('.song-item-card').forEach(el => el.classList.remove('drag-over'));
+
+                if (targetElement) {
+                    const card = targetElement.closest('.song-item-card');
+                    if (card) {
+                        const targetIndex = parseInt(card.dataset.index);
+                        if (draggedItemIndex !== null && draggedItemIndex !== targetIndex) {
+                            const draggedItem = playlistData.splice(draggedItemIndex, 1)[0];
+                            playlistData.splice(targetIndex, 0, draggedItem);
+                            renderUI();
+                        }
+                    }
+                }
+                activeTouchItem = null;
+                draggedItemIndex = null;
             });
         }
 
