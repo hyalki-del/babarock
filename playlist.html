@@ -139,10 +139,10 @@
             max-height: 60vh;
             overflow-y: auto;
             padding-right: 4px;
-            -webkit-overflow-scrolling: touch; /* Fast scroll for iOS */
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* Platform-Specific Scrollbar Handling */
+        /* Platform Scrollbars */
         .platform-mac .song-list::-webkit-scrollbar,
         .platform-ios .song-list::-webkit-scrollbar {
             width: 5px;
@@ -176,13 +176,8 @@
             transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
             cursor: grab;
             position: relative;
-
-            /* Selection & Callout Prevention */
             -webkit-touch-callout: none;
             -webkit-user-select: none;
-            -khtml-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
@@ -335,13 +330,8 @@
         .btn-cancel { background: var(--border-color); color: #cccccc; }
         .btn-save { background: var(--primary-color); color: #ffffff; }
 
-        /* OS Specific Enhancements */
-        .platform-android .song-item-card {
-            border-radius: 4px;
-        }
-        .platform-ios .song-item-card {
-            border-radius: 12px;
-        }
+        .platform-android .song-item-card { border-radius: 4px; }
+        .platform-ios .song-item-card { border-radius: 12px; }
     </style>
 </head>
 <body>
@@ -384,7 +374,6 @@
         let activeEditSong = null;
         let draggedItemIndex = null;
 
-        // Platform Detection
         function detectPlatform() {
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
             const body = document.body;
@@ -401,7 +390,7 @@
         }
 
         function normalizeTitle(str) {
-            return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+            return str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "") : "";
         }
 
         function slugify(str) {
@@ -445,23 +434,20 @@
             }
         }
 
-        /* --- Cross-Platform Double-Tap & Click Controller --- */
         function setupDoubleClickAndTap(element, songItem, detectedKey, txtPath) {
             let lastTapTime = 0;
             let clickTimer = null;
-            const DOUBLE_TAP_THRESHOLD = 300; // ms window to register a double-tap
+            const DOUBLE_TAP_THRESHOLD = 300;
 
             element.addEventListener('click', (e) => {
                 const currentTime = Date.now();
                 const tapLength = currentTime - lastTapTime;
 
                 if (tapLength < DOUBLE_TAP_THRESHOLD && tapLength > 0) {
-                    // Double Click / Double Tap detected -> Open Key Dialog
                     if (clickTimer) clearTimeout(clickTimer);
                     lastTapTime = 0;
                     openModal(songItem, detectedKey);
                 } else {
-                    // Single Click / Single Tap -> Open Lyrics File
                     lastTapTime = currentTime;
                     if (clickTimer) clearTimeout(clickTimer);
 
@@ -473,23 +459,71 @@
             });
         }
 
+        /* --- Reconciles GitHub Catalog with Master Order State --- */
         async function loadPlaylist() {
             const countElement = document.getElementById("songCount");
 
             try {
                 const timestamp = new Date().getTime();
-                const [resPlaylist, resKeys] = await Promise.all([
+                const [resPlaylist, resBackend] = await Promise.all([
                     fetch(`./playlist.json?t=${timestamp}`),
                     fetch(`${GOOGLE_SHEET_API_URL}?t=${timestamp}`)
                 ]);
 
-                playlistData = await resPlaylist.json();
-                keyMapData = await resKeys.json();
+                const rawCatalog = await resPlaylist.json();
+                const backendData = await resBackend.json();
 
+                keyMapData = backendData.keys || (typeof backendData === 'object' ? backendData : {});
+                const savedOrder = backendData.savedOrder || [];
+
+                // 1. Map full catalog records by normalized song title
+                const catalogMap = new Map();
+                rawCatalog.forEach(song => {
+                    catalogMap.set(normalizeTitle(song.title), song);
+                });
+
+                // 2. Reconstruct playlist maintaining master order
+                const reconciledPlaylist = [];
+
+                if (Array.isArray(savedOrder) && savedOrder.length > 0) {
+                    savedOrder.forEach(title => {
+                        const normKey = normalizeTitle(title);
+                        if (catalogMap.has(normKey)) {
+                            reconciledPlaylist.push(catalogMap.get(normKey));
+                            catalogMap.delete(normKey);
+                        }
+                    });
+                }
+
+                // 3. Append new songs discovered in playlist.json overnight
+                catalogMap.forEach(song => {
+                    reconciledPlaylist.push(song);
+                });
+
+                playlistData = reconciledPlaylist;
                 renderUI();
+
+                // 4. Silently trigger sync to add any new overnight songs into Google Sheets
+                syncPlaylistWithBackend(rawCatalog.map(s => s.title));
+
             } catch (err) {
-                console.error(err);
+                console.error("Boot error:", err);
                 countElement.textContent = "Hata";
+            }
+        }
+
+        async function syncPlaylistWithBackend(allTitles) {
+            try {
+                await fetch(GOOGLE_SHEET_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: "sync_playlist",
+                        songs: allTitles
+                    })
+                });
+            } catch (err) {
+                console.warn("Background catalog sync skipped:", err);
             }
         }
 
@@ -539,13 +573,11 @@
                     </div>
                 `;
 
-                // Attach Event Handlers
                 setupDoubleClickAndTap(li, item, detectedKey, txtPath);
                 addDragListeners(li);
 
                 listElement.appendChild(li);
 
-                // Stop propagation on YouTube icon click
                 const ytIcon = document.getElementById(`yt-icon-${index}`);
                 ytIcon.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -593,7 +625,7 @@
             });
         }
 
-        /* --- Save Order Functionality --- */
+        /* --- Persists Master Sequence to Google Apps Script --- */
         async function savePlaylistOrder() {
             const btn = document.getElementById("saveOrderBtn");
             btn.disabled = true;
@@ -601,30 +633,35 @@
 
             try {
                 const songTitles = playlistData.map(item => item.title);
-                await fetch(GOOGLE_SHEET_API_URL, {
+                const response = await fetch(GOOGLE_SHEET_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({
                         action: "save_order",
-                        songs: songTitles,
-                        playlist: playlistData
+                        songs: songTitles
                     })
                 });
 
-                btn.innerHTML = `<i class="fa-solid fa-check"></i> Kayıt başarılı!`;
+                const res = await response.json();
+                if (res.status === "success") {
+                    btn.innerHTML = `<i class="fa-solid fa-check"></i> Kayıt başarılı!`;
+                } else {
+                    throw new Error("Backend response error");
+                }
+
                 setTimeout(() => {
                     btn.disabled = false;
                     btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Sıralamayı kaydet`;
                 }, 2000);
             } catch (err) {
-                console.error("Failed to save playlist order:", err);
-                alert("Sıralama kaydedilemedi.");
+                console.error("Save order error:", err);
+                alert("Sıralama sunucuya kaydedilemedi.");
                 btn.disabled = false;
                 btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Sıralamayı kaydet`;
             }
         }
 
-        /* --- Modal Operations --- */
+        /* --- Key Edit Dialog Handling --- */
         function openModal(item, currentKey) {
             activeEditSong = item;
             document.getElementById("modalSongName").textContent = `${item.title} - ${item.artist}`;
@@ -667,7 +704,7 @@
                     alert("Ton güncellenirken hata oluştu: " + result.message);
                 }
             } catch (err) {
-                console.error("Save failed:", err);
+                console.error("Save key error:", err);
                 alert("Ağ hatası. Ton kaydedilemedi.");
             } finally {
                 saveBtn.disabled = false;
@@ -681,7 +718,7 @@
             }
         });
 
-        // Initialize App
+        // App Initialization
         detectPlatform();
         loadPlaylist();
     </script>
