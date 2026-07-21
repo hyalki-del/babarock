@@ -126,7 +126,7 @@
                 const timestamp = new Date().getTime();
                 const [resPlaylist, resKeys] = await Promise.all([
                     fetch(`./playlist.json?t=${timestamp}`),
-                    fetch(`./song_keys.json?t=${timestamp}`)
+                    fetch(`./key-overrides.json?t=${timestamp}`)
                 ]);
 
                 const playlist = await resPlaylist.json();
