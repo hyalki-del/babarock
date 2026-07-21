@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Baba Rock - Playlist</title>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -13,25 +15,33 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent; /* Removes iOS tap flashing */
+            touch-action: manipulation;
         }
 
         body {
             background-color: #0c0c0c;
             background: radial-gradient(circle, #161616 0%, #070707 100%);
             color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             min-height: 100vh;
+            min-height: -webkit-fill-available;
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            padding: 40px 20px;
+            /* iOS Safe Area Padding Support */
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+            padding-left: max(16px, env(safe-area-inset-left));
+            padding-right: max(16px, env(safe-area-inset-right));
+            overflow-x: hidden;
         }
 
         .playlist-card {
             max-width: 480px;
             width: 100%;
             background: #121212;
-            padding: 30px 25px;
+            padding: 24px 20px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             border: 1px solid #222222;
@@ -41,16 +51,16 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             border-bottom: 1px solid #222222;
-            padding-bottom: 15px;
+            padding-bottom: 12px;
         }
 
         .header h1 {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             color: #ffffff;
         }
 
@@ -59,7 +69,7 @@
         }
 
         .song-count {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #888888;
             background: #1a1a1a;
             padding: 4px 10px;
@@ -73,13 +83,14 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            max-height: 520px;
+            max-height: 65vh;
             overflow-y: auto;
-            padding-right: 5px;
+            -webkit-overflow-scrolling: touch; /* Momentum scroll for iOS */
+            padding-right: 2px;
         }
 
         .song-list::-webkit-scrollbar {
-            width: 6px;
+            width: 4px;
         }
         .song-list::-webkit-scrollbar-thumb {
             background: #282828;
@@ -93,26 +104,48 @@
             justify-content: space-between;
             background: #1a1a1a;
             border: 1px solid #282828;
-            padding: 12px 16px;
+            padding: 12px 14px;
             border-radius: 10px;
-            transition: border-color 0.25s ease, background-color 0.25s ease, transform 0.15s ease;
-            cursor: pointer;
+            transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
+            cursor: grab;
             user-select: none;
             -webkit-user-select: none;
+            position: relative;
+        }
+
+        .song-item-card:active {
+            cursor: grabbing;
+        }
+
+        .song-item-card.dragging {
+            opacity: 0.4;
+            border: 1px dashed #ff4500;
+            background: #222222;
+        }
+
+        .song-item-card.drag-over {
+            border-top: 2px solid #ff4500;
+        }
+
+        .drag-handle {
+            color: #444;
+            padding: 0 8px 0 0;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .song-item-card:hover .drag-handle {
+            color: #ff4500;
         }
 
         .song-item-card:hover {
             border-color: #ff4500;
             background-color: #222222;
-            transform: translateY(-1px);
         }
 
         .song-item-card:hover .song-title {
-            color: #ff4500;
-        }
-
-        .song-item-card:hover .yt-icon {
-            transform: scale(1.15);
             color: #ff4500;
         }
 
@@ -127,7 +160,7 @@
             font-size: 0.85rem;
             color: #ff4500;
             font-weight: bold;
-            width: 28px;
+            width: 24px;
             flex-shrink: 0;
         }
 
@@ -140,7 +173,7 @@
 
         .song-title {
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: #ffffff;
             white-space: nowrap;
             overflow: hidden;
@@ -149,7 +182,7 @@
         }
 
         .song-artist {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             color: #a0a0a0;
             margin-top: 2px;
             white-space: nowrap;
@@ -170,17 +203,22 @@
             color: #ff4500;
             background: #121212;
             border: 1px solid #ff4500;
-            padding: 2px 6px;
+            padding: 3px 6px;
             border-radius: 4px;
             white-space: nowrap;
         }
 
         .yt-icon {
             color: #ff0000;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             flex-shrink: 0;
+            padding: 8px; /* Larger tap target for iOS/Android */
+            margin-right: -4px;
             transition: transform 0.2s ease, color 0.2s ease;
-            padding: 4px;
+        }
+
+        .yt-icon:active {
+            transform: scale(1.2);
         }
 
         /* Modal Overlay for Editing Key */
@@ -189,7 +227,8 @@
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
             justify-content: center;
             align-items: center;
             z-index: 1000;
@@ -205,19 +244,20 @@
             box-shadow: 0 10px 25px rgba(255, 69, 0, 0.2);
         }
 
-        .modal-title { font-size: 1rem; margin-bottom: 8px; color: #ffffff; }
+        .modal-title { font-size: 1rem; margin-bottom: 8px; color: #ffffff; font-weight: 600; }
         .modal-song-name { font-size: 0.85rem; color: #ff4500; margin-bottom: 16px; word-break: break-all; }
         
         .modal-input {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background: #1a1a1a;
             border: 1px solid #282828;
             color: #ffffff;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 1rem;
             margin-bottom: 16px;
             outline: none;
+            -webkit-appearance: none;
         }
 
         .modal-input:focus { border-color: #ff4500; }
@@ -225,8 +265,8 @@
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
         
         .btn-cancel, .btn-save {
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: 10px 18px;
+            border-radius: 8px;
             font-weight: 600;
             font-size: 0.85rem;
             cursor: pointer;
@@ -254,7 +294,7 @@
         <div class="modal-card">
             <div class="modal-title">Edit Song Key</div>
             <div class="modal-song-name" id="modalSongName"></div>
-            <input type="text" class="modal-input" id="modalKeyInput" placeholder="e.g. Am, Em, F#m" />
+            <input type="text" class="modal-input" id="modalKeyInput" placeholder="e.g. Am, Em, F#m" autocomplete="off" />
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeModal()">Cancel</button>
                 <button class="btn-save" id="saveBtn" onclick="submitKeyUpdate()">Save</button>
@@ -265,10 +305,21 @@
     <script>
         const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyrIg2w1eHU2fruqixpNKLCtvTtgZ1N4inHOx5g8z_DiAR8W9NiZkK0Cf0D106HHyrp/exec";
         
-        let playlistData = [];
+        // Default song collection in code
+        let playlistData = [
+            { title: "Sultan-ı Yegah", artist: "Nur Yoldaş", key: "Em" },
+            { title: "Dönence", artist: "Barış Manço", key: "Am" },
+            { title: "Bir Derdım Var", artist: "mor ve ötesi", key: "Bm" },
+            { title: "Resimdeki Gözyaşları", artist: "Cem Karaca", key: "Dm" },
+            { title: "Cambaz", artist: "mor ve ötesi", key: "F#m" },
+            { title: "Köprüaltı", artist: "Duman", key: "A" },
+            { title: "Isosceles", artist: "Baba Rock", key: "Gm" }
+        ];
+
         let keyMapData = {};
         let activeEditSong = null;
         let clickTimer = null;
+        let draggedIndex = null;
 
         function normalizeTitle(str) {
             return str
@@ -290,36 +341,33 @@
                 if (!response.ok) throw new Error("File not found");
                 const text = await response.text();
 
-                // Open formatted document view in new tab with 2x font size
                 const newWindow = window.open("", "_blank");
                 if (newWindow) {
                     newWindow.document.write(`
                         <!DOCTYPE html>
                         <html>
                         <head>
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
                             <title>Song View</title>
                             <style>
                                 body {
                                     background-color: #0c0c0c;
                                     color: #ffffff;
                                     font-family: monospace;
-                                    font-size: 2em;
-                                    padding: 28px;
+                                    font-size: 1.8em;
+                                    padding: 24px;
                                     white-space: pre-wrap;
                                     word-wrap: break-word;
                                     line-height: 1.4;
                                 }
                             </style>
                         </head>
-                        <body>${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}
-<!-- Placeholder: Drag & Drop/Responsive enhancements to be implemented -->
-</body>
+                        <body>${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</body>
                         </html>
                     `);
                     newWindow.document.close();
                 }
             } catch (err) {
-                // Fallback direct URL trigger
                 window.open(txtPath, "_blank");
             }
         }
@@ -330,19 +378,23 @@
             try {
                 const timestamp = new Date().getTime();
                 const [resPlaylist, resKeys] = await Promise.all([
-                    fetch(`./playlist.json?t=${timestamp}`),
-                    fetch(`${GOOGLE_SHEET_API_URL}?t=${timestamp}`)
+                    fetch(`./playlist.json?t=${timestamp}`).catch(() => null),
+                    fetch(`${GOOGLE_SHEET_API_URL}?t=${timestamp}`).catch(() => null)
                 ]);
 
-                playlistData = await resPlaylist.json();
-                keyMapData = await resKeys.json();
+                if (resPlaylist && resPlaylist.ok) {
+                    playlistData = await resPlaylist.json();
+                }
+                if (resKeys && resKeys.ok) {
+                    keyMapData = await resKeys.json();
+                }
 
                 renderUI();
                 syncPlaylistWithSheets(playlistData);
 
             } catch (err) {
-                console.error(err);
-                countElement.textContent = "Error";
+                console.warn("Using fallback local code dataset:", err);
+                renderUI();
             }
         }
 
@@ -363,7 +415,6 @@
                 const query = encodeURIComponent(`${item.title} ${item.artist}`);
                 const youtubeUrl = `https://www.youtube.com/results?search_query=${query}`;
                 
-                // Determine file path: prefer item.file schema key, else fallback to slug
                 const txtPath = item.file 
                     ? `./${item.file}` 
                     : `./songs/${slugify(item.artist)}-${slugify(item.title)}.txt`;
@@ -375,22 +426,11 @@
                     : '';
 
                 li.className = "song-item-card";
-
-                // Single Click Handler: Open lyrics file at 2x font size
-                li.onclick = (e) => {
-                    if (clickTimer) clearTimeout(clickTimer);
-                    clickTimer = setTimeout(() => {
-                        openTxtFileInNewTab(txtPath);
-                    }, 250);
-                };
-
-                // Double Click Handler: Edit key modal
-                li.ondblclick = (e) => {
-                    if (clickTimer) clearTimeout(clickTimer);
-                    openModal(item, detectedKey);
-                };
+                li.draggable = true;
+                li.dataset.index = index;
 
                 li.innerHTML = `
+                    <div class="drag-handle"><i class="fa-solid fa-grip-lines"></i></div>
                     <div class="song-left">
                         <span class="song-number">${index + 1}</span>
                         <div class="song-info">
@@ -403,14 +443,113 @@
                         <i class="fa-brands fa-youtube yt-icon" id="yt-icon-${index}"></i>
                     </div>
                 `;
+
+                // Single Click Handler (view txt file)
+                li.onclick = (e) => {
+                    if (e.target.closest('.yt-icon') || e.target.closest('.drag-handle')) return;
+                    if (clickTimer) clearTimeout(clickTimer);
+                    clickTimer = setTimeout(() => {
+                        openTxtFileInNewTab(txtPath);
+                    }, 250);
+                };
+
+                // Double Click Handler (edit key modal)
+                li.ondblclick = (e) => {
+                    if (e.target.closest('.yt-icon')) return;
+                    if (clickTimer) clearTimeout(clickTimer);
+                    openModal(item, detectedKey);
+                };
+
+                // Drag & Drop Event Listeners (Desktop & macOS)
+                li.addEventListener('dragstart', handleDragStart);
+                li.addEventListener('dragover', handleDragOver);
+                li.addEventListener('drop', handleDrop);
+                li.addEventListener('dragend', handleDragEnd);
+
+                // Touch-Based Drag & Drop (iOS & Android)
+                li.addEventListener('touchstart', handleTouchStart, {passive: false});
+                li.addEventListener('touchmove', handleTouchMove, {passive: false});
+                li.addEventListener('touchend', handleTouchEnd);
+
                 listElement.appendChild(li);
 
-                // Isolate YouTube click event so card click isn't triggered
                 document.getElementById(`yt-icon-${index}`).onclick = (e) => {
                     e.stopPropagation();
                     window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
                 };
             });
+        }
+
+        /* --- Drag and Drop Handlers --- */
+        function handleDragStart(e) {
+            draggedIndex = +this.dataset.index;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            this.classList.add('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            const targetIndex = +this.dataset.index;
+
+            if (draggedIndex !== null && draggedIndex !== targetIndex) {
+                reorderPlaylist(draggedIndex, targetIndex);
+            }
+        }
+
+        function handleDragEnd() {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.song-item-card').forEach(el => el.classList.remove('drag-over'));
+        }
+
+        /* Touch Drag Handlers for Mobile (iOS / Android) */
+        let touchDraggedElem = null;
+
+        function handleTouchStart(e) {
+            if (!e.target.closest('.drag-handle')) return;
+            touchDraggedElem = this;
+            draggedIndex = +this.dataset.index;
+            this.classList.add('dragging');
+        }
+
+        function handleTouchMove(e) {
+            if (!touchDraggedElem) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            const card = target ? target.closest('.song-item-card') : null;
+
+            document.querySelectorAll('.song-item-card').forEach(el => el.classList.remove('drag-over'));
+            if (card && card !== touchDraggedElem) {
+                card.classList.add('drag-over');
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!touchDraggedElem) return;
+            touchDraggedElem.classList.remove('dragging');
+            
+            const dropTarget = document.querySelector('.song-item-card.drag-over');
+            if (dropTarget) {
+                const targetIndex = +dropTarget.dataset.index;
+                reorderPlaylist(draggedIndex, targetIndex);
+            }
+
+            document.querySelectorAll('.song-item-card').forEach(el => el.classList.remove('drag-over'));
+            touchDraggedElem = null;
+        }
+
+        function reorderPlaylist(fromIndex, toIndex) {
+            const movedItem = playlistData.splice(fromIndex, 1)[0];
+            playlistData.splice(toIndex, 0, movedItem);
+            renderUI();
+            syncPlaylistWithSheets(playlistData);
         }
 
         function openModal(item, currentKey) {
@@ -487,8 +626,5 @@
 
         loadPlaylist();
     </script>
-
-
-<!-- Placeholder: Drag & Drop/Responsive enhancements to be implemented -->
 </body>
 </html>
