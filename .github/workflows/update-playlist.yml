@@ -25,10 +25,16 @@ jobs:
           node -e "
           const fs = require('fs');
 
-          // Normalizes strings for robust, fault-tolerant title matching
+          /**
+           * Robust string normalizer for fuzzy song matching.
+           * Removes common tab suffixes, punctuation, spaces, and diacritics.
+           */
           function normalize(str) {
             return (str || '')
               .toLowerCase()
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '') // Strip diacritical marks/accents
+              .replace(/\b(chords?|tabs?|official|version|ver|pro)\b/gi, '')
               .replace(/[^a-z0-9]/g, '');
           }
 
@@ -47,21 +53,24 @@ jobs:
             if (fs.existsSync('key-overrides.json')) {
               try {
                 overrides = JSON.parse(fs.readFileSync('key-overrides.json', 'utf8'));
-                console.log('Loaded ' + Object.keys(overrides).length + ' key overrides.');
+                console.log('Loaded ' + Object.keys(overrides).length + ' key overrides from key-overrides.json.');
               } catch (e) {
-                console.warn('Warning: Failed to parse key-overrides.json. Falling back to defaults.');
+                console.warn('Warning: Failed to parse key-overrides.json. Error:', e.message);
               }
+            } else {
+              console.warn('key-overrides.json not found in repository root.');
             }
 
+            // Create normalized dictionary map
             const normalizedOverrides = {};
             for (const [title, key] of Object.entries(overrides)) {
-              normalizedOverrides[normalize(title)] = key;
+              normalizedOverrides[normalize(title)] = { originalTitle: title, key };
             }
 
-            // 2. Fetch live payload from Ultimate Guitar
+            // 2. Fetch live payload from Ultimate Guitar via Native Fetch
             const url = 'https://www.ultimate-guitar.com/user/playlist/shared?h=N4oafAvw08YnD1Pep-gUFb1r';
             
-            console.log('Fetching live payload from Ultimate Guitar...');
+            console.log('Fetching HTML payload from Ultimate Guitar...');
             const response = await fetch(url, {
               headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -72,7 +81,7 @@ jobs:
             });
 
             if (!response.ok) {
-              throw new Error('HTTP request failed with status code: ' + response.status);
+              throw new Error('HTTP Request failed with status code: ' + response.status);
             }
 
             const html = await response.text();
@@ -82,7 +91,7 @@ jobs:
                           html.match(/data-content=\"([^\"]+)\"[^\>]*class=\"js-store\"/i);
 
             if (!match || !match[1]) {
-              throw new Error('Failed to locate target data store inside document body.');
+              throw new Error('Could not locate div.js-store data-content payload in document HTML.');
             }
 
             const decodedJson = decodeHTMLEntities(match[1]);
@@ -96,7 +105,8 @@ jobs:
               pageData.tabs || 
               [];
 
-            // 4. Construct final normalized schema
+            // 4. Construct final normalized schema and compute key resolution statistics
+            let matchCount = 0;
             const songs = rawItems.map(item => {
               const tab = item.tab || item;
               const title = tab.song_name || tab.song_title || tab.title || '';
@@ -109,25 +119,35 @@ jobs:
                 tab.key_name || 
                 'N/A';
 
-              const matchedKey = normalizedOverrides[normalize(title)];
+              const normTitle = normalize(title);
+              const overrideMatch = normalizedOverrides[normTitle];
+
+              if (overrideMatch) {
+                matchCount++;
+                console.log(`[MATCH] "${title}" -> Override Key: "${overrideMatch.key}" (Matched via "${overrideMatch.originalTitle}")`);
+              } else {
+                console.log(`[FALLBACK] "${title}" (Norm: "${normTitle}") -> Default Key: "${defaultKey}"`);
+              }
 
               return {
                 title,
                 artist,
-                key: matchedKey ? matchedKey : defaultKey
+                key: overrideMatch ? overrideMatch.key : defaultKey
               };
             }).filter(s => s.title && s.artist);
 
-            // 5. Atomic write operation
+            console.log(`\nMatching Summary: ${matchCount} / ${songs.length} songs resolved via key-overrides.json.`);
+
+            // 5. Write playlist.json atomically
             if (songs.length > 0) {
               fs.writeFileSync('playlist.json', JSON.stringify(songs, null, 2));
-              console.log('Successfully saved ' + songs.length + ' songs to playlist.json');
+              console.log('Successfully wrote ' + songs.length + ' records to playlist.json.');
             } else {
-              console.error('Data payload extracted, but 0 valid song entries found.');
+              console.error('Data container parsed, but zero valid song items were found.');
               process.exit(1);
             }
           })().catch(err => {
-            console.error('Fatal Execution Error:', err.message);
+            console.error('Fatal Pipeline Failure:', err.message);
             process.exit(1);
           });
           "
@@ -137,4 +157,4 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add playlist.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update playlist.json with matched keys" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update playlist.json with merged key overrides" && git push)
