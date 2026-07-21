@@ -76,10 +76,13 @@
             background-color: #222222;
             transform: translateY(-1px);
         }
+        .song-item-card:hover .song-title { color: #ff4500; }
+        .song-item-card:hover .yt-icon { transform: scale(1.15); color: #ff4500; }
+
         .song-left { display: flex; align-items: center; min-width: 0; flex-grow: 1; }
         .song-number { font-size: 0.85rem; color: #ff4500; font-weight: bold; width: 28px; flex-shrink: 0; }
         .song-info { display: flex; flex-direction: column; min-width: 0; flex-grow: 1; }
-        .song-title { font-weight: 600; font-size: 0.95rem; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .song-title { font-weight: 600; font-size: 0.95rem; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.2s ease; }
         .song-artist { font-size: 0.8rem; color: #a0a0a0; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
         .actions-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
@@ -93,9 +96,9 @@
             border-radius: 4px;
             white-space: nowrap;
         }
-        .yt-icon { color: #ff0000; font-size: 1.2rem; flex-shrink: 0; text-decoration: none; padding: 4px; }
+        .yt-icon { color: #ff0000; font-size: 1.2rem; flex-shrink: 0; transition: transform 0.2s ease, color 0.2s ease; }
 
-        /* Modal Popup */
+        /* Modal Overlay for Editing Key */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -153,7 +156,7 @@
         <ul class="song-list" id="songList"></ul>
     </div>
 
-    <!-- Edit Key Modal -->
+    <!-- Key Edit Modal -->
     <div class="modal-overlay" id="editModal">
         <div class="modal-card">
             <div class="modal-title">Edit Song Key</div>
@@ -167,13 +170,12 @@
     </div>
 
     <script>
-        // PASTE YOUR DEPLOYED WEB APP URL HERE
-        const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyrIg2w1eHU2fruqixpNKLCtvTtgZ1N4inHOx5g8z_DiAR8W9NiZkK0Cf0D106HHyrp/exec";
+        const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
         
         let playlistData = [];
         let keyMapData = {};
         let activeEditSong = null;
-        let pressTimer = null;
+        let clickTimer = null;
 
         function normalizeTitle(str) {
             return str
@@ -227,8 +229,19 @@
 
                 li.className = "song-item-card";
 
-                // Attach 2-second hold listener
-                attachLongPressListener(li, item, detectedKey);
+                // Single Click Handler (Debounced to open YouTube)
+                li.onclick = (e) => {
+                    if (clickTimer) clearTimeout(clickTimer);
+                    clickTimer = setTimeout(() => {
+                        window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
+                    }, 250); // 250ms delay waits to see if a second click arrives
+                };
+
+                // Double Click Handler (Opens Edit Key Modal)
+                li.ondblclick = (e) => {
+                    if (clickTimer) clearTimeout(clickTimer); // Cancel single-click YouTube action
+                    openModal(item, detectedKey);
+                };
 
                 li.innerHTML = `
                     <div class="song-left">
@@ -240,39 +253,10 @@
                     </div>
                     <div class="actions-right">
                         ${keyBadgeHtml}
-                        <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer" class="fa-brands fa-youtube yt-icon" title="Listen on YouTube" onclick="event.stopPropagation();"></a>
+                        <i class="fa-brands fa-youtube yt-icon"></i>
                     </div>
                 `;
                 listElement.appendChild(li);
-            });
-        }
-
-        function attachLongPressListener(element, item, currentKey) {
-            const startPress = (e) => {
-                if (e.target.closest('.yt-icon')) return;
-
-                pressTimer = setTimeout(() => {
-                    openModal(item, currentKey);
-                }, 2000); // 2000 ms = 2 seconds
-            };
-
-            const cancelPress = () => {
-                if (pressTimer) {
-                    clearTimeout(pressTimer);
-                    pressTimer = null;
-                }
-            };
-
-            element.addEventListener('touchstart', startPress, { passive: true });
-            element.addEventListener('touchend', cancelPress);
-            element.addEventListener('touchmove', cancelPress);
-
-            element.addEventListener('mousedown', startPress);
-            element.addEventListener('mouseup', cancelPress);
-            element.addEventListener('mouseleave', cancelPress);
-
-            element.addEventListener('contextmenu', (e) => {
-                if (pressTimer) e.preventDefault();
             });
         }
 
@@ -325,6 +309,13 @@
                 saveBtn.textContent = "Save";
             }
         }
+
+        // Allow 'Enter' key inside input field to trigger save
+        document.getElementById("modalKeyInput").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                submitKeyUpdate();
+            }
+        });
 
         loadPlaylist();
     </script>
