@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -467,7 +467,7 @@
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: bold;
         }
 
@@ -525,13 +525,13 @@
         <div class="app-container">
             <div class="header">
                 <h1><i class="fa-solid fa-guitar"></i> Baba Rock</h1>
-                <div class="pool-badge">Pool Remaining: <span id="poolCounter">0</span></div>
+                <div class="pool-badge">Kalan Havuz: <span id="poolCounter">0</span></div>
                 <div class="nav-tabs">
                     <button class="tab-btn active" onclick="switchSlide(0)">
                         <i class="fa-solid fa-cubes"></i> Slot
                     </button>
                     <button class="tab-btn" onclick="switchSlide(1)">
-                        <i class="fa-solid fa-dharmachakra"></i> Wheel
+                        <i class="fa-solid fa-dharmachakra"></i> Çark
                     </button>
                 </div>
             </div>
@@ -556,7 +556,7 @@
                             </div>
                         </div>
                         <button class="trigger-btn" id="slotBtn" onclick="pullSlotLever()">
-                            <i class="fa-solid fa-sliders"></i> PULL LEVER
+                            <i class="fa-solid fa-sliders"></i> KOLU ÇEK
                         </button>
                     </div>
 
@@ -568,10 +568,10 @@
                                 <div class="magnifier-text" id="magnifierText"></div>
                             </div>
                             <canvas id="wheelCanvas" width="260" height="260"></canvas>
-                            <div class="wheel-center-cap" onclick="spinWheel()">SPIN</div>
+                            <div class="wheel-center-cap" onclick="spinWheel()">ÇEVİR</div>
                         </div>
                         <button class="trigger-btn" id="wheelBtn" onclick="spinWheel()">
-                            <i class="fa-solid fa-rotate-right"></i> SPIN WHEEL
+                            <i class="fa-solid fa-rotate-right"></i> ÇARKI ÇEVİR
                         </button>
                     </div>
 
@@ -581,17 +581,17 @@
             <!-- YouTube Link Footer -->
             <div class="yt-container">
                 <a href="#" target="_blank" rel="noopener noreferrer" class="yt-btn disabled" id="ytBtn">
-                    <i class="fa-brands fa-youtube"></i> Search on YouTube
+                    <i class="fa-brands fa-youtube"></i> YouTube'da Ara
                 </a>
             </div>
         </div>
 
         <!-- Right Side Panel: Played Songs List -->
         <div class="played-panel">
-            <h2><i class="fa-solid fa-list-check"></i> Played Songs</h2>
+            <h2><i class="fa-solid fa-list-check"></i> Çalınan Şarkılar</h2>
             <div class="hint-text">
-                <i class="fa-solid fa-circle-info"></i> Click song for lyrics.<br>
-                Double-click to return to pool.
+                <i class="fa-solid fa-circle-info"></i> Sözler için tıklayın.<br>
+                Havuza döndürmek için çift tıklayın.
             </div>
             <ul class="played-list" id="playedList"></ul>
         </div>
@@ -724,7 +724,7 @@
             wheelBtn.disabled = empty;
 
             if (empty && !pendingExtraction) {
-                document.getElementById('magnifierText').textContent = "POOL EMPTY";
+                document.getElementById('magnifierText').textContent = "HAVUZ BOŞ";
             }
         }
 
@@ -757,17 +757,17 @@
                 if (!res.ok) throw new Error(`File not found: ${lyricPath}`);
                 lyricsContent = await res.text();
             } catch (err) {
-                lyricsContent = `Lyrics file not found for "${song.artist} - ${song.title}".\n\nExpected File Path:\n${lyricPath}`;
+                lyricsContent = `Şarkı sözü dosyası bulunamadı: "${song.artist} - ${song.title}".\n\nBeklenen Dosya Yolu:\n${lyricPath}`;
             }
 
             const lyricsWin = window.open("", "_blank");
             if (lyricsWin) {
                 lyricsWin.document.write(`
                     <!DOCTYPE html>
-                    <html lang="en">
+                    <html lang="tr">
                     <head>
                         <meta charset="UTF-8">
-                        <title>${song.artist} - ${song.title} (Lyrics)</title>
+                        <title>${song.artist} - ${song.title} (Şarkı Sözleri)</title>
                         <style>
                             body {
                                 background-color: #000000;
@@ -809,7 +809,7 @@
         function initSlotMachine() {
             const reel = document.getElementById('singleReel');
             if (playlist.length === 0) {
-                reel.innerHTML = `<div class="reel-item"><div class="title">NO SONGS</div></div>`;
+                reel.innerHTML = `<div class="reel-item"><div class="title">ŞARKI YOK</div></div>`;
                 reel.style.top = '0px';
                 return;
             }
@@ -896,7 +896,7 @@
                 ctx.fillStyle = '#ffffff';
                 ctx.font = 'bold 12px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText("EMPTY POOL", 130, 135);
+                ctx.fillText("HAVUZ BOŞ", 130, 135);
                 return;
             }
 
