@@ -78,18 +78,20 @@
         }
 
         .tab-btn {
+            flex: 1;
             background: transparent;
             border: none;
             color: var(--text-muted);
-            padding: 8px 16px;
+            padding: 10px;
             border-radius: 20px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
+            gap: 8px;
         }
 
         .tab-btn.active {
@@ -107,12 +109,12 @@
 
         .slider-track {
             display: flex;
-            width: 300%;
+            width: 200%;
             transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
         .slide-panel {
-            width: 33.333%;
+            width: 50%;
             padding: 30px 20px;
             display: flex;
             flex-direction: column;
@@ -164,34 +166,19 @@
             position: relative;
         }
 
-        /* Glass / Cylinder Overlay Effect */
+        /* Curved 3D Cylinder Lighting (Red Line Removed) */
         .slot-frame::before {
             content: "";
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             background: linear-gradient(
                 to bottom,
-                rgba(0,0,0,0.7) 0%,
+                rgba(0,0,0,0.8) 0%,
                 rgba(0,0,0,0) 25%,
                 rgba(0,0,0,0) 75%,
-                rgba(0,0,0,0.7) 100%
+                rgba(0,0,0,0.8) 100%
             );
             z-index: 3;
-            pointer-events: none;
-        }
-
-        /* Red Selection Line */
-        .slot-frame::after {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--primary);
-            box-shadow: 0 0 8px var(--primary);
-            transform: translateY(-50%);
-            z-index: 4;
             pointer-events: none;
         }
 
@@ -211,7 +198,7 @@
             position: absolute;
             top: 0;
             width: 100%;
-            transition: top 0.05s linear;
+            will-change: transform;
         }
 
         .reel-item {
@@ -228,7 +215,7 @@
         .reel-item .title {
             font-size: 1.1rem;
             font-weight: 800;
-            color: #000000; /* Black Font */
+            color: #000000; /* Black Fonts */
             line-height: 1.2;
             word-break: break-word;
         }
@@ -285,7 +272,7 @@
             transform: rotateX(150deg) scaleY(0.6);
         }
 
-        /* ==================== 2. WHEEL OF FORTUNE (MAGNIFIER LENS) ==================== */
+        /* ==================== 2. WHEEL OF FORTUNE (POST-SPIN REVEAL LENS) ==================== */
         .wheel-wrapper {
             position: relative;
             width: 260px;
@@ -316,18 +303,19 @@
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
         }
 
+        /* Frame lens: Reveals song ONLY when stopped */
         .wheel-magnifier {
             position: absolute;
             top: 2px;
             left: 50%;
             transform: translateX(-50%);
-            width: 120px;
+            width: 130px;
             height: 48px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(2px);
+            background: rgba(18, 18, 18, 0.85);
+            backdrop-filter: blur(4px);
             border: 3px solid var(--primary);
             border-radius: 12px;
-            box-shadow: 0 0 15px rgba(255, 69, 0, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
             z-index: 11;
             pointer-events: none;
             display: flex;
@@ -341,8 +329,7 @@
             font-size: 0.85rem;
             font-weight: 800;
             text-align: center;
-            text-shadow: 0 0 6px #000, 0 0 2px #000;
-            padding: 2px 4px;
+            padding: 2px 6px;
             word-break: break-word;
             line-height: 1.1;
         }
@@ -362,120 +349,6 @@
             color: #fff;
             font-size: 0.75rem;
             font-weight: bold;
-        }
-
-        /* ==================== 3. VINYL TURNTABLE (TRAVELING NEEDLE ARM) ==================== */
-        .turntable {
-            width: 250px;
-            height: 250px;
-            background: #181818;
-            border-radius: 16px;
-            border: 2px solid #333;
-            position: relative;
-            box-shadow: inset 0 0 10px #000, 0 8px 20px rgba(0,0,0,0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .vinyl-record {
-            width: 210px;
-            height: 210px;
-            background: repeating-radial-gradient(
-                #111,
-                #111 2px,
-                #222 3px,
-                #111 4px
-            );
-            border-radius: 50%;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 10px rgba(0,0,0,0.8);
-            transition: transform 0.1s linear;
-        }
-
-        .vinyl-record.spinning {
-            animation: spinRecord 1s linear infinite;
-        }
-
-        @keyframes spinRecord {
-            100% { transform: rotate(360deg); }
-        }
-
-        .record-label {
-            width: 75px;
-            height: 75px;
-            background: radial-gradient(circle, #ff4500 0%, #b71c1c 100%);
-            border-radius: 50%;
-            border: 3px solid #000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            padding: 4px;
-            text-align: center;
-        }
-
-        .record-label-title {
-            font-size: 0.65rem;
-            font-weight: bold;
-            line-height: 1.1;
-            word-break: break-word;
-        }
-
-        .record-label-artist {
-            font-size: 0.5rem;
-            opacity: 0.8;
-            margin-top: 2px;
-        }
-
-        .tonearm-pivot {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 24px;
-            height: 24px;
-            background: #444;
-            border-radius: 50%;
-            border: 2px solid #666;
-            z-index: 10;
-        }
-
-        .tonearm {
-            position: absolute;
-            top: 30px;
-            right: 30px;
-            width: 10px;
-            height: 110px;
-            pointer-events: none;
-            transform-origin: 5px 0px;
-            transition: transform 0.1s linear;
-            transform: rotate(-35deg);
-            z-index: 10;
-        }
-
-        .tonearm-stick {
-            width: 4px;
-            height: 95px;
-            background: linear-gradient(to right, #ccc, #fff, #aaa);
-            position: absolute;
-            left: 3px;
-            border-radius: 2px;
-        }
-
-        .tonearm-head {
-            width: 12px;
-            height: 22px;
-            background: var(--primary);
-            position: absolute;
-            bottom: 0px;
-            left: -1px;
-            border-radius: 2px;
-            box-shadow: 0 0 5px rgba(0,0,0,0.8);
         }
 
         /* YouTube Footer Link */
@@ -526,9 +399,6 @@
                 <button class="tab-btn" onclick="switchSlide(1)">
                     <i class="fa-solid fa-dharmachakra"></i> Wheel
                 </button>
-                <button class="tab-btn" onclick="switchSlide(2)">
-                    <i class="fa-solid fa-compact-disc"></i> Vinyl
-                </button>
             </div>
         </div>
 
@@ -556,10 +426,11 @@
                     </button>
                 </div>
 
-                <!-- PANEL 2: WHEEL OF FORTUNE WITH MAGNIFIER -->
+                <!-- PANEL 2: WHEEL OF FORTUNE -->
                 <div class="slide-panel">
                     <div class="wheel-wrapper">
                         <div class="wheel-pointer"></div>
+                        <!-- Red frame lens displays song ONLY upon stopping -->
                         <div class="wheel-magnifier">
                             <div class="magnifier-text" id="magnifierText">SPIN ME!</div>
                         </div>
@@ -568,26 +439,6 @@
                     </div>
                     <button class="trigger-btn" onclick="spinWheel()">
                         <i class="fa-solid fa-rotate-right"></i> SPIN WHEEL
-                    </button>
-                </div>
-
-                <!-- PANEL 3: VINYL TURNTABLE WITH TRAVELING ARM -->
-                <div class="slide-panel">
-                    <div class="turntable" onclick="playVinyl()">
-                        <div class="vinyl-record" id="vinylRecord">
-                            <div class="record-label">
-                                <div class="record-label-title" id="vinylTitle">BABA ROCK</div>
-                                <div class="record-label-artist" id="vinylArtist">Select Song</div>
-                            </div>
-                        </div>
-                        <div class="tonearm-pivot"></div>
-                        <div class="tonearm" id="tonearm">
-                            <div class="tonearm-stick"></div>
-                            <div class="tonearm-head"></div>
-                        </div>
-                    </div>
-                    <button class="trigger-btn" onclick="playVinyl()">
-                        <i class="fa-solid fa-play"></i> DROP NEEDLE
                     </button>
                 </div>
 
@@ -603,7 +454,7 @@
     </div>
 
     <script>
-        // Fallback playlist data ensuring instant standalone operation
+        // Fallback playlist
         const defaultPlaylist = [
             { title: "Cambaz", artist: "mor ve ötesi" },
             { title: "Bir Derdim Var", artist: "mor ve ötesi" },
@@ -640,7 +491,7 @@
         function switchSlide(index) {
             if (isBusy) return;
             currentSlide = index;
-            document.getElementById("sliderTrack").style.transform = `translateX(-${index * 33.333}%)`;
+            document.getElementById("sliderTrack").style.transform = `translateX(-${index * 50}%)`;
             
             const tabs = document.querySelectorAll('.tab-btn');
             tabs.forEach((tab, i) => {
@@ -656,7 +507,7 @@
             viewport.addEventListener('touchend', e => {
                 const diff = startX - e.changedTouches[0].clientX;
                 if (Math.abs(diff) > 50) {
-                    if (diff > 0 && currentSlide < 2) switchSlide(currentSlide + 1);
+                    if (diff > 0 && currentSlide < 1) switchSlide(currentSlide + 1);
                     if (diff < 0 && currentSlide > 0) switchSlide(currentSlide - 1);
                 }
             }, {passive: true});
@@ -674,11 +525,12 @@
             return playlist[Math.floor(Math.random() * playlist.length)];
         }
 
-        /* ================= 1. SINGLE-REEL REALISTIC SLOT MACHINE ================= */
+        /* ================= 1. SLOT MACHINE (PHYSICS DECELERATION) ================= */
         function initSlotMachine() {
             const reel = document.getElementById('singleReel');
-            // White reel with black fonts, 1 row per song
-            reel.innerHTML = playlist.map(song => `
+            // Duplicate the list enough times to allow smooth scrolling
+            const displayList = [...playlist, ...playlist, ...playlist, ...playlist];
+            reel.innerHTML = displayList.map(song => `
                 <div class="reel-item">
                     <div class="title">${song.title}</div>
                     <div class="artist">${song.artist}</div>
@@ -694,31 +546,38 @@
             arm.classList.add('pulled');
             setTimeout(() => arm.classList.remove('pulled'), 400);
 
-            let spins = 0;
-            const maxSpins = 25;
-            const finalSong = getRandomSong();
             const reel = document.getElementById('singleReel');
+            const itemHeight = 100;
+            const targetSong = getRandomSong();
+            const targetIndex = playlist.findIndex(s => s.title === targetSong.title);
+            
+            // Calculate stopping point in 3rd loop iteration
+            const stopIndex = playlist.length * 2 + (targetIndex >= 0 ? targetIndex : 0);
+            const targetPos = stopIndex * itemHeight;
 
-            const interval = setInterval(() => {
-                const randomIndex = Math.floor(Math.random() * playlist.length);
-                reel.style.top = `-${randomIndex * 100}px`;
+            let currentPos = 0;
+            let velocity = 50; // Initial high speed
+            const friction = 0.965; // Exponential deceleration factor
 
-                spins++;
-                if (spins >= maxSpins) {
-                    clearInterval(interval);
-                    
-                    const targetIndex = playlist.findIndex(s => s.title === finalSong.title);
-                    const validIndex = targetIndex >= 0 ? targetIndex : 0;
-                    
-                    reel.style.top = `-${validIndex * 100}px`;
+            function animateReel() {
+                velocity *= friction;
+                currentPos += velocity;
 
-                    updateYouTubeBtn(finalSong);
+                // When velocity drops significantly, snap cleanly to target
+                if (velocity < 1.5 || currentPos >= targetPos) {
+                    reel.style.top = `-${targetPos}px`;
+                    updateYouTubeBtn(targetSong);
                     isBusy = false;
+                } else {
+                    reel.style.top = `-${currentPos % (playlist.length * itemHeight * 3)}px`;
+                    requestAnimationFrame(animateReel);
                 }
-            }, 70);
+            }
+
+            requestAnimationFrame(animateReel);
         }
 
-        /* ================= 2. WHEEL OF FORTUNE (MAGNIFIER LENS) ================= */
+        /* ================= 2. WHEEL OF FORTUNE (REVEAL ON STOP) ================= */
         function drawWheel() {
             const canvas = document.getElementById('wheelCanvas');
             const ctx = canvas.getContext('2d');
@@ -749,29 +608,15 @@
                 ctx.fillText(playlist[i].title.substring(0, 12), 115, 3);
                 ctx.restore();
             }
-
-            updateMagnifierText(sliceAngle);
-        }
-
-        function updateMagnifierText(sliceAngle) {
-            const totalSongs = playlist.length;
-            if (totalSongs === 0) return;
-
-            let normalizedAngle = (Math.PI / 2 - (wheelAngle % (2 * Math.PI))) % (2 * Math.PI);
-            if (normalizedAngle < 0) normalizedAngle += 2 * Math.PI;
-
-            const selectedIndex = Math.floor(normalizedAngle / sliceAngle) % totalSongs;
-            const currentSong = playlist[selectedIndex];
-
-            if (currentSong) {
-                document.getElementById('magnifierText').textContent = currentSong.title;
-            }
         }
 
         function spinWheel() {
             if (isBusy || wheelSpinning) return;
             isBusy = true;
             wheelSpinning = true;
+
+            const magnifierText = document.getElementById('magnifierText');
+            magnifierText.textContent = "???"; // Hide text while spinning
 
             let velocity = Math.random() * 0.25 + 0.35;
             const friction = 0.985;
@@ -787,6 +632,7 @@
                     wheelSpinning = false;
                     isBusy = false;
 
+                    // Calculate winning song index at marker (12 o'clock = -PI/2)
                     const sliceAngle = (2 * Math.PI) / playlist.length;
                     let normalizedAngle = (Math.PI / 2 - (wheelAngle % (2 * Math.PI))) % (2 * Math.PI);
                     if (normalizedAngle < 0) normalizedAngle += 2 * Math.PI;
@@ -794,61 +640,12 @@
                     const finalIndex = Math.floor(normalizedAngle / sliceAngle) % playlist.length;
                     const selectedSong = playlist[finalIndex];
 
+                    // Reveal ONLY once stopped
+                    magnifierText.textContent = selectedSong.title;
                     updateYouTubeBtn(selectedSong);
                 }
             }
             requestAnimationFrame(animate);
-        }
-
-        /* ================= 3. VINYL TURNTABLE (TRAVELING NEEDLE ARM) ================= */
-        function playVinyl() {
-            if (isBusy) return;
-            isBusy = true;
-
-            const record = document.getElementById('vinylRecord');
-            const tonearm = document.getElementById('tonearm');
-            const selectedSong = getRandomSong();
-
-            record.classList.add('spinning');
-
-            let currentArmAngle = -35;
-            const startTrackAngle = -10;
-            const endTrackAngle = 10;
-            const duration = 2800;
-            const startTime = performance.now();
-
-            function animateTonearm(now) {
-                const elapsed = now - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-
-                if (progress < 0.2) {
-                    const p = progress / 0.2;
-                    currentArmAngle = -35 + p * (startTrackAngle - (-35));
-                } else if (progress < 0.85) {
-                    const p = (progress - 0.2) / 0.65;
-                    currentArmAngle = startTrackAngle + p * (endTrackAngle - startTrackAngle);
-                } else {
-                    const p = (progress - 0.85) / 0.15;
-                    currentArmAngle = endTrackAngle + p * (-35 - endTrackAngle);
-                }
-
-                tonearm.style.transform = `rotate(${currentArmAngle}deg)`;
-
-                if (progress < 1) {
-                    requestAnimationFrame(animateTonearm);
-                } else {
-                    record.classList.remove('spinning');
-                    
-                    // Display song inside vinyl label directly
-                    document.getElementById('vinylTitle').textContent = selectedSong.title;
-                    document.getElementById('vinylArtist').textContent = selectedSong.artist;
-
-                    updateYouTubeBtn(selectedSong);
-                    isBusy = false;
-                }
-            }
-
-            requestAnimationFrame(animateTonearm);
         }
 
         window.onload = init;
