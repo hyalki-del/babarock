@@ -145,6 +145,18 @@
 
         .header h1 i { color: var(--primary); }
 
+        .pool-badge {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        .pool-badge span {
+            color: var(--primary);
+            font-weight: 800;
+        }
+
         .nav-tabs {
             display: flex;
             justify-content: space-around;
@@ -513,6 +525,7 @@
         <div class="app-container">
             <div class="header">
                 <h1><i class="fa-solid fa-guitar"></i> Baba Rock</h1>
+                <div class="pool-badge">Pool Remaining: <span id="poolCounter">0</span></div>
                 <div class="nav-tabs">
                     <button class="tab-btn active" onclick="switchSlide(0)">
                         <i class="fa-solid fa-cubes"></i> Slot
@@ -573,7 +586,7 @@
             </div>
         </div>
 
-        <!-- Right Side Panel: Selected Songs List -->
+        <!-- Right Side Panel: Played Songs List -->
         <div class="played-panel">
             <h2><i class="fa-solid fa-list-check"></i> Played Songs</h2>
             <div class="hint-text">
@@ -596,8 +609,9 @@
             { title: "Araf", artist: "manga" }
         ];
 
-        let playlist = [];      // Active pool
-        let playedList = [];    // Extracted pool
+        let playlist = [];             // Active pool
+        let playedList = [];           // Extracted pool
+        let pendingExtraction = null;  // Song waiting to be extracted on NEXT draw
         let isBusy = false;
         let currentSlide = 0;
         let selectedSong = null;
@@ -614,9 +628,14 @@
             } catch (err) {
                 playlist = [...defaultPlaylist];
             }
+            updatePoolCounter();
             initSlotMachine();
             drawWheel();
             setupTouchSwipe();
+        }
+
+        function updatePoolCounter() {
+            document.getElementById('poolCounter').textContent = playlist.length;
         }
 
         function switchSlide(index) {
@@ -645,13 +664,16 @@
         }
 
         /* ================= POOL MANAGEMENT & PLAYED LIST UI ================= */
-        function extractSongFromPool(song) {
-            const index = playlist.findIndex(s => s.title === song.title && s.artist === song.artist);
-            if (index !== -1) {
-                playlist.splice(index, 1);
-                playedList.push(song);
-                renderPlayedList();
-                refreshGameViews();
+        function processPendingExtraction() {
+            if (pendingExtraction) {
+                const index = playlist.findIndex(s => s.title === pendingExtraction.title && s.artist === pendingExtraction.artist);
+                if (index !== -1) {
+                    playlist.splice(index, 1);
+                    playedList.push(pendingExtraction);
+                    renderPlayedList();
+                    updatePoolCounter();
+                }
+                pendingExtraction = null;
             }
         }
 
@@ -661,6 +683,7 @@
                 playedList.splice(index, 1);
                 playlist.push(song);
                 renderPlayedList();
+                updatePoolCounter();
                 refreshGameViews();
             }
         }
@@ -700,12 +723,12 @@
             slotBtn.disabled = empty;
             wheelBtn.disabled = empty;
 
-            if (empty) {
+            if (empty && !pendingExtraction) {
                 document.getElementById('magnifierText').textContent = "POOL EMPTY";
             }
         }
 
-        /* ================= LYRIC FETCHING ENGINE ================= */
+        /* ================= LYRIC FETCHING ENGINE (artist-name-song-name.txt) ================= */
         function sanitizeSegment(str) {
             const map = {
                 'ç':'c', 'Ç':'C', 'ğ':'g', 'Ğ':'G', 'ı':'i', 'İ':'I',
@@ -800,7 +823,16 @@
         }
 
         function pullSlotLever() {
-            if (isBusy || playlist.length === 0) return;
+            if (isBusy) return;
+            
+            // Extract previously drawn song on NEW user click
+            processPendingExtraction();
+
+            if (playlist.length === 0) {
+                refreshGameViews();
+                return;
+            }
+
             isBusy = true;
 
             document.querySelectorAll('.reel-item').forEach(el => {
@@ -838,7 +870,7 @@
                     }
 
                     updateYouTubeBtn(selectedSong);
-                    extractSongFromPool(selectedSong);
+                    pendingExtraction = selectedSong; // Schedule extraction for NEXT draw
                     isBusy = false;
                 } else {
                     reel.style.top = `-${currentPos % (playlist.length * itemHeight * 3)}px`;
@@ -894,7 +926,16 @@
         }
 
         function spinWheel() {
-            if (isBusy || wheelSpinning || playlist.length === 0) return;
+            if (isBusy || wheelSpinning) return;
+
+            // Extract previously drawn song on NEW user click
+            processPendingExtraction();
+
+            if (playlist.length === 0) {
+                refreshGameViews();
+                return;
+            }
+
             isBusy = true;
             wheelSpinning = true;
 
@@ -929,7 +970,7 @@
                     magnifier.style.display = 'flex';
 
                     updateYouTubeBtn(selectedSong);
-                    extractSongFromPool(selectedSong);
+                    pendingExtraction = selectedSong; // Schedule extraction for NEXT draw
                 }
             }
             requestAnimationFrame(animate);
