@@ -1,514 +1,752 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Band Engine - Kurulum ve Yönetim Paneli</title>
+    <title>Baba Rock - Şarkı Seçici</title>
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         :root {
-            --bg-color: #000000;
-            --card-bg: rgba(28, 28, 30, 0.75);
-            --border-color: rgba(255, 255, 255, 0.12);
-            --primary-accent: #0071e3;
-            --text-primary: #f5f5f7;
-            --text-secondary: #86868b;
-            --card-radius: 18px;
-            --backdrop-blur: blur(20px);
+            --primary: #ff4500;
+            --primary-hover: #e03d00;
+            --bg-dark: #0a0a0a;
+            --card-bg: #121212;
+            --surface: #1a1a1a;
+            --border: #282828;
+            --text-main: #ffffff;
+            --text-muted: #888888;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            user-select: none;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-            padding: 40px 20px;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
         }
 
-        .admin-container {
-            max-width: 840px;
+        .app-container {
+            max-width: 480px;
             width: 100%;
             background: var(--card-bg);
-            backdrop-filter: var(--backdrop-blur);
-            -webkit-backdrop-filter: var(--backdrop-blur);
-            border: 1px solid var(--border-color);
-            border-radius: var(--card-radius);
-            padding: 36px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 69, 0, 0.15);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        header {
-            margin-bottom: 32px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 20px;
+        /* Header Navigation & Slider Tabs */
+        .header {
+            padding: 20px 20px 10px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
         }
 
-        h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
+        .header h1 {
+            font-size: 1.5rem;
             display: flex;
             align-items: center;
-            gap: 12px;
-            color: #ffffff;
+            justify-content: center;
+            gap: 10px;
+            color: var(--text-main);
         }
 
-        h1 i { color: var(--primary-accent); }
+        .header h1 i { color: var(--primary); }
 
-        p.subtitle {
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            margin-top: 6px;
+        .nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            background: #080808;
+            padding: 5px;
+            border-radius: 30px;
+            border: 1px solid #222;
         }
 
-        .section-title {
-            font-size: 1.15rem;
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
             font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 16px;
-            margin-top: 28px;
+            cursor: pointer;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
-        .theme-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
+        .tab-btn.active {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255, 69, 0, 0.4);
         }
 
-        .theme-card {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1.5px solid var(--border-color);
-            border-radius: 14px;
-            padding: 18px;
-            cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Viewport & Slider Track */
+        .slider-viewport {
+            width: 100%;
+            overflow: hidden;
             position: relative;
         }
 
-        .theme-card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.07);
+        .slider-track {
+            display: flex;
+            width: 300%;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        .theme-card.active {
-            border-color: var(--primary-accent);
-            background: rgba(0, 113, 227, 0.12);
-        }
-
-        .theme-card.active::after {
-            content: "\f00c";
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            position: absolute;
-            top: 14px;
-            right: 14px;
-            color: var(--primary-accent);
-            font-size: 0.9rem;
-        }
-
-        .theme-title { font-weight: 600; font-size: 1rem; margin-bottom: 4px; }
-        .theme-desc { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.3; }
-
-        .form-group {
+        .slide-panel {
+            width: 33.333%;
+            padding: 25px 20px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            margin-bottom: 18px;
-        }
-
-        label {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        input[type="text"], input[type="url"], input[type="password"] {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--border-color);
-            color: #fff;
-            padding: 12px 14px;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.2s ease;
-        }
-
-        input:focus { border-color: var(--primary-accent); }
-
-        /* Dynamic Item Rows (Members & Images) */
-        .dynamic-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .dynamic-row input[type="text"], .dynamic-row input[type="url"] { flex: 1; }
-
-        .dynamic-row input[type="color"] {
-            border: none;
-            width: 44px;
-            height: 42px;
-            border-radius: 8px;
-            cursor: pointer;
-            background: transparent;
-        }
-
-        .img-preview {
-            width: 42px;
-            height: 42px;
-            border-radius: 8px;
-            object-fit: cover;
-            border: 1px solid var(--border-color);
-            background: #111;
-        }
-
-        .btn-remove {
-            background: rgba(255, 59, 48, 0.15);
-            color: #ff3b30;
-            border: 1px solid rgba(255, 59, 48, 0.3);
-            width: 42px;
-            height: 42px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
+            min-height: 380px;
         }
 
-        .btn-remove:hover { background: rgba(255, 59, 48, 0.3); }
-
-        .btn-add {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--primary-accent);
-            border: 1px dashed var(--primary-accent);
-            padding: 10px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: inline-flex;
+        /* Shared Result Card */
+        .result-box {
+            width: 100%;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            margin-top: 15px;
+            min-height: 75px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .result-box.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(255, 69, 0, 0.3);
+        }
+
+        .result-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            word-break: break-word;
+        }
+
+        .result-artist {
+            font-size: 0.9rem;
+            color: var(--text-muted);
             margin-top: 4px;
-            transition: background 0.2s;
         }
 
-        .btn-add:hover { background: rgba(0, 113, 227, 0.1); }
+        /* YouTube Button */
+        .yt-container {
+            padding: 0 20px 20px 20px;
+        }
 
-        /* Footer Actions */
-        .action-buttons {
+        .yt-btn {
+            width: 100%;
+            background: #1e1e1e;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
             display: flex;
-            gap: 12px;
-            margin-top: 36px;
-            padding-top: 24px;
-            border-top: 1px solid var(--border-color);
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
         }
 
-        .btn-primary {
-            background: var(--primary-accent);
+        .yt-btn i { color: #ff0000; }
+
+        .yt-btn:hover:not(.disabled) {
+            background: #282828;
+            border-color: var(--primary);
+        }
+
+        .yt-btn.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        /* ==================== STYLE 1: SLOT MACHINE ==================== */
+        .slot-machine {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+
+        .slot-frame {
+            background: #000;
+            border: 4px solid #333;
+            border-radius: 12px;
+            display: flex;
+            gap: 8px;
+            padding: 10px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.9), 0 0 10px rgba(255,69,0,0.2);
+            overflow: hidden;
+            height: 120px;
+            width: 240px;
+        }
+
+        .reel {
+            flex: 1;
+            background: #111;
+            border-radius: 6px;
+            border: 1px solid #222;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .reel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            transition: top 0.1s linear;
+        }
+
+        .reel-item {
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #ff9500;
+        }
+
+        /* Lever Mechanism */
+        .arm-container {
+            width: 30px;
+            height: 120px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .arm-base {
+            width: 20px;
+            height: 20px;
+            background: #444;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 10px;
+            left: 5px;
+        }
+
+        .arm-stick {
+            width: 8px;
+            height: 70px;
+            background: linear-gradient(to right, #888, #fff, #666);
+            position: absolute;
+            bottom: 20px;
+            left: 11px;
+            transform-origin: bottom center;
+            transition: transform 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .arm-knob {
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle at 30% 30%, #ff6b35, #d32f2f);
+            border-radius: 50%;
+            position: absolute;
+            top: -12px;
+            left: -8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .arm-container.pulled .arm-stick {
+            transform: rotateX(150deg) scaleY(0.6);
+        }
+
+        /* ==================== STYLE 2: WHEEL OF FORTUNE ==================== */
+        .wheel-wrapper {
+            position: relative;
+            width: 240px;
+            height: 240px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas#wheelCanvas {
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), 0 0 10px var(--primary);
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 22px solid var(--primary);
+            z-index: 10;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+        }
+
+        .wheel-center-cap {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #222 0%, #000 100%);
+            border: 3px solid var(--primary);
+            border-radius: 50%;
+            z-index: 5;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 0.8rem;
+        }
+
+        /* ==================== STYLE 3: ROCK TURNTABLE ==================== */
+        .turntable {
+            width: 230px;
+            height: 230px;
+            background: #181818;
+            border-radius: 16px;
+            border: 2px solid #333;
+            position: relative;
+            box-shadow: inset 0 0 10px #000, 0 8px 20px rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .vinyl-record {
+            width: 190px;
+            height: 190px;
+            background: repeating-radial-gradient(
+                #111,
+                #111 2px,
+                #222 3px,
+                #111 4px
+            );
+            border-radius: 50%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(0,0,0,0.8);
+            transition: transform 0.1s linear;
+        }
+
+        .vinyl-record.spinning {
+            animation: spinRecord 1s linear infinite;
+        }
+
+        @keyframes spinRecord {
+            100% { transform: rotate(360deg); }
+        }
+
+        .record-label {
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(circle, #ff4500 0%, #b71c1c 100%);
+            border-radius: 50%;
+            border: 3px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .tonearm {
+            position: absolute;
+            top: 20px;
+            right: 15px;
+            width: 60px;
+            height: 100px;
+            pointer-events: none;
+            transform-origin: 50px 10px;
+            transition: transform 0.6s ease-in-out;
+            transform: rotate(-30deg);
+            z-index: 10;
+        }
+
+        .tonearm.playing {
+            transform: rotate(8deg);
+        }
+
+        .tonearm-stick {
+            width: 4px;
+            height: 80px;
+            background: #ccc;
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            border-radius: 2px;
+        }
+
+        .tonearm-head {
+            width: 12px;
+            height: 20px;
+            background: var(--primary);
+            position: absolute;
+            bottom: 5px;
+            right: 6px;
+            border-radius: 2px;
+        }
+
+        /* Action Trigger Buttons inside Panels */
+        .trigger-btn {
+            margin-top: 15px;
+            background: var(--primary);
             color: #fff;
             border: none;
-            padding: 14px 24px;
-            border-radius: 12px;
-            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 20px;
             font-size: 0.95rem;
+            font-weight: 700;
             cursor: pointer;
-            flex: 1;
+            box-shadow: 0 4px 12px rgba(255, 69, 0, 0.3);
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 8px;
-            transition: background 0.2s, transform 0.1s;
         }
 
-        .btn-primary:hover { background: #0077ed; }
-        .btn-primary:active { transform: scale(0.98); }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-            border: 1px solid var(--border-color);
-            padding: 14px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: background 0.2s;
+        .trigger-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
         }
-
-        .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
     </style>
 </head>
 <body>
 
-<div class="admin-container">
-    <header>
-        <h1><i class="fa-solid fa-sliders"></i> Band Engine Yapılandırması</h1>
-        <p class="subtitle">Grubunuzun bilgilerini, görsellerini ve tasarım temasını yönetin.</p>
-    </header>
-
-    <form id="configForm" onsubmit="event.preventDefault();">
-        
-        <!-- 1. TEMA SEÇİMİ -->
-        <div class="section-title"><i class="fa-solid fa-wand-magic-sparkles"></i> 1. Arayüz Teması</div>
-        <div class="theme-grid">
-            <div class="theme-card active" id="card-apple-pro" onclick="selectTheme('apple-pro')">
-                <div class="theme-title">Apple Pro Minimal</div>
-                <div class="theme-desc">Glassmorphic buzlu cam, ultra temiz ve minimalist dizayn.</div>
-            </div>
-
-            <div class="theme-card" id="card-marvel-hero" onclick="selectTheme('marvel-hero')">
-                <div class="theme-title">Cinematic Marvel</div>
-                <div class="theme-desc">Yüksek kontrast, keskin hatlar ve epik sahne hissi.</div>
-            </div>
-
-            <div class="theme-card" id="card-cyber-fusion" onclick="selectTheme('cyber-fusion')">
-                <div class="theme-title">Cyberpunk Stage</div>
-                <div class="theme-desc">Futuristik HUD görünümü, neon vurgular ve LED teması.</div>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fa-solid fa-guitar"></i> Baba Rock</h1>
+            <div class="nav-tabs">
+                <button class="tab-btn active" onclick="switchSlide(0)">
+                    <i class="fa-solid fa-cubes"></i> Slot
+                </button>
+                <button class="tab-btn" onclick="switchSlide(1)">
+                    <i class="fa-solid fa-dharmachakra"></i> Wheel
+                </button>
+                <button class="tab-btn" onclick="switchSlide(2)">
+                    <i class="fa-solid fa-compact-disc"></i> Vinyl
+                </button>
             </div>
         </div>
 
-        <!-- 2. GENEL BİLGİLER -->
-        <div class="section-title"><i class="fa-solid fa-circle-info"></i> 2. Genel Grup Bilgileri</div>
-        <div class="form-group">
-            <label>Grup Adı</label>
-            <input type="text" id="bandName" placeholder="Örn: Bandit">
-        </div>
-        <div class="form-group">
-            <label>Slogan / Alt Başlık</label>
-            <input type="text" id="tagline" placeholder="Örn: Müziğinize Odaklanın!">
-        </div>
-        <div class="form-group">
-            <label>Ultimate Guitar Çalma Listesi URL (UG Playlist)</label>
-            <input type="url" id="ugPlaylistUrl" placeholder="https://www.ultimate-guitar.com/user/playlist/shared?h=...">
-        </div>
-
-        <!-- 3. GRUP GÖRSELLERİ (DİNAMİK) -->
-        <div class="section-title"><i class="fa-solid fa-images"></i> 3. Grup Görselleri (Galeri / Carousel)</div>
-        <div id="imagesContainer"></div>
-        <button type="button" class="btn-add" onclick="addImageRow()"><i class="fa-solid fa-plus"></i> Görsel URL Ekle</button>
-
-        <!-- 4. ÜYE YÖNETİMİ -->
-        <div class="section-title"><i class="fa-solid fa-users"></i> 4. Grup Üyeleri</div>
-        <div id="membersContainer"></div>
-        <button type="button" class="btn-add" onclick="addMemberRow()"><i class="fa-solid fa-user-plus"></i> Üye Ekle</button>
-
-        <!-- 5. GİTHUB SYNC (OPSİYONEL) -->
-        <div class="section-title"><i class="fa-brands fa-github"></i> 5. Doğrudan GitHub Senkronizasyonu (Opsiyonel)</div>
-        <div class="form-group">
-            <label>GitHub Repository (KullanıcıAdı/RepositoryAdı)</label>
-            <input type="text" id="ghRepo" placeholder="kullanici/band-engine">
-        </div>
-        <div class="form-group">
-            <label>GitHub Personal Access Token (PAT)</label>
-            <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-        </div>
-
-        <!-- AKSİYON BUTONLARI -->
-        <div class="action-buttons">
-            <button type="button" class="btn-secondary" onclick="downloadJSON()"><i class="fa-solid fa-file-arrow-down"></i> config.json İndir</button>
-            <button type="button" class="btn-primary" onclick="pushToGitHub()"><i class="fa-solid fa-cloud-arrow-up"></i> GitHub'a Kaydet ve Yayınla</button>
-        </div>
-    </form>
-</div>
-
-<script>
-    let selectedTheme = 'apple-pro';
-    
-    let members = [
-        { id: "member_1", name: "Serkan", color: "#ff3b30" },
-        { id: "member_2", name: "İlker", color: "#0071e3" }
-    ];
-
-    let images = [
-        "https://hyalki-del.github.io/babarock/b1.jpg"
-    ];
-
-    // Sayfa Yüklendiğinde Var Olan config.json'ı Çek
-    async function loadCurrentConfig() {
-        try {
-            const res = await fetch('./config.json');
-            if (res.ok) {
-                const config = await res.json();
-                document.getElementById('bandName').value = config.bandName || '';
-                document.getElementById('tagline').value = config.tagline || '';
-                document.getElementById('ugPlaylistUrl').value = config.ugPlaylistUrl || '';
+        <!-- Slider Viewport -->
+        <div class="slider-viewport" id="sliderViewport">
+            <div class="slider-track" id="sliderTrack">
                 
-                if (config.themeLayout) selectTheme(config.themeLayout);
-                if (config.members && config.members.length > 0) members = config.members;
-                if (config.images && config.images.length > 0) images = config.images;
+                <!-- PANEL 1: SLOT MACHINE -->
+                <div class="slide-panel">
+                    <div class="slot-machine">
+                        <div class="slot-frame">
+                            <div class="reel"><div class="reel-container" id="reel1"></div></div>
+                            <div class="reel"><div class="reel-container" id="reel2"></div></div>
+                            <div class="reel"><div class="reel-container" id="reel3"></div></div>
+                        </div>
+                        <div class="arm-container" id="slotArm" onclick="pullSlotLever()">
+                            <div class="arm-stick">
+                                <div class="arm-knob"></div>
+                            </div>
+                            <div class="arm-base"></div>
+                        </div>
+                    </div>
+                    <button class="trigger-btn" onclick="pullSlotLever()">
+                        <i class="fa-solid fa-sliders"></i> PULL LEVER
+                    </button>
+                </div>
+
+                <!-- PANEL 2: WHEEL OF FORTUNE -->
+                <div class="slide-panel">
+                    <div class="wheel-wrapper">
+                        <div class="wheel-pointer"></div>
+                        <canvas id="wheelCanvas" width="240" height="240"></canvas>
+                        <div class="wheel-center-cap" onclick="spinWheel()">SPIN</div>
+                    </div>
+                    <button class="trigger-btn" onclick="spinWheel()">
+                        <i class="fa-solid fa-rotate-right"></i> SPIN WHEEL
+                    </button>
+                </div>
+
+                <!-- PANEL 3: VINYL TURNTABLE -->
+                <div class="slide-panel">
+                    <div class="turntable" onclick="playVinyl()">
+                        <div class="vinyl-record" id="vinylRecord">
+                            <div class="record-label">BABA<br>ROCK</div>
+                        </div>
+                        <div class="tonearm" id="tonearm">
+                            <div class="tonearm-stick"></div>
+                            <div class="tonearm-head"></div>
+                        </div>
+                    </div>
+                    <button class="trigger-btn" onclick="playVinyl()">
+                        <i class="fa-solid fa-play"></i> DROP NEEDLE
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Output Song Display -->
+        <div style="padding: 0 20px;">
+            <div class="result-box" id="resultBox">
+                <div class="result-title" id="songTitle">Select a Mode & Play!</div>
+                <div class="result-artist" id="songArtist">Baba Rock Song Picker</div> <!-- FIXED: Added missing element -->
+            </div>
+        </div>
+
+        <!-- YouTube Link Footer -->
+        <div class="yt-container">
+            <a href="#" target="_blank" rel="noopener noreferrer" class="yt-btn disabled" id="ytBtn">
+                <i class="fa-brands fa-youtube"></i> Search on YouTube
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Fallback playlist data to guarantee immediate functionality
+        const defaultPlaylist = [
+            { title: "Cambaz", artist: "mor ve ötesi" },
+            { title: "Bir Derdim Var", artist: "mor ve ötesi" },
+            { title: "Sertab Erener", artist: "Eurovision Rock Mix" },
+            { title: "Öyle Kolay Aşık Olmam", artist: "Teoman" },
+            { title: "Paramparça", artist: "Teoman" },
+            { title: "Işıklarla Ol", artist: "duman" },
+            { title: "Köprüaltı", artist: "duman" },
+            { title: "Resimdeki Gözyaşları", artist: "Cem Karaca" },
+            { title: "Islak Islak", artist: "Barış Akarsu" },
+            { title: "Anadolu Rock Medley", artist: "Barış Manço" }
+        ];
+
+        let playlist = [];
+        let isBusy = false;
+        let currentSlide = 0;
+
+        // Slot Machine State
+        const slotIcons = ['🎸', '🥁', '⚡', '🔥', '🎤', '🎧', '📻', '🤘'];
+
+        // Wheel State
+        let wheelAngle = 0;
+        let wheelSpinning = false;
+
+        async function init() {
+            try {
+                const res = await fetch("./playlist.json");
+                if (!res.ok) throw new Error("Local json fetch failed");
+                playlist = await res.json();
+            } catch (err) {
+                console.log("Using default rock playlist fallback.");
+                playlist = defaultPlaylist;
             }
-        } catch (e) {
-            console.warn("Mevcut config.json okunamadı, varsayılanlar kullanılıyor.");
-        }
-        renderMembers();
-        renderImages();
-    }
-
-    // Tema Seçimi
-    function selectTheme(themeKey) {
-        selectedTheme = themeKey;
-        document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
-        const activeCard = document.getElementById(`card-${themeKey}`);
-        if (activeCard) activeCard.classList.add('active');
-    }
-
-    // Üye Arayüzü Render
-    function renderMembers() {
-        const container = document.getElementById('membersContainer');
-        container.innerHTML = '';
-        members.forEach((m, index) => {
-            const row = document.createElement('div');
-            row.className = 'dynamic-row';
-            row.innerHTML = `
-                <input type="text" value="${m.name}" placeholder="Üye Adı" oninput="members[${index}].name = this.value; members[${index}].id = this.value.toLowerCase().replace(/[^a-z0-9]/g, '');">
-                <input type="color" value="${m.color}" onchange="members[${index}].color = this.value;">
-                <button type="button" class="btn-remove" onclick="removeMember(${index})"><i class="fa-solid fa-trash"></i></button>
-            `;
-            container.appendChild(row);
-        });
-    }
-
-    function addMemberRow() {
-        members.push({ id: "member_" + Date.now(), name: "Yeni Üye", color: "#0071e3" });
-        renderMembers();
-    }
-
-    function removeMember(index) {
-        members.splice(index, 1);
-        renderMembers();
-    }
-
-    // Görsel Arayüzü Render & Önizleme
-    function renderImages() {
-        const container = document.getElementById('imagesContainer');
-        container.innerHTML = '';
-        images.forEach((url, index) => {
-            const row = document.createElement('div');
-            row.className = 'dynamic-row';
-            row.innerHTML = `
-                <img src="${url}" class="img-preview" onerror="this.src='https://via.placeholder.com/42/222/fff?text=?';" alt="Önizleme">
-                <input type="url" value="${url}" placeholder="Görsel URL'si (https://...)" oninput="updateImage(${index}, this.value)">
-                <button type="button" class="btn-remove" onclick="removeImage(${index})"><i class="fa-solid fa-trash"></i></button>
-            `;
-            container.appendChild(row);
-        });
-    }
-
-    function updateImage(index, val) {
-        images[index] = val;
-        // Canlı önizleme güncellemesi
-        const row = document.getElementById('imagesContainer').children[index];
-        if (row) {
-            const img = row.querySelector('.img-preview');
-            if (img) img.src = val;
-        }
-    }
-
-    function addImageRow() {
-        images.push("");
-        renderImages();
-    }
-
-    function removeImage(index) {
-        images.splice(index, 1);
-        renderImages();
-    }
-
-    // config Nesnesi Üretici
-    function buildConfigObject() {
-        return {
-            bandName: document.getElementById('bandName').value || "Grup Adı",
-            tagline: document.getElementById('tagline').value || "",
-            ugPlaylistUrl: document.getElementById('ugPlaylistUrl').value || "",
-            themeLayout: selectedTheme,
-            members: members,
-            images: images.filter(url => url.trim() !== "")
-        };
-    }
-
-    // Dosyayı İndir
-    function downloadJSON() {
-        const config = buildConfigObject();
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config, null, 2));
-        const a = document.createElement('a');
-        a.href = dataStr;
-        a.download = "config.json";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-    }
-
-    // GitHub REST API ile Doğrudan Commit Ettirme
-    async function pushToGitHub() {
-        const repo = document.getElementById('ghRepo').value.trim();
-        const token = document.getElementById('ghToken').value.trim();
-
-        if (!repo || !token) {
-            alert("Lütfen GitHub Repository ve Access Token alanlarını doldurun!");
-            return;
+            initSlotMachine();
+            drawWheel();
+            setupTouchSwipe();
         }
 
-        const configObj = buildConfigObject();
-        const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(configObj, null, 2))));
-        const url = `https://api.github.com/repos/${repo}/contents/config.json`;
-
-        try {
-            let sha = "";
-            const getRes = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
-            if (getRes.ok) {
-                const getData = await getRes.json();
-                sha = getData.sha;
-            }
-
-            const putRes = await fetch(url, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: "build: update config.json via Admin Panel",
-                    content: contentEncoded,
-                    sha: sha || undefined
-                })
+        /* ================= NAVIGATION SLIDER ================= */
+        function switchSlide(index) {
+            if (isBusy) return;
+            currentSlide = index;
+            document.getElementById("sliderTrack").style.transform = `translateX(-${index * 33.333}%)`;
+            
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
             });
-
-            if (putRes.ok) {
-                alert("Tebrikler! Yapılandırma repository'ye başarıyla kaydedildi. Otomasyonlar tetiklenecektir.");
-            } else {
-                const err = await putRes.json();
-                alert("GitHub API Hatası: " + err.message);
-            }
-        } catch (err) {
-            console.error(err);
-            alert("Ağ hatası oluştu.");
         }
-    }
 
-    window.onload = loadCurrentConfig;
-</script>
+        function setupTouchSwipe() {
+            const viewport = document.getElementById('sliderViewport');
+            let startX = 0;
 
+            viewport.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive: true});
+            viewport.addEventListener('touchend', e => {
+                const diff = startX - e.changedTouches[0].clientX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0 && currentSlide < 2) switchSlide(currentSlide + 1);
+                    if (diff < 0 && currentSlide > 0) switchSlide(currentSlide - 1);
+                }
+            }, {passive: true});
+        }
+
+        /* ================= COMMON DISPLAY UPDATER ================= */
+        function updateDisplay(song) {
+            const titleEl = document.getElementById("songTitle");
+            const artistEl = document.getElementById("songArtist");
+            const resultBox = document.getElementById("resultBox");
+            const ytBtn = document.getElementById("ytBtn");
+
+            titleEl.textContent = song.title;
+            artistEl.textContent = song.artist;
+
+            const query = encodeURIComponent(`${song.title} ${song.artist}`);
+            ytBtn.href = `https://www.youtube.com/results?search_query=${query}`;
+            ytBtn.classList.remove("disabled");
+
+            resultBox.classList.add("active");
+        }
+
+        function getRandomSong() {
+            return playlist[Math.floor(Math.random() * playlist.length)];
+        }
+
+        /* ================= MODE 1: SLOT MACHINE ================= */
+        function initSlotMachine() {
+            [1, 2, 3].forEach(id => {
+                const reel = document.getElementById(`reel${id}`);
+                reel.innerHTML = slotIcons.map(icon => `<div class="reel-item">${icon}</div>`).join('');
+            });
+        }
+
+        function pullSlotLever() {
+            if (isBusy) return;
+            isBusy = true;
+
+            const arm = document.getElementById('slotArm');
+            arm.classList.add('pulled');
+            setTimeout(() => arm.classList.remove('pulled'), 400);
+
+            let spins = 0;
+            const maxSpins = 20;
+            const interval = setInterval(() => {
+                [1, 2, 3].forEach(id => {
+                    const reel = document.getElementById(`reel${id}`);
+                    const randomOffset = -(Math.floor(Math.random() * slotIcons.length) * 100);
+                    reel.style.top = `${randomOffset}px`;
+                });
+
+                spins++;
+                if (spins >= maxSpins) {
+                    clearInterval(interval);
+                    const selected = getRandomSong();
+                    updateDisplay(selected);
+                    isBusy = false;
+                }
+            }, 80);
+        }
+
+        /* ================= MODE 2: WHEEL OF FORTUNE ================= */
+        function drawWheel() {
+            const canvas = document.getElementById('wheelCanvas');
+            const ctx = canvas.getContext('2d');
+            const numSlices = Math.min(playlist.length, 8);
+            const sliceAngle = (2 * Math.PI) / numSlices;
+
+            ctx.clearRect(0, 0, 240, 240);
+            
+            for (let i = 0; i < numSlices; i++) {
+                const angle = wheelAngle + i * sliceAngle;
+                ctx.beginPath();
+                ctx.fillStyle = i % 2 === 0 ? '#ff4500' : '#222222';
+                ctx.moveTo(120, 120);
+                ctx.arc(120, 120, 115, angle, angle + sliceAngle);
+                ctx.lineTo(120, 120);
+                ctx.fill();
+                ctx.strokeStyle = '#111';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw Text
+                ctx.save();
+                ctx.translate(120, 120);
+                ctx.rotate(angle + sliceAngle / 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.textAlign = 'right';
+                const label = playlist[i] ? playlist[i].title.substring(0, 10) : 'Rock';
+                ctx.fillText(label, 100, 4);
+                ctx.restore();
+            }
+        }
+
+        function spinWheel() {
+            if (isBusy || wheelSpinning) return;
+            isBusy = true;
+            wheelSpinning = true;
+
+            let velocity = Math.random() * 0.2 + 0.3;
+            const friction = 0.985;
+
+            function animate() {
+                velocity *= friction;
+                wheelAngle += velocity;
+                drawWheel();
+
+                if (velocity > 0.002) {
+                    requestAnimationFrame(animate);
+                } else {
+                    wheelSpinning = false;
+                    isBusy = false;
+                    const selected = getRandomSong();
+                    updateDisplay(selected);
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        /* ================= MODE 3: VINYL TURNTABLE ================= */
+        function playVinyl() {
+            if (isBusy) return;
+            isBusy = true;
+
+            const record = document.getElementById('vinylRecord');
+            const tonearm = document.getElementById('tonearm');
+
+            tonearm.classList.add('playing');
+            
+            setTimeout(() => {
+                record.classList.add('spinning');
+            }, 400);
+
+            setTimeout(() => {
+                record.classList.remove('spinning');
+                tonearm.classList.remove('playing');
+                const selected = getRandomSong();
+                updateDisplay(selected);
+                isBusy = false;
+            }, 2500);
+        }
+
+        window.onload = init;
+    </script>
 </body>
 </html>
