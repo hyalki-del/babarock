@@ -47,6 +47,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
         /* Header Navigation & Slider Tabs */
@@ -209,6 +210,16 @@
             text-align: center;
             padding: 0 15px;
             border-bottom: 1px dashed #ccc;
+            transition: background-color 0.2s ease;
+        }
+
+        .reel-item.interactive {
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .reel-item.interactive:hover {
+            background-color: #f0f0f0;
         }
 
         .reel-item .title {
@@ -224,6 +235,14 @@
             font-weight: 600;
             color: #555555;
             margin-top: 4px;
+        }
+
+        .reel-item .lyrics-hint {
+            font-size: 0.65rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-top: 2px;
+            text-transform: uppercase;
         }
 
         .arm-container {
@@ -301,24 +320,31 @@
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
         }
 
-        /* Frame lens: HIDDEN INITIALLY, POPS UP UPON STOPPING */
+        /* Interactive Red Magnifier Pop-up Lens */
         .wheel-magnifier {
             position: absolute;
             top: 2px;
             left: 50%;
             transform: translateX(-50%);
-            width: 140px;
-            height: 48px;
+            width: 150px;
+            height: 52px;
             background: rgba(18, 18, 18, 0.95);
             border: 3px solid var(--primary);
             border-radius: 12px;
             box-shadow: 0 0 20px rgba(255, 69, 0, 0.8);
             z-index: 15;
-            pointer-events: none;
-            display: none; /* Initially Hidden */
+            cursor: pointer;
+            display: none;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             animation: popup 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .wheel-magnifier:hover {
+            transform: translateX(-50%) scale(1.05);
+            border-color: #ffffff;
         }
 
         @keyframes popup {
@@ -331,9 +357,17 @@
             font-size: 0.85rem;
             font-weight: 800;
             text-align: center;
-            padding: 2px 6px;
+            padding: 0 6px;
             word-break: break-word;
             line-height: 1.1;
+        }
+
+        .magnifier-subtext {
+            color: var(--primary);
+            font-size: 0.65rem;
+            font-weight: 700;
+            margin-top: 2px;
+            text-transform: uppercase;
         }
 
         .wheel-center-cap {
@@ -353,7 +387,59 @@
             font-weight: bold;
         }
 
-        /* YouTube Footer Link */
+        /* Modal Lyrics Viewer Overlay */
+        .lyrics-modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92);
+            z-index: 100;
+            padding: 25px;
+            flex-direction: column;
+            justify-content: space-between;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .lyrics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .lyrics-title {
+            font-size: 1.1rem;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .close-btn:hover { color: #fff; }
+
+        .lyrics-body {
+            overflow-y: auto;
+            margin: 15px 0;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #ddd;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+
+        /* Footer Link */
         .yt-container {
             padding: 0 20px 20px 20px;
         }
@@ -432,9 +518,9 @@
                 <div class="slide-panel">
                     <div class="wheel-wrapper">
                         <div class="wheel-pointer"></div>
-                        <!-- Frame lens pops up ONLY when wheel stops -->
-                        <div class="wheel-magnifier" id="wheelMagnifier">
+                        <div class="wheel-magnifier" id="wheelMagnifier" onclick="handleLyricsFetch()">
                             <div class="magnifier-text" id="magnifierText"></div>
+                            <div class="magnifier-subtext"><i class="fa-solid fa-file-lines"></i> View Lyrics</div>
                         </div>
                         <canvas id="wheelCanvas" width="260" height="260"></canvas>
                         <div class="wheel-center-cap" onclick="spinWheel()">SPIN</div>
@@ -445,6 +531,15 @@
                 </div>
 
             </div>
+        </div>
+
+        <!-- Inline Lyrics Viewer Modal -->
+        <div class="lyrics-modal" id="lyricsModal">
+            <div class="lyrics-header">
+                <span class="lyrics-title" id="modalSongTitle">Song Lyrics</span>
+                <button class="close-btn" onclick="closeLyricsModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="lyrics-body" id="modalLyricsBody">Loading lyrics...</div>
         </div>
 
         <!-- YouTube Link Footer -->
@@ -470,8 +565,8 @@
         let playlist = [];
         let isBusy = false;
         let currentSlide = 0;
+        let selectedSong = null;
 
-        // Wheel State
         let wheelAngle = 0;
         let wheelSpinning = false;
 
@@ -513,6 +608,43 @@
             }, {passive: true});
         }
 
+        /* ================= LYRIC FETCHING ENGINE ================= */
+        function sanitizeFileName(str) {
+            return str
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '_')
+                .replace(/_+/g, '_')
+                .replace(/^_|_$/g, '');
+        }
+
+        async function handleLyricsFetch() {
+            if (!selectedSong) return;
+
+            const modal = document.getElementById('lyricsModal');
+            const titleEl = document.getElementById('modalSongTitle');
+            const bodyEl = document.getElementById('modalLyricsBody');
+
+            titleEl.textContent = `${selectedSong.artist} - ${selectedSong.title}`;
+            bodyEl.textContent = "Fetching lyrics from ./songs/ ...";
+            modal.style.display = 'flex';
+
+            const fileName = sanitizeFileName(selectedSong.title);
+            const lyricPath = `./songs/${fileName}.txt`;
+
+            try {
+                const res = await fetch(lyricPath);
+                if (!res.ok) throw new Error(`Lyrics file not found at ${lyricPath}`);
+                const text = await res.text();
+                bodyEl.textContent = text;
+            } catch (err) {
+                bodyEl.textContent = `Could not load lyrics for "${selectedSong.title}".\n\nEnsure a text file exists at:\n${lyricPath}`;
+            }
+        }
+
+        function closeLyricsModal() {
+            document.getElementById('lyricsModal').style.display = 'none';
+        }
+
         function updateYouTubeBtn(song) {
             const ytBtn = document.getElementById("ytBtn");
             const query = encodeURIComponent(`${song.title} ${song.artist}`);
@@ -524,14 +656,15 @@
             return playlist[Math.floor(Math.random() * playlist.length)];
         }
 
-        /* ================= 1. SLOT MACHINE ================= */
+        /* ================= SLOT MACHINE ================= */
         function initSlotMachine() {
             const reel = document.getElementById('singleReel');
             const displayList = [...playlist, ...playlist, ...playlist, ...playlist];
-            reel.innerHTML = displayList.map(song => `
-                <div class="reel-item">
+            reel.innerHTML = displayList.map((song, i) => `
+                <div class="reel-item" id="reel-item-${i}">
                     <div class="title">${song.title}</div>
                     <div class="artist">${song.artist}</div>
+                    <div class="lyrics-hint" id="hint-${i}" style="display:none;"><i class="fa-solid fa-file-lines"></i> View Lyrics</div>
                 </div>
             `).join('');
         }
@@ -540,14 +673,20 @@
             if (isBusy) return;
             isBusy = true;
 
+            document.querySelectorAll('.reel-item').forEach(el => {
+                el.classList.remove('interactive');
+                el.onclick = null;
+            });
+            document.querySelectorAll('.lyrics-hint').forEach(el => el.style.display = 'none');
+
             const arm = document.getElementById('slotArm');
             arm.classList.add('pulled');
             setTimeout(() => arm.classList.remove('pulled'), 400);
 
             const reel = document.getElementById('singleReel');
             const itemHeight = 100;
-            const targetSong = getRandomSong();
-            const targetIndex = playlist.findIndex(s => s.title === targetSong.title);
+            selectedSong = getRandomSong();
+            const targetIndex = playlist.findIndex(s => s.title === selectedSong.title);
             
             const stopIndex = playlist.length * 2 + (targetIndex >= 0 ? targetIndex : 0);
             const targetPos = stopIndex * itemHeight;
@@ -562,7 +701,16 @@
 
                 if (velocity < 1.5 || currentPos >= targetPos) {
                     reel.style.top = `-${targetPos}px`;
-                    updateYouTubeBtn(targetSong);
+                    
+                    const finalItem = document.getElementById(`reel-item-${stopIndex}`);
+                    const finalHint = document.getElementById(`hint-${stopIndex}`);
+                    if (finalItem) {
+                        finalItem.classList.add('interactive');
+                        if (finalHint) finalHint.style.display = 'block';
+                        finalItem.onclick = handleLyricsFetch;
+                    }
+
+                    updateYouTubeBtn(selectedSong);
                     isBusy = false;
                 } else {
                     reel.style.top = `-${currentPos % (playlist.length * itemHeight * 3)}px`;
@@ -573,7 +721,7 @@
             requestAnimationFrame(animateReel);
         }
 
-        /* ================= 2. WHEEL OF FORTUNE ================= */
+        /* ================= WHEEL OF FORTUNE ================= */
         function drawWheel() {
             const canvas = document.getElementById('wheelCanvas');
             const ctx = canvas.getContext('2d');
@@ -595,7 +743,6 @@
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
 
-                // Draw Text along radial sectors
                 ctx.save();
                 ctx.translate(130, 130);
                 ctx.rotate(angle + sliceAngle / 2);
@@ -613,7 +760,7 @@
             wheelSpinning = true;
 
             const magnifier = document.getElementById('wheelMagnifier');
-            magnifier.style.display = 'none'; // Hide pop-up lens during spin
+            magnifier.style.display = 'none';
 
             let velocity = Math.random() * 0.25 + 0.35;
             const friction = 0.985;
@@ -629,10 +776,7 @@
                     wheelSpinning = false;
                     isBusy = false;
 
-                    // Calibrated Angle Geometry: Marker is at 12 o'clock (-PI/2)
                     const sliceAngle = (2 * Math.PI) / playlist.length;
-                    
-                    // Normalize rotation angle relative to top pointer (-PI/2)
                     let currentRotation = wheelAngle % (2 * Math.PI);
                     if (currentRotation < 0) currentRotation += 2 * Math.PI;
 
@@ -640,9 +784,8 @@
                     if (relativePointerAngle < 0) relativePointerAngle += 2 * Math.PI;
 
                     const selectedIndex = Math.floor(relativePointerAngle / sliceAngle) % playlist.length;
-                    const selectedSong = playlist[selectedIndex];
+                    selectedSong = playlist[selectedIndex];
 
-                    // Pop up red frame lens directly over selected song upon stopping
                     document.getElementById('magnifierText').textContent = selectedSong.title;
                     magnifier.style.display = 'flex';
 
