@@ -11,7 +11,6 @@
         :root {
             --primary: #ff4500;
             --primary-hover: #e03d00;
-            --bg-dark: #0a0a0a;
             --card-bg: #121212;
             --surface: #1a1a1a;
             --border: #282828;
@@ -39,7 +38,7 @@
         }
 
         .app-container {
-            max-width: 480px;
+            max-width: 440px;
             width: 100%;
             background: var(--card-bg);
             border-radius: 20px;
@@ -114,84 +113,38 @@
 
         .slide-panel {
             width: 33.333%;
-            padding: 25px 20px;
+            padding: 30px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 390px;
+            min-height: 380px;
         }
 
-        /* Shared Result Card */
-        .result-box {
-            width: 100%;
-            background: var(--surface);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            margin-top: 10px;
-            min-height: 75px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s ease;
-        }
-
-        .result-box.active {
-            border-color: var(--primary);
-            box-shadow: 0 0 15px rgba(255, 69, 0, 0.3);
-        }
-
-        .result-title {
-            font-size: 1.1rem;
-            font-weight: 700;
+        /* Action Trigger Buttons */
+        .trigger-btn {
+            margin-top: 25px;
+            background: var(--primary);
             color: #fff;
-            word-break: break-word;
-        }
-
-        .result-artist {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        /* YouTube Button */
-        .yt-container {
-            padding: 0 20px 20px 20px;
-        }
-
-        .yt-btn {
-            width: 100%;
-            background: #1e1e1e;
-            color: #fff;
-            border: 1px solid #333;
-            padding: 12px;
-            border-radius: 10px;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 20px;
             font-size: 0.95rem;
-            font-weight: 600;
-            text-decoration: none;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 69, 0, 0.3);
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 8px;
-            transition: all 0.2s ease;
         }
 
-        .yt-btn i { color: #ff0000; }
-
-        .yt-btn:hover:not(.disabled) {
-            background: #282828;
-            border-color: var(--primary);
+        .trigger-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
         }
 
-        .yt-btn.disabled {
-            opacity: 0.4;
-            pointer-events: none;
-        }
-
-        /* ==================== 1. SLOT MACHINE (SONG NAMES IN REELS) ==================== */
+        /* ==================== 1. REALISTIC SINGLE-REEL SLOT MACHINE ==================== */
         .slot-machine {
             display: flex;
             align-items: center;
@@ -200,25 +153,56 @@
         }
 
         .slot-frame {
-            background: #000;
+            background: linear-gradient(145deg, #1f1f1f, #080808);
             border: 4px solid #333;
             border-radius: 12px;
-            display: flex;
-            gap: 6px;
-            padding: 8px;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.9), 0 0 10px rgba(255,69,0,0.2);
+            padding: 10px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.9), 0 0 15px rgba(255,69,0,0.2);
             overflow: hidden;
-            height: 130px;
-            width: 270px;
+            height: 120px;
+            width: 260px;
+            position: relative;
         }
 
-        .reel {
-            flex: 1;
-            background: #111;
+        /* Glass / Cylinder Overlay Effect */
+        .slot-frame::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(
+                to bottom,
+                rgba(0,0,0,0.7) 0%,
+                rgba(0,0,0,0) 25%,
+                rgba(0,0,0,0) 75%,
+                rgba(0,0,0,0.7) 100%
+            );
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* Red Selection Line */
+        .slot-frame::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 8px var(--primary);
+            transform: translateY(-50%);
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        .single-reel {
+            width: 100%;
+            height: 100%;
+            background: #ffffff; /* White Spinner */
             border-radius: 6px;
-            border: 1px solid #222;
             overflow: hidden;
             position: relative;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.3);
         }
 
         .reel-container {
@@ -231,24 +215,35 @@
         }
 
         .reel-item {
-            height: 112px;
+            height: 100px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 6px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            color: #ff9500;
-            border-bottom: 1px solid #222;
-            word-break: break-word;
+            padding: 0 15px;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .reel-item .title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #000000; /* Black Font */
             line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .reel-item .artist {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #555555;
+            margin-top: 4px;
         }
 
         /* Lever Mechanism */
         .arm-container {
             width: 30px;
-            height: 130px;
+            height: 120px;
             position: relative;
             cursor: pointer;
         }
@@ -265,7 +260,7 @@
 
         .arm-stick {
             width: 8px;
-            height: 75px;
+            height: 70px;
             background: linear-gradient(to right, #888, #fff, #666);
             position: absolute;
             bottom: 20px;
@@ -321,13 +316,12 @@
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
         }
 
-        /* Magnifier Glass Lens on Selection Mark */
         .wheel-magnifier {
             position: absolute;
             top: 2px;
             left: 50%;
             transform: translateX(-50%);
-            width: 110px;
+            width: 120px;
             height: 48px;
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(2px);
@@ -418,15 +412,27 @@
             border-radius: 50%;
             border: 3px solid #000;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 0.65rem;
-            font-weight: bold;
+            padding: 4px;
             text-align: center;
         }
 
-        /* Dynamic Tonearm */
+        .record-label-title {
+            font-size: 0.65rem;
+            font-weight: bold;
+            line-height: 1.1;
+            word-break: break-word;
+        }
+
+        .record-label-artist {
+            font-size: 0.5rem;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
         .tonearm-pivot {
             position: absolute;
             top: 20px;
@@ -448,7 +454,7 @@
             pointer-events: none;
             transform-origin: 5px 0px;
             transition: transform 0.1s linear;
-            transform: rotate(-35deg); /* Resting position outside record */
+            transform: rotate(-35deg);
             z-index: 10;
         }
 
@@ -472,27 +478,38 @@
             box-shadow: 0 0 5px rgba(0,0,0,0.8);
         }
 
-        /* Action Trigger Buttons */
-        .trigger-btn {
-            margin-top: 15px;
-            background: var(--primary);
-            color: #fff;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 20px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(255, 69, 0, 0.3);
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        /* YouTube Footer Link */
+        .yt-container {
+            padding: 0 20px 20px 20px;
         }
 
-        .trigger-btn:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
+        .yt-btn {
+            width: 100%;
+            background: #1e1e1e;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .yt-btn i { color: #ff0000; }
+
+        .yt-btn:hover:not(.disabled) {
+            background: #282828;
+            border-color: var(--primary);
+        }
+
+        .yt-btn.disabled {
+            opacity: 0.4;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -519,13 +536,13 @@
         <div class="slider-viewport" id="sliderViewport">
             <div class="slider-track" id="sliderTrack">
                 
-                <!-- PANEL 1: SLOT MACHINE WITH SONG NAMES -->
+                <!-- PANEL 1: SINGLE-ROW REALISTIC SLOT MACHINE -->
                 <div class="slide-panel">
                     <div class="slot-machine">
                         <div class="slot-frame">
-                            <div class="reel"><div class="reel-container" id="reel1"></div></div>
-                            <div class="reel"><div class="reel-container" id="reel2"></div></div>
-                            <div class="reel"><div class="reel-container" id="reel3"></div></div>
+                            <div class="single-reel">
+                                <div class="reel-container" id="singleReel"></div>
+                            </div>
                         </div>
                         <div class="arm-container" id="slotArm" onclick="pullSlotLever()">
                             <div class="arm-stick">
@@ -558,7 +575,10 @@
                 <div class="slide-panel">
                     <div class="turntable" onclick="playVinyl()">
                         <div class="vinyl-record" id="vinylRecord">
-                            <div class="record-label">BABA<br>ROCK</div>
+                            <div class="record-label">
+                                <div class="record-label-title" id="vinylTitle">BABA ROCK</div>
+                                <div class="record-label-artist" id="vinylArtist">Select Song</div>
+                            </div>
                         </div>
                         <div class="tonearm-pivot"></div>
                         <div class="tonearm" id="tonearm">
@@ -574,14 +594,6 @@
             </div>
         </div>
 
-        <!-- Shared Output Display Box -->
-        <div style="padding: 0 20px;">
-            <div class="result-box" id="resultBox">
-                <div class="result-title" id="songTitle">Select a Mode & Play!</div>
-                <div class="result-artist" id="songArtist">Baba Rock Song Picker</div> <!-- FIXED DOM reference -->
-            </div>
-        </div>
-
         <!-- YouTube Link Footer -->
         <div class="yt-container">
             <a href="#" target="_blank" rel="noopener noreferrer" class="yt-btn disabled" id="ytBtn">
@@ -591,7 +603,7 @@
     </div>
 
     <script>
-        // Fallback playlist data ensuring instant operation
+        // Fallback playlist data ensuring instant standalone operation
         const defaultPlaylist = [
             { title: "Cambaz", artist: "mor ve ötesi" },
             { title: "Bir Derdim Var", artist: "mor ve ötesi" },
@@ -650,34 +662,28 @@
             }, {passive: true});
         }
 
-        /* ================= COMMON DISPLAY UPDATER ================= */
-        function updateDisplay(song) {
-            const titleEl = document.getElementById("songTitle");
-            const artistEl = document.getElementById("songArtist");
-            const resultBox = document.getElementById("resultBox");
+        /* ================= YOUTUBE LINK UPDATER ================= */
+        function updateYouTubeBtn(song) {
             const ytBtn = document.getElementById("ytBtn");
-
-            titleEl.textContent = song.title;
-            artistEl.textContent = song.artist;
-
             const query = encodeURIComponent(`${song.title} ${song.artist}`);
             ytBtn.href = `https://www.youtube.com/results?search_query=${query}`;
             ytBtn.classList.remove("disabled");
-
-            resultBox.classList.add("active");
         }
 
         function getRandomSong() {
             return playlist[Math.floor(Math.random() * playlist.length)];
         }
 
-        /* ================= 1. SLOT MACHINE (SONG NAMES IN REELS) ================= */
+        /* ================= 1. SINGLE-REEL REALISTIC SLOT MACHINE ================= */
         function initSlotMachine() {
-            [1, 2, 3].forEach(id => {
-                const reel = document.getElementById(`reel${id}`);
-                // Populate reel with actual song titles from the playlist
-                reel.innerHTML = playlist.map(song => `<div class="reel-item">${song.title}</div>`).join('');
-            });
+            const reel = document.getElementById('singleReel');
+            // White reel with black fonts, 1 row per song
+            reel.innerHTML = playlist.map(song => `
+                <div class="reel-item">
+                    <div class="title">${song.title}</div>
+                    <div class="artist">${song.artist}</div>
+                </div>
+            `).join('');
         }
 
         function pullSlotLever() {
@@ -691,33 +697,28 @@
             let spins = 0;
             const maxSpins = 25;
             const finalSong = getRandomSong();
+            const reel = document.getElementById('singleReel');
 
             const interval = setInterval(() => {
-                [1, 2, 3].forEach(id => {
-                    const reel = document.getElementById(`reel${id}`);
-                    const randomIndex = Math.floor(Math.random() * playlist.length);
-                    reel.style.top = `-${randomIndex * 112}px`;
-                });
+                const randomIndex = Math.floor(Math.random() * playlist.length);
+                reel.style.top = `-${randomIndex * 100}px`;
 
                 spins++;
                 if (spins >= maxSpins) {
                     clearInterval(interval);
-                    // Align all 3 reels to show selected song title
+                    
                     const targetIndex = playlist.findIndex(s => s.title === finalSong.title);
                     const validIndex = targetIndex >= 0 ? targetIndex : 0;
                     
-                    [1, 2, 3].forEach(id => {
-                        const reel = document.getElementById(`reel${id}`);
-                        reel.style.top = `-${validIndex * 112}px`;
-                    });
+                    reel.style.top = `-${validIndex * 100}px`;
 
-                    updateDisplay(finalSong);
+                    updateYouTubeBtn(finalSong);
                     isBusy = false;
                 }
             }, 70);
         }
 
-        /* ================= 2. WHEEL OF FORTUNE (ALL SONGS + MAGNIFIER) ================= */
+        /* ================= 2. WHEEL OF FORTUNE (MAGNIFIER LENS) ================= */
         function drawWheel() {
             const canvas = document.getElementById('wheelCanvas');
             const ctx = canvas.getContext('2d');
@@ -739,7 +740,6 @@
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
 
-                // Draw Text inside slices
                 ctx.save();
                 ctx.translate(130, 130);
                 ctx.rotate(angle + sliceAngle / 2);
@@ -757,7 +757,6 @@
             const totalSongs = playlist.length;
             if (totalSongs === 0) return;
 
-            // Calculate song under the 12 o'clock marker (-90 degrees / -PI/2)
             let normalizedAngle = (Math.PI / 2 - (wheelAngle % (2 * Math.PI))) % (2 * Math.PI);
             if (normalizedAngle < 0) normalizedAngle += 2 * Math.PI;
 
@@ -795,7 +794,7 @@
                     const finalIndex = Math.floor(normalizedAngle / sliceAngle) % playlist.length;
                     const selectedSong = playlist[finalIndex];
 
-                    updateDisplay(selectedSong);
+                    updateYouTubeBtn(selectedSong);
                 }
             }
             requestAnimationFrame(animate);
@@ -812,11 +811,10 @@
 
             record.classList.add('spinning');
 
-            // Dynamic Needle Movement Parameters
-            let currentArmAngle = -35; // Resting angle outside record
-            const startTrackAngle = -10; // Outer groove
-            const endTrackAngle = 10;   // Inner groove
-            const duration = 2800;      // Duration in ms
+            let currentArmAngle = -35;
+            const startTrackAngle = -10;
+            const endTrackAngle = 10;
+            const duration = 2800;
             const startTime = performance.now();
 
             function animateTonearm(now) {
@@ -824,15 +822,12 @@
                 const progress = Math.min(elapsed / duration, 1);
 
                 if (progress < 0.2) {
-                    // Phase 1: Swing in from rest position to outer edge
                     const p = progress / 0.2;
                     currentArmAngle = -35 + p * (startTrackAngle - (-35));
                 } else if (progress < 0.85) {
-                    // Phase 2: Slowly travel inward across record grooves
                     const p = (progress - 0.2) / 0.65;
                     currentArmAngle = startTrackAngle + p * (endTrackAngle - startTrackAngle);
                 } else {
-                    // Phase 3: Lift and swing back out to rest position
                     const p = (progress - 0.85) / 0.15;
                     currentArmAngle = endTrackAngle + p * (-35 - endTrackAngle);
                 }
@@ -843,7 +838,12 @@
                     requestAnimationFrame(animateTonearm);
                 } else {
                     record.classList.remove('spinning');
-                    updateDisplay(selectedSong);
+                    
+                    // Display song inside vinyl label directly
+                    document.getElementById('vinylTitle').textContent = selectedSong.title;
+                    document.getElementById('vinylArtist').textContent = selectedSong.artist;
+
+                    updateYouTubeBtn(selectedSong);
                     isBusy = false;
                 }
             }
