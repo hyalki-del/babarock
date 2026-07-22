@@ -314,7 +314,7 @@
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
         }
 
-        /* Interactive Red Magnifier Pop-up Lens */
+        /* Interactive Red Magnifier Lens */
         .wheel-magnifier {
             position: absolute;
             top: 2px;
@@ -536,7 +536,7 @@
             }, {passive: true});
         }
 
-        /* ================= LYRIC FETCHING & NEW TAB GENERATOR ================= */
+        /* ================= LYRIC FETCHING & HYPHENATED PATH RESOLUTION ================= */
         function sanitizeSegment(str) {
             const map = {
                 'ç':'c', 'Ç':'C', 'ğ':'g', 'Ğ':'G', 'ı':'i', 'İ':'I',
@@ -545,15 +545,15 @@
             const mapped = str.replace(/[çÇğĞıİöÖşŞüÜ]/g, match => map[match] || match);
             return mapped
                 .toLowerCase()
-                .replace(/[^a-z0-9]/g, '_')
-                .replace(/_+/g, '_')
-                .replace(/^_|_$/g, '');
+                .replace(/[^a-z0-9]+/g, '-') // Replace spaces and non-alphanumerics strictly with hyphens
+                .replace(/-+/g, '-')         // Deduplicate sequential hyphens
+                .replace(/^-|-$/g, '');     // Trim leading/trailing hyphens
         }
 
         async function handleLyricsFetch() {
             if (!selectedSong) return;
 
-            // Formats to Artist-song-name.txt
+            // Strict format: artist-name-song-name.txt (Hyphenated)
             const cleanArtist = sanitizeSegment(selectedSong.artist);
             const cleanTitle = sanitizeSegment(selectedSong.title);
             const lyricFileName = `${cleanArtist}-${cleanTitle}.txt`;
@@ -566,10 +566,10 @@
                 if (!res.ok) throw new Error(`File not found: ${lyricPath}`);
                 lyricsContent = await res.text();
             } catch (err) {
-                lyricsContent = `Lyrics file not found for "${selectedSong.artist} - ${selectedSong.title}".\n\nExpected Path:\n${lyricPath}`;
+                lyricsContent = `Lyrics file not found for "${selectedSong.artist} - ${selectedSong.title}".\n\nExpected File Path:\n${lyricPath}`;
             }
 
-            // Open new browser window/tab with pitch black background, Courier New font, 2em text size
+            // Open new tab with pitch black background, Courier New font, 2em text size
             const lyricsWin = window.open("", "_blank");
             if (lyricsWin) {
                 lyricsWin.document.write(`
