@@ -218,8 +218,9 @@
             z-index: 10;
         }
 
-        .reel-item.interactive:hover {
-            background-color: #f0f0f0;
+        .reel-item.interactive:hover .title {
+            color: var(--primary);
+            text-decoration: underline;
         }
 
         .reel-item .title {
@@ -228,6 +229,7 @@
             color: #000000;
             line-height: 1.2;
             word-break: break-word;
+            transition: color 0.2s ease;
         }
 
         .reel-item .artist {
@@ -235,14 +237,6 @@
             font-weight: 600;
             color: #555555;
             margin-top: 4px;
-        }
-
-        .reel-item .lyrics-hint {
-            font-size: 0.65rem;
-            color: var(--primary);
-            font-weight: 700;
-            margin-top: 2px;
-            text-transform: uppercase;
         }
 
         .arm-container {
@@ -327,7 +321,7 @@
             left: 50%;
             transform: translateX(-50%);
             width: 150px;
-            height: 52px;
+            height: 50px;
             background: rgba(18, 18, 18, 0.95);
             border: 3px solid var(--primary);
             border-radius: 12px;
@@ -335,7 +329,6 @@
             z-index: 15;
             cursor: pointer;
             display: none;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             animation: popup 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -347,6 +340,10 @@
             border-color: #ffffff;
         }
 
+        .wheel-magnifier:hover .magnifier-text {
+            color: var(--primary);
+        }
+
         @keyframes popup {
             0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
             100% { transform: translateX(-50%) scale(1); opacity: 1; }
@@ -354,20 +351,13 @@
 
         .magnifier-text {
             color: #ffffff;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 800;
             text-align: center;
-            padding: 0 6px;
+            padding: 0 8px;
             word-break: break-word;
             line-height: 1.1;
-        }
-
-        .magnifier-subtext {
-            color: var(--primary);
-            font-size: 0.65rem;
-            font-weight: 700;
-            margin-top: 2px;
-            text-transform: uppercase;
+            transition: color 0.2s ease;
         }
 
         .wheel-center-cap {
@@ -385,58 +375,6 @@
             color: #fff;
             font-size: 0.75rem;
             font-weight: bold;
-        }
-
-        /* Modal Lyrics Viewer Overlay */
-        .lyrics-modal {
-            display: none;
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.92);
-            z-index: 100;
-            padding: 25px;
-            flex-direction: column;
-            justify-content: space-between;
-            animation: fadeIn 0.2s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .lyrics-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
-        }
-
-        .lyrics-title {
-            font-size: 1.1rem;
-            color: var(--primary);
-            font-weight: bold;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            color: #888;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-
-        .close-btn:hover { color: #fff; }
-
-        .lyrics-body {
-            overflow-y: auto;
-            margin: 15px 0;
-            font-size: 0.85rem;
-            line-height: 1.6;
-            color: #ddd;
-            white-space: pre-wrap;
-            font-family: monospace;
         }
 
         /* Footer Link */
@@ -520,7 +458,6 @@
                         <div class="wheel-pointer"></div>
                         <div class="wheel-magnifier" id="wheelMagnifier" onclick="handleLyricsFetch()">
                             <div class="magnifier-text" id="magnifierText"></div>
-                            <div class="magnifier-subtext"><i class="fa-solid fa-file-lines"></i> View Lyrics</div>
                         </div>
                         <canvas id="wheelCanvas" width="260" height="260"></canvas>
                         <div class="wheel-center-cap" onclick="spinWheel()">SPIN</div>
@@ -531,15 +468,6 @@
                 </div>
 
             </div>
-        </div>
-
-        <!-- Inline Lyrics Viewer Modal -->
-        <div class="lyrics-modal" id="lyricsModal">
-            <div class="lyrics-header">
-                <span class="lyrics-title" id="modalSongTitle">Song Lyrics</span>
-                <button class="close-btn" onclick="closeLyricsModal()"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="lyrics-body" id="modalLyricsBody">Loading lyrics...</div>
         </div>
 
         <!-- YouTube Link Footer -->
@@ -608,41 +536,67 @@
             }, {passive: true});
         }
 
-        /* ================= LYRIC FETCHING ENGINE ================= */
-        function sanitizeFileName(str) {
-            return str
+        /* ================= LYRIC FETCHING & NEW TAB GENERATOR ================= */
+        function sanitizeSegment(str) {
+            const map = {
+                'ç':'c', 'Ç':'C', 'ğ':'g', 'Ğ':'G', 'ı':'i', 'İ':'I',
+                'ö':'o', 'Ö':'O', 'ş':'s', 'Ş':'S', 'ü':'u', 'Ü':'U'
+            };
+            const mapped = str.replace(/[çÇğĞıİöÖşŞüÜ]/g, match => map[match] || match);
+            return mapped
                 .toLowerCase()
-                .replace(/[^a-z0-9]/g, '-')
-                .replace(/-+/g, '-')
-                .replace(/^-|-$/g, '');
+                .replace(/[^a-z0-9]/g, '_')
+                .replace(/_+/g, '_')
+                .replace(/^_|_$/g, '');
         }
 
         async function handleLyricsFetch() {
             if (!selectedSong) return;
 
-            const modal = document.getElementById('lyricsModal');
-            const titleEl = document.getElementById('modalSongTitle');
-            const bodyEl = document.getElementById('modalLyricsBody');
+            // Formats to Artist-song-name.txt
+            const cleanArtist = sanitizeSegment(selectedSong.artist);
+            const cleanTitle = sanitizeSegment(selectedSong.title);
+            const lyricFileName = `${cleanArtist}-${cleanTitle}.txt`;
+            const lyricPath = `./songs/${lyricFileName}`;
 
-            titleEl.textContent = `${selectedSong.artist} - ${selectedSong.title}`;
-            bodyEl.textContent = "Fetching lyrics from ./songs/ ...";
-            modal.style.display = 'flex';
-
-            const fileName = sanitizeFileName(selectedSong.title);
-            const lyricPath = `./songs/${fileName}.txt`;
+            let lyricsContent = "";
 
             try {
                 const res = await fetch(lyricPath);
-                if (!res.ok) throw new Error(`Lyrics file not found at ${lyricPath}`);
-                const text = await res.text();
-                bodyEl.textContent = text;
+                if (!res.ok) throw new Error(`File not found: ${lyricPath}`);
+                lyricsContent = await res.text();
             } catch (err) {
-                bodyEl.textContent = `Could not load lyrics for "${selectedSong.title}".\n\nEnsure a text file exists at:\n${lyricPath}`;
+                lyricsContent = `Lyrics file not found for "${selectedSong.artist} - ${selectedSong.title}".\n\nExpected Path:\n${lyricPath}`;
             }
-        }
 
-        function closeLyricsModal() {
-            document.getElementById('lyricsModal').style.display = 'none';
+            // Open new browser window/tab with pitch black background, Courier New font, 2em text size
+            const lyricsWin = window.open("", "_blank");
+            if (lyricsWin) {
+                lyricsWin.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>${selectedSong.artist} - ${selectedSong.title} (Lyrics)</title>
+                        <style>
+                            body {
+                                background-color: #000000;
+                                color: #ffffff;
+                                font-family: 'Courier New', Courier, monospace;
+                                font-size: 2em;
+                                padding: 40px;
+                                margin: 0;
+                                line-height: 1.5;
+                                white-space: pre-wrap;
+                                word-break: break-word;
+                            }
+                        </style>
+                    </head>
+                    <body>${lyricsContent}</body>
+                    </html>
+                `);
+                lyricsWin.document.close();
+            }
         }
 
         function updateYouTubeBtn(song) {
@@ -664,7 +618,6 @@
                 <div class="reel-item" id="reel-item-${i}">
                     <div class="title">${song.title}</div>
                     <div class="artist">${song.artist}</div>
-                    <div class="lyrics-hint" id="hint-${i}" style="display:none;"><i class="fa-solid fa-file-lines"></i> View Lyrics</div>
                 </div>
             `).join('');
         }
@@ -677,7 +630,6 @@
                 el.classList.remove('interactive');
                 el.onclick = null;
             });
-            document.querySelectorAll('.lyrics-hint').forEach(el => el.style.display = 'none');
 
             const arm = document.getElementById('slotArm');
             arm.classList.add('pulled');
@@ -703,10 +655,8 @@
                     reel.style.top = `-${targetPos}px`;
                     
                     const finalItem = document.getElementById(`reel-item-${stopIndex}`);
-                    const finalHint = document.getElementById(`hint-${stopIndex}`);
                     if (finalItem) {
                         finalItem.classList.add('interactive');
-                        if (finalHint) finalHint.style.display = 'block';
                         finalItem.onclick = handleLyricsFetch;
                     }
 
