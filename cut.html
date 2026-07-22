@@ -119,7 +119,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 380px;
+            min-height: 390px;
         }
 
         /* Shared Result Card */
@@ -130,7 +130,7 @@
             border-radius: 12px;
             padding: 15px;
             text-align: center;
-            margin-top: 15px;
+            margin-top: 10px;
             min-height: 75px;
             display: flex;
             flex-direction: column;
@@ -191,7 +191,7 @@
             pointer-events: none;
         }
 
-        /* ==================== STYLE 1: SLOT MACHINE ==================== */
+        /* ==================== 1. SLOT MACHINE (SONG NAMES IN REELS) ==================== */
         .slot-machine {
             display: flex;
             align-items: center;
@@ -204,12 +204,12 @@
             border: 4px solid #333;
             border-radius: 12px;
             display: flex;
-            gap: 8px;
-            padding: 10px;
+            gap: 6px;
+            padding: 8px;
             box-shadow: inset 0 0 15px rgba(0,0,0,0.9), 0 0 10px rgba(255,69,0,0.2);
             overflow: hidden;
-            height: 120px;
-            width: 240px;
+            height: 130px;
+            width: 270px;
         }
 
         .reel {
@@ -219,34 +219,36 @@
             border: 1px solid #222;
             overflow: hidden;
             position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
         .reel-container {
             display: flex;
             flex-direction: column;
-            align-items: center;
             position: absolute;
             top: 0;
             width: 100%;
-            transition: top 0.1s linear;
+            transition: top 0.05s linear;
         }
 
         .reel-item {
-            height: 100px;
+            height: 112px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            text-align: center;
+            padding: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
             color: #ff9500;
+            border-bottom: 1px solid #222;
+            word-break: break-word;
+            line-height: 1.2;
         }
 
         /* Lever Mechanism */
         .arm-container {
             width: 30px;
-            height: 120px;
+            height: 130px;
             position: relative;
             cursor: pointer;
         }
@@ -263,7 +265,7 @@
 
         .arm-stick {
             width: 8px;
-            height: 70px;
+            height: 75px;
             background: linear-gradient(to right, #888, #fff, #666);
             position: absolute;
             bottom: 20px;
@@ -288,41 +290,73 @@
             transform: rotateX(150deg) scaleY(0.6);
         }
 
-        /* ==================== STYLE 2: WHEEL OF FORTUNE ==================== */
+        /* ==================== 2. WHEEL OF FORTUNE (MAGNIFIER LENS) ==================== */
         .wheel-wrapper {
             position: relative;
-            width: 240px;
-            height: 240px;
+            width: 260px;
+            height: 260px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
         canvas#wheelCanvas {
-            width: 240px;
-            height: 240px;
+            width: 260px;
+            height: 260px;
             border-radius: 50%;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), 0 0 10px var(--primary);
         }
 
         .wheel-pointer {
             position: absolute;
-            top: -12px;
+            top: -10px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 12px solid transparent;
-            border-right: 12px solid transparent;
-            border-top: 22px solid var(--primary);
-            z-index: 10;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 18px solid var(--primary);
+            z-index: 12;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+        }
+
+        /* Magnifier Glass Lens on Selection Mark */
+        .wheel-magnifier {
+            position: absolute;
+            top: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 110px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(2px);
+            border: 3px solid var(--primary);
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(255, 69, 0, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.4);
+            z-index: 11;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .magnifier-text {
+            color: #ffffff;
+            font-size: 0.85rem;
+            font-weight: 800;
+            text-align: center;
+            text-shadow: 0 0 6px #000, 0 0 2px #000;
+            padding: 2px 4px;
+            word-break: break-word;
+            line-height: 1.1;
         }
 
         .wheel-center-cap {
             position: absolute;
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             background: radial-gradient(circle, #222 0%, #000 100%);
             border: 3px solid var(--primary);
             border-radius: 50%;
@@ -332,13 +366,14 @@
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
+            font-weight: bold;
         }
 
-        /* ==================== STYLE 3: ROCK TURNTABLE ==================== */
+        /* ==================== 3. VINYL TURNTABLE (TRAVELING NEEDLE ARM) ==================== */
         .turntable {
-            width: 230px;
-            height: 230px;
+            width: 250px;
+            height: 250px;
             background: #181818;
             border-radius: 16px;
             border: 2px solid #333;
@@ -351,8 +386,8 @@
         }
 
         .vinyl-record {
-            width: 190px;
-            height: 190px;
+            width: 210px;
+            height: 210px;
             background: repeating-radial-gradient(
                 #111,
                 #111 2px,
@@ -377,8 +412,8 @@
         }
 
         .record-label {
-            width: 70px;
-            height: 70px;
+            width: 75px;
+            height: 75px;
             background: radial-gradient(circle, #ff4500 0%, #b71c1c 100%);
             border-radius: 50%;
             border: 3px solid #000;
@@ -391,44 +426,53 @@
             text-align: center;
         }
 
-        .tonearm {
+        /* Dynamic Tonearm */
+        .tonearm-pivot {
             position: absolute;
             top: 20px;
-            right: 15px;
-            width: 60px;
-            height: 100px;
-            pointer-events: none;
-            transform-origin: 50px 10px;
-            transition: transform 0.6s ease-in-out;
-            transform: rotate(-30deg);
+            right: 20px;
+            width: 24px;
+            height: 24px;
+            background: #444;
+            border-radius: 50%;
+            border: 2px solid #666;
             z-index: 10;
         }
 
-        .tonearm.playing {
-            transform: rotate(8deg);
+        .tonearm {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 10px;
+            height: 110px;
+            pointer-events: none;
+            transform-origin: 5px 0px;
+            transition: transform 0.1s linear;
+            transform: rotate(-35deg); /* Resting position outside record */
+            z-index: 10;
         }
 
         .tonearm-stick {
             width: 4px;
-            height: 80px;
-            background: #ccc;
+            height: 95px;
+            background: linear-gradient(to right, #ccc, #fff, #aaa);
             position: absolute;
-            right: 10px;
-            top: 10px;
+            left: 3px;
             border-radius: 2px;
         }
 
         .tonearm-head {
             width: 12px;
-            height: 20px;
+            height: 22px;
             background: var(--primary);
             position: absolute;
-            bottom: 5px;
-            right: 6px;
+            bottom: 0px;
+            left: -1px;
             border-radius: 2px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.8);
         }
 
-        /* Action Trigger Buttons inside Panels */
+        /* Action Trigger Buttons */
         .trigger-btn {
             margin-top: 15px;
             background: var(--primary);
@@ -475,7 +519,7 @@
         <div class="slider-viewport" id="sliderViewport">
             <div class="slider-track" id="sliderTrack">
                 
-                <!-- PANEL 1: SLOT MACHINE -->
+                <!-- PANEL 1: SLOT MACHINE WITH SONG NAMES -->
                 <div class="slide-panel">
                     <div class="slot-machine">
                         <div class="slot-frame">
@@ -495,11 +539,14 @@
                     </button>
                 </div>
 
-                <!-- PANEL 2: WHEEL OF FORTUNE -->
+                <!-- PANEL 2: WHEEL OF FORTUNE WITH MAGNIFIER -->
                 <div class="slide-panel">
                     <div class="wheel-wrapper">
                         <div class="wheel-pointer"></div>
-                        <canvas id="wheelCanvas" width="240" height="240"></canvas>
+                        <div class="wheel-magnifier">
+                            <div class="magnifier-text" id="magnifierText">SPIN ME!</div>
+                        </div>
+                        <canvas id="wheelCanvas" width="260" height="260"></canvas>
                         <div class="wheel-center-cap" onclick="spinWheel()">SPIN</div>
                     </div>
                     <button class="trigger-btn" onclick="spinWheel()">
@@ -507,12 +554,13 @@
                     </button>
                 </div>
 
-                <!-- PANEL 3: VINYL TURNTABLE -->
+                <!-- PANEL 3: VINYL TURNTABLE WITH TRAVELING ARM -->
                 <div class="slide-panel">
                     <div class="turntable" onclick="playVinyl()">
                         <div class="vinyl-record" id="vinylRecord">
                             <div class="record-label">BABA<br>ROCK</div>
                         </div>
+                        <div class="tonearm-pivot"></div>
                         <div class="tonearm" id="tonearm">
                             <div class="tonearm-stick"></div>
                             <div class="tonearm-head"></div>
@@ -526,11 +574,11 @@
             </div>
         </div>
 
-        <!-- Output Song Display -->
+        <!-- Shared Output Display Box -->
         <div style="padding: 0 20px;">
             <div class="result-box" id="resultBox">
                 <div class="result-title" id="songTitle">Select a Mode & Play!</div>
-                <div class="result-artist" id="songArtist">Baba Rock Song Picker</div> <!-- FIXED: Added missing element -->
+                <div class="result-artist" id="songArtist">Baba Rock Song Picker</div> <!-- FIXED DOM reference -->
             </div>
         </div>
 
@@ -543,26 +591,21 @@
     </div>
 
     <script>
-        // Fallback playlist data to guarantee immediate functionality
+        // Fallback playlist data ensuring instant operation
         const defaultPlaylist = [
             { title: "Cambaz", artist: "mor ve ötesi" },
             { title: "Bir Derdim Var", artist: "mor ve ötesi" },
-            { title: "Sertab Erener", artist: "Eurovision Rock Mix" },
-            { title: "Öyle Kolay Aşık Olmam", artist: "Teoman" },
             { title: "Paramparça", artist: "Teoman" },
-            { title: "Işıklarla Ol", artist: "duman" },
             { title: "Köprüaltı", artist: "duman" },
             { title: "Resimdeki Gözyaşları", artist: "Cem Karaca" },
             { title: "Islak Islak", artist: "Barış Akarsu" },
-            { title: "Anadolu Rock Medley", artist: "Barış Manço" }
+            { title: "Dönence", artist: "Barış Manço" },
+            { title: "Araf", artist: "manga" }
         ];
 
         let playlist = [];
         let isBusy = false;
         let currentSlide = 0;
-
-        // Slot Machine State
-        const slotIcons = ['🎸', '🥁', '⚡', '🔥', '🎤', '🎧', '📻', '🤘'];
 
         // Wheel State
         let wheelAngle = 0;
@@ -574,7 +617,6 @@
                 if (!res.ok) throw new Error("Local json fetch failed");
                 playlist = await res.json();
             } catch (err) {
-                console.log("Using default rock playlist fallback.");
                 playlist = defaultPlaylist;
             }
             initSlotMachine();
@@ -629,11 +671,12 @@
             return playlist[Math.floor(Math.random() * playlist.length)];
         }
 
-        /* ================= MODE 1: SLOT MACHINE ================= */
+        /* ================= 1. SLOT MACHINE (SONG NAMES IN REELS) ================= */
         function initSlotMachine() {
             [1, 2, 3].forEach(id => {
                 const reel = document.getElementById(`reel${id}`);
-                reel.innerHTML = slotIcons.map(icon => `<div class="reel-item">${icon}</div>`).join('');
+                // Populate reel with actual song titles from the playlist
+                reel.innerHTML = playlist.map(song => `<div class="reel-item">${song.title}</div>`).join('');
             });
         }
 
@@ -646,55 +689,83 @@
             setTimeout(() => arm.classList.remove('pulled'), 400);
 
             let spins = 0;
-            const maxSpins = 20;
+            const maxSpins = 25;
+            const finalSong = getRandomSong();
+
             const interval = setInterval(() => {
                 [1, 2, 3].forEach(id => {
                     const reel = document.getElementById(`reel${id}`);
-                    const randomOffset = -(Math.floor(Math.random() * slotIcons.length) * 100);
-                    reel.style.top = `${randomOffset}px`;
+                    const randomIndex = Math.floor(Math.random() * playlist.length);
+                    reel.style.top = `-${randomIndex * 112}px`;
                 });
 
                 spins++;
                 if (spins >= maxSpins) {
                     clearInterval(interval);
-                    const selected = getRandomSong();
-                    updateDisplay(selected);
+                    // Align all 3 reels to show selected song title
+                    const targetIndex = playlist.findIndex(s => s.title === finalSong.title);
+                    const validIndex = targetIndex >= 0 ? targetIndex : 0;
+                    
+                    [1, 2, 3].forEach(id => {
+                        const reel = document.getElementById(`reel${id}`);
+                        reel.style.top = `-${validIndex * 112}px`;
+                    });
+
+                    updateDisplay(finalSong);
                     isBusy = false;
                 }
-            }, 80);
+            }, 70);
         }
 
-        /* ================= MODE 2: WHEEL OF FORTUNE ================= */
+        /* ================= 2. WHEEL OF FORTUNE (ALL SONGS + MAGNIFIER) ================= */
         function drawWheel() {
             const canvas = document.getElementById('wheelCanvas');
             const ctx = canvas.getContext('2d');
-            const numSlices = Math.min(playlist.length, 8);
-            const sliceAngle = (2 * Math.PI) / numSlices;
+            const totalSongs = playlist.length;
+            if (totalSongs === 0) return;
 
-            ctx.clearRect(0, 0, 240, 240);
-            
-            for (let i = 0; i < numSlices; i++) {
+            const sliceAngle = (2 * Math.PI) / totalSongs;
+            ctx.clearRect(0, 0, 260, 260);
+
+            for (let i = 0; i < totalSongs; i++) {
                 const angle = wheelAngle + i * sliceAngle;
                 ctx.beginPath();
-                ctx.fillStyle = i % 2 === 0 ? '#ff4500' : '#222222';
-                ctx.moveTo(120, 120);
-                ctx.arc(120, 120, 115, angle, angle + sliceAngle);
-                ctx.lineTo(120, 120);
+                ctx.fillStyle = i % 2 === 0 ? '#ff4500' : '#1f1f1f';
+                ctx.moveTo(130, 130);
+                ctx.arc(130, 130, 125, angle, angle + sliceAngle);
+                ctx.lineTo(130, 130);
                 ctx.fill();
-                ctx.strokeStyle = '#111';
-                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 1.5;
                 ctx.stroke();
 
-                // Draw Text
+                // Draw Text inside slices
                 ctx.save();
-                ctx.translate(120, 120);
+                ctx.translate(130, 130);
                 ctx.rotate(angle + sliceAngle / 2);
                 ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 11px sans-serif';
+                ctx.font = 'bold 10px sans-serif';
                 ctx.textAlign = 'right';
-                const label = playlist[i] ? playlist[i].title.substring(0, 10) : 'Rock';
-                ctx.fillText(label, 100, 4);
+                ctx.fillText(playlist[i].title.substring(0, 12), 115, 3);
                 ctx.restore();
+            }
+
+            updateMagnifierText(sliceAngle);
+        }
+
+        function updateMagnifierText(sliceAngle) {
+            const totalSongs = playlist.length;
+            if (totalSongs === 0) return;
+
+            // Calculate song under the 12 o'clock marker (-90 degrees / -PI/2)
+            let normalizedAngle = (Math.PI / 2 - (wheelAngle % (2 * Math.PI))) % (2 * Math.PI);
+            if (normalizedAngle < 0) normalizedAngle += 2 * Math.PI;
+
+            const selectedIndex = Math.floor(normalizedAngle / sliceAngle) % totalSongs;
+            const currentSong = playlist[selectedIndex];
+
+            if (currentSong) {
+                document.getElementById('magnifierText').textContent = currentSong.title;
             }
         }
 
@@ -703,7 +774,7 @@
             isBusy = true;
             wheelSpinning = true;
 
-            let velocity = Math.random() * 0.2 + 0.3;
+            let velocity = Math.random() * 0.25 + 0.35;
             const friction = 0.985;
 
             function animate() {
@@ -711,39 +782,73 @@
                 wheelAngle += velocity;
                 drawWheel();
 
-                if (velocity > 0.002) {
+                if (velocity > 0.0015) {
                     requestAnimationFrame(animate);
                 } else {
                     wheelSpinning = false;
                     isBusy = false;
-                    const selected = getRandomSong();
-                    updateDisplay(selected);
+
+                    const sliceAngle = (2 * Math.PI) / playlist.length;
+                    let normalizedAngle = (Math.PI / 2 - (wheelAngle % (2 * Math.PI))) % (2 * Math.PI);
+                    if (normalizedAngle < 0) normalizedAngle += 2 * Math.PI;
+                    
+                    const finalIndex = Math.floor(normalizedAngle / sliceAngle) % playlist.length;
+                    const selectedSong = playlist[finalIndex];
+
+                    updateDisplay(selectedSong);
                 }
             }
             requestAnimationFrame(animate);
         }
 
-        /* ================= MODE 3: VINYL TURNTABLE ================= */
+        /* ================= 3. VINYL TURNTABLE (TRAVELING NEEDLE ARM) ================= */
         function playVinyl() {
             if (isBusy) return;
             isBusy = true;
 
             const record = document.getElementById('vinylRecord');
             const tonearm = document.getElementById('tonearm');
+            const selectedSong = getRandomSong();
 
-            tonearm.classList.add('playing');
-            
-            setTimeout(() => {
-                record.classList.add('spinning');
-            }, 400);
+            record.classList.add('spinning');
 
-            setTimeout(() => {
-                record.classList.remove('spinning');
-                tonearm.classList.remove('playing');
-                const selected = getRandomSong();
-                updateDisplay(selected);
-                isBusy = false;
-            }, 2500);
+            // Dynamic Needle Movement Parameters
+            let currentArmAngle = -35; // Resting angle outside record
+            const startTrackAngle = -10; // Outer groove
+            const endTrackAngle = 10;   // Inner groove
+            const duration = 2800;      // Duration in ms
+            const startTime = performance.now();
+
+            function animateTonearm(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                if (progress < 0.2) {
+                    // Phase 1: Swing in from rest position to outer edge
+                    const p = progress / 0.2;
+                    currentArmAngle = -35 + p * (startTrackAngle - (-35));
+                } else if (progress < 0.85) {
+                    // Phase 2: Slowly travel inward across record grooves
+                    const p = (progress - 0.2) / 0.65;
+                    currentArmAngle = startTrackAngle + p * (endTrackAngle - startTrackAngle);
+                } else {
+                    // Phase 3: Lift and swing back out to rest position
+                    const p = (progress - 0.85) / 0.15;
+                    currentArmAngle = endTrackAngle + p * (-35 - endTrackAngle);
+                }
+
+                tonearm.style.transform = `rotate(${currentArmAngle}deg)`;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateTonearm);
+                } else {
+                    record.classList.remove('spinning');
+                    updateDisplay(selectedSong);
+                    isBusy = false;
+                }
+            }
+
+            requestAnimationFrame(animateTonearm);
         }
 
         window.onload = init;
