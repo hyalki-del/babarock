@@ -654,7 +654,7 @@
                 const index = playlist.findIndex(s => s.title === pendingExtraction.title && s.artist === pendingExtraction.artist);
                 if (index !== -1) {
                     playlist.splice(index, 1);
-                    playedList.unshift(pendingExtraction); // Prepend so last played is on top
+                    playedList.unshift(pendingExtraction);
                     renderPlayedList();
                     updatePoolCounter();
                 }
@@ -798,10 +798,9 @@
                 reel.style.top = '0px';
                 return;
             }
-            // Create a safe multi-loop representation for animation scrolling
             const displayList = [...playlist, ...playlist, ...playlist, ...playlist];
             reel.innerHTML = displayList.map((song, i) => `
-                <div class="reel-item" id="reel-item-${i}" data-title="${song.title}" data-artist="${song.artist}">
+                <div class="reel-item" id="reel-item-${i}" data-title="${encodeURIComponent(song.title)}" data-artist="${encodeURIComponent(song.artist)}">
                     <div class="title">${song.title}</div>
                     <div class="artist">${song.artist}</div>
                 </div>
@@ -811,7 +810,6 @@
         function pullSlotLever() {
             if (isBusy) return;
 
-            // Process extraction of the previous pick on NEW trigger
             processPendingExtraction();
 
             if (playlist.length === 0) {
@@ -833,12 +831,10 @@
             const reel = document.getElementById('singleReel');
             const itemHeight = 100;
             
-            // Pick target song uniformly from active pool
-            selectedSong = getRandomSong();
-            
-            // Find an explicit occurrence in the middle segment loop (e.g., block index 2) to anchor animation accurately
+            // Pick target song uniformly and find its deterministic location in block index 2
+            const targetSong = getRandomSong();
+            const matchIndexInPool = playlist.findIndex(s => s.title === targetSong.title && s.artist === targetSong.artist);
             const targetBlockOffset = playlist.length * 2;
-            const matchIndexInPool = playlist.findIndex(s => s.title === selectedSong.title && s.artist === selectedSong.artist);
             const stopIndex = targetBlockOffset + (matchIndexInPool >= 0 ? matchIndexInPool : 0);
             
             const targetPos = stopIndex * itemHeight;
@@ -856,12 +852,18 @@
                     
                     const finalItem = document.getElementById(`reel-item-${stopIndex}`);
                     if (finalItem) {
+                        // Read attributes directly from the exact DOM element that landed in view
+                        selectedSong = {
+                            title: decodeURIComponent(finalItem.getAttribute('data-title')),
+                            artist: decodeURIComponent(finalItem.getAttribute('data-artist'))
+                        };
+
                         finalItem.classList.add('interactive');
                         finalItem.onclick = () => handleLyricsFetch(selectedSong);
                     }
 
                     updateYouTubeBtn(selectedSong);
-                    pendingExtraction = selectedSong; // Queued for extraction on subsequent action
+                    pendingExtraction = selectedSong;
                     isBusy = false;
                 } else {
                     reel.style.top = `-${currentPos % (playlist.length * itemHeight * 3)}px`;
@@ -919,7 +921,6 @@
         function spinWheel() {
             if (isBusy || wheelSpinning) return;
 
-            // Process extraction of previous spin item *only now* when user clicks spin again
             processPendingExtraction();
 
             if (playlist.length === 0) {
@@ -961,7 +962,7 @@
                     magnifier.style.display = 'flex';
 
                     updateYouTubeBtn(selectedSong);
-                    pendingExtraction = selectedSong; // Queued for removal on the next interaction
+                    pendingExtraction = selectedSong;
                 }
             }
             requestAnimationFrame(animate);
