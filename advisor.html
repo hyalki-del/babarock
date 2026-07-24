@@ -596,6 +596,7 @@
 
         let playlist = [];          // Active pool
         let playedList = [];         // Extracted pool (Most recent on top)
+        let pendingExtraction = null; // Song waiting to be extracted on the NEXT spin/pull
         let isBusy = false;
         let currentSlide = 0;
         let selectedSong = null;
@@ -648,13 +649,16 @@
         }
 
         /* ================= POOL MANAGEMENT & PLAYED LIST UI ================= */
-        function extractSong(song) {
-            const index = playlist.findIndex(s => s.title === song.title && s.artist === song.artist);
-            if (index !== -1) {
-                playlist.splice(index, 1);
-                playedList.unshift(song); // Prepend so last picked is on top
-                renderPlayedList();
-                updatePoolCounter();
+        function processPendingExtraction() {
+            if (pendingExtraction) {
+                const index = playlist.findIndex(s => s.title === pendingExtraction.title && s.artist === pendingExtraction.artist);
+                if (index !== -1) {
+                    playlist.splice(index, 1);
+                    playedList.unshift(pendingExtraction); // Prepend so last played is on top
+                    renderPlayedList();
+                    updatePoolCounter();
+                }
+                pendingExtraction = null;
             }
         }
 
@@ -704,7 +708,7 @@
             slotBtn.disabled = empty;
             wheelBtn.disabled = empty;
 
-            if (empty) {
+            if (empty && !pendingExtraction) {
                 document.getElementById('magnifierText').textContent = "HAVUZ BOŞ";
             }
         }
@@ -794,9 +798,10 @@
                 reel.style.top = '0px';
                 return;
             }
+            // Create a safe multi-loop representation for animation scrolling
             const displayList = [...playlist, ...playlist, ...playlist, ...playlist];
             reel.innerHTML = displayList.map((song, i) => `
-                <div class="reel-item" id="reel-item-${i}">
+                <div class="reel-item" id="reel-item-${i}" data-title="${song.title}" data-artist="${song.artist}">
                     <div class="title">${song.title}</div>
                     <div class="artist">${song.artist}</div>
                 </div>
@@ -804,7 +809,15 @@
         }
 
         function pullSlotLever() {
-            if (isBusy || playlist.length === 0) return;
+            if (isBusy) return;
+
+            // Process extraction of the previous pick on NEW trigger
+            processPendingExtraction();
+
+            if (playlist.length === 0) {
+                refreshGameViews();
+                return;
+            }
 
             isBusy = true;
 
@@ -819,10 +832,15 @@
 
             const reel = document.getElementById('singleReel');
             const itemHeight = 100;
-            selectedSong = getRandomSong();
-            const targetIndex = playlist.findIndex(s => s.title === selectedSong.title && s.artist === selectedSong.artist);
             
-            const stopIndex = playlist.length * 2 + (targetIndex >= 0 ? targetIndex : 0);
+            // Pick target song uniformly from active pool
+            selectedSong = getRandomSong();
+            
+            // Find an explicit occurrence in the middle segment loop (e.g., block index 2) to anchor animation accurately
+            const targetBlockOffset = playlist.length * 2;
+            const matchIndexInPool = playlist.findIndex(s => s.title === selectedSong.title && s.artist === selectedSong.artist);
+            const stopIndex = targetBlockOffset + (matchIndexInPool >= 0 ? matchIndexInPool : 0);
+            
             const targetPos = stopIndex * itemHeight;
 
             let currentPos = 0;
@@ -842,10 +860,9 @@
                         finalItem.onclick = () => handleLyricsFetch(selectedSong);
                     }
 
-                    extractSong(selectedSong);
                     updateYouTubeBtn(selectedSong);
+                    pendingExtraction = selectedSong; // Queued for extraction on subsequent action
                     isBusy = false;
-                    refreshGameViews();
                 } else {
                     reel.style.top = `-${currentPos % (playlist.length * itemHeight * 3)}px`;
                     requestAnimationFrame(animateReel);
@@ -900,7 +917,15 @@
         }
 
         function spinWheel() {
-            if (isBusy || wheelSpinning || playlist.length === 0) return;
+            if (isBusy || wheelSpinning) return;
+
+            // Process extraction of previous spin item *only now* when user clicks spin again
+            processPendingExtraction();
+
+            if (playlist.length === 0) {
+                refreshGameViews();
+                return;
+            }
 
             isBusy = true;
             wheelSpinning = true;
@@ -935,9 +960,8 @@
                     document.getElementById('magnifierText').textContent = selectedSong.title;
                     magnifier.style.display = 'flex';
 
-                    extractSong(selectedSong);
                     updateYouTubeBtn(selectedSong);
-                    refreshGameViews();
+                    pendingExtraction = selectedSong; // Queued for removal on the next interaction
                 }
             }
             requestAnimationFrame(animate);
