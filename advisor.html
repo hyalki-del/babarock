@@ -533,14 +533,14 @@
                                     <div class="reel-container" id="singleReel"></div>
                                 </div>
                             </div>
-                            <div class="arm-container" id="slotArm" onclick="pullSlotLever()">
+                            <div class="arm-container" id="slotArm" onclick="spinWheelOrSlot('slot')">
                                 <div class="arm-stick">
                                     <div class="arm-knob"></div>
                                 </div>
                                 <div class="arm-base"></div>
                             </div>
                         </div>
-                        <button class="trigger-btn" id="slotBtn" onclick="pullSlotLever()">
+                        <button class="trigger-btn" id="slotBtn" onclick="spinWheelOrSlot('slot')">
                             <i class="fa-solid fa-sliders"></i> KOLU ÇEK
                         </button>
                     </div>
@@ -553,9 +553,9 @@
                                 <div class="magnifier-text" id="magnifierText"></div>
                             </div>
                             <canvas id="wheelCanvas" width="260" height="260"></canvas>
-                            <div class="wheel-center-cap" onclick="spinWheel()">ÇEVİR</div>
+                            <div class="wheel-center-cap" onclick="spinWheelOrSlot('wheel')">ÇEVİR</div>
                         </div>
-                        <button class="trigger-btn" id="wheelBtn" onclick="spinWheel()">
+                        <button class="trigger-btn" id="wheelBtn" onclick="spinWheelOrSlot('wheel')">
                             <i class="fa-solid fa-rotate-right"></i> ÇARKI ÇEVİR
                         </button>
                     </div>
@@ -596,7 +596,7 @@
 
         let playlist = [];          // Active pool
         let playedList = [];         // Extracted pool (Most recent on top)
-        let pendingExtraction = null; // Song waiting to be extracted on the NEXT spin/pull
+        let pendingExtraction = null; // Song waiting to be removed from pool *only when next spin button is hit*
         let isBusy = false;
         let currentSlide = 0;
         let selectedSong = null;
@@ -649,16 +649,13 @@
         }
 
         /* ================= POOL MANAGEMENT & PLAYED LIST UI ================= */
-        function processPendingExtraction() {
-            if (pendingExtraction) {
-                const index = playlist.findIndex(s => s.title === pendingExtraction.title && s.artist === pendingExtraction.artist);
-                if (index !== -1) {
-                    playlist.splice(index, 1);
-                    playedList.unshift(pendingExtraction);
-                    renderPlayedList();
-                    updatePoolCounter();
-                }
-                pendingExtraction = null;
+        function extractSong(song) {
+            const index = playlist.findIndex(s => s.title === song.title && s.artist === song.artist);
+            if (index !== -1) {
+                playlist.splice(index, 1);
+                playedList.unshift(song);
+                renderPlayedList();
+                updatePoolCounter();
             }
         }
 
@@ -790,17 +787,36 @@
             return playlist[Math.floor(Math.random() * playlist.length)];
         }
 
+        /* ================= MASTER DISPATCHER ================= */
+        function spinWheelOrSlot(type) {
+            // Process any pending extraction ONLY when the user initiates the next spin/pull action
+            if (pendingExtraction) {
+                extractSong(pendingExtraction);
+                pendingExtraction = null;
+                refreshGameViews();
+            }
+
+            if (type === 'slot') {
+                pullSlotLever();
+            } else {
+                spinWheel();
+            }
+        }
+
         /* ================= SLOT MACHINE ================= */
+        let currentReelSourceList = [];
+
         function initSlotMachine() {
             const reel = document.getElementById('singleReel');
             if (playlist.length === 0) {
                 reel.innerHTML = `<div class="reel-item"><div class="title">ŞARKI YOK</div></div>`;
                 reel.style.top = '0px';
+                currentReelSourceList = [];
                 return;
             }
-            const displayList = [...playlist, ...playlist, ...playlist, ...playlist];
-            reel.innerHTML = displayList.map((song, i) => `
-                <div class="reel-item" id="reel-item-${i}" data-title="${encodeURIComponent(song.title)}" data-artist="${encodeURIComponent(song.artist)}">
+            currentReelSourceList = [...playlist, ...playlist, ...playlist, ...playlist];
+            reel.innerHTML = currentReelSourceList.map((song, i) => `
+                <div class="reel-item" id="reel-item-${i}">
                     <div class="title">${song.title}</div>
                     <div class="artist">${song.artist}</div>
                 </div>
@@ -810,12 +826,7 @@
         function pullSlotLever() {
             if (isBusy) return;
 
-            processPendingExtraction();
-
-            if (playlist.length === 0) {
-                refreshGameViews();
-                return;
-            }
+            if (playlist.length === 0) return;
 
             isBusy = true;
 
@@ -831,12 +842,13 @@
             const reel = document.getElementById('singleReel');
             const itemHeight = 100;
             
-            // Pick target song uniformly and find its deterministic location in block index 2
             const targetSong = getRandomSong();
             const matchIndexInPool = playlist.findIndex(s => s.title === targetSong.title && s.artist === targetSong.artist);
+            
             const targetBlockOffset = playlist.length * 2;
             const stopIndex = targetBlockOffset + (matchIndexInPool >= 0 ? matchIndexInPool : 0);
             
+            selectedSong = currentReelSourceList[stopIndex];
             const targetPos = stopIndex * itemHeight;
 
             let currentPos = 0;
@@ -852,18 +864,12 @@
                     
                     const finalItem = document.getElementById(`reel-item-${stopIndex}`);
                     if (finalItem) {
-                        // Read attributes directly from the exact DOM element that landed in view
-                        selectedSong = {
-                            title: decodeURIComponent(finalItem.getAttribute('data-title')),
-                            artist: decodeURIComponent(finalItem.getAttribute('data-artist'))
-                        };
-
                         finalItem.classList.add('interactive');
                         finalItem.onclick = () => handleLyricsFetch(selectedSong);
                     }
 
                     updateYouTubeBtn(selectedSong);
-                    pendingExtraction = selectedSong;
+                    pendingExtraction = selectedSong; // Queued to be deducted from pool on the NEXT spin button click
                     isBusy = false;
                 } else {
                     reel.style.top = `-${currentPos % (playlist.length * itemHeight * 3)}px`;
@@ -921,12 +927,7 @@
         function spinWheel() {
             if (isBusy || wheelSpinning) return;
 
-            processPendingExtraction();
-
-            if (playlist.length === 0) {
-                refreshGameViews();
-                return;
-            }
+            if (playlist.length === 0) return;
 
             isBusy = true;
             wheelSpinning = true;
@@ -962,7 +963,7 @@
                     magnifier.style.display = 'flex';
 
                     updateYouTubeBtn(selectedSong);
-                    pendingExtraction = selectedSong;
+                    pendingExtraction = selectedSong; // Queued to be deducted from pool on the NEXT spin button click
                 }
             }
             requestAnimationFrame(animate);
