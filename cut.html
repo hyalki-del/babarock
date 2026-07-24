@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,8 +37,17 @@
             overflow-x: hidden;
         }
 
+        .layout-wrapper {
+            display: flex;
+            gap: 20px;
+            max-width: 820px;
+            width: 100%;
+            align-items: flex-start;
+        }
+
         .app-container {
-            max-width: 440px;
+            flex: 1;
+            max-width: 460px;
             width: 100%;
             background: var(--card-bg);
             border-radius: 20px;
@@ -47,9 +56,75 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
-        /* Header Navigation & Slider Tabs */
+        .played-panel {
+            width: 280px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            max-height: 540px;
+        }
+
+        .played-panel h2 {
+            font-size: 1.1rem;
+            color: var(--primary);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .played-panel .hint-text {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .played-list {
+            list-style: none;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .played-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .played-item:hover {
+            border-color: var(--primary);
+            background: #222;
+        }
+
+        .played-item .title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.2;
+        }
+
+        .played-item .artist {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
         .header {
             padding: 20px 20px 10px 20px;
             text-align: center;
@@ -67,6 +142,18 @@
 
         .header h1 i { color: var(--primary); }
 
+        .pool-badge {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        .pool-badge span {
+            color: var(--primary);
+            font-weight: 800;
+        }
+
         .nav-tabs {
             display: flex;
             justify-content: space-around;
@@ -82,16 +169,16 @@
             background: transparent;
             border: none;
             color: var(--text-muted);
-            padding: 10px;
+            padding: 8px 10px;
             border-radius: 20px;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 5px;
         }
 
         .tab-btn.active {
@@ -100,7 +187,6 @@
             box-shadow: 0 0 10px rgba(255, 69, 0, 0.4);
         }
 
-        /* Viewport & Slider Track */
         .slider-viewport {
             width: 100%;
             overflow: hidden;
@@ -109,12 +195,12 @@
 
         .slider-track {
             display: flex;
-            width: 200%;
+            width: 300%;
             transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
         .slide-panel {
-            width: 50%;
+            width: calc(100% / 3);
             padding: 30px 20px;
             display: flex;
             flex-direction: column;
@@ -123,7 +209,6 @@
             min-height: 380px;
         }
 
-        /* Action Trigger Buttons */
         .trigger-btn {
             margin-top: 25px;
             background: var(--primary);
@@ -141,12 +226,18 @@
             gap: 8px;
         }
 
-        .trigger-btn:hover {
+        .trigger-btn:hover:not(:disabled) {
             background: var(--primary-hover);
             transform: translateY(-2px);
         }
 
-        /* ==================== 1. REALISTIC SINGLE-REEL SLOT MACHINE ==================== */
+        .trigger-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* SLOT MACHINE STYLES */
         .slot-machine {
             display: flex;
             align-items: center;
@@ -166,7 +257,6 @@
             position: relative;
         }
 
-        /* Curved 3D Cylinder Lighting (Red Line Removed) */
         .slot-frame::before {
             content: "";
             position: absolute;
@@ -185,7 +275,7 @@
         .single-reel {
             width: 100%;
             height: 100%;
-            background: #ffffff; /* White Spinner */
+            background: #ffffff;
             border-radius: 6px;
             overflow: hidden;
             position: relative;
@@ -212,10 +302,20 @@
             border-bottom: 1px dashed #ccc;
         }
 
+        .reel-item.interactive {
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .reel-item.interactive:hover .title {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
         .reel-item .title {
             font-size: 1.1rem;
             font-weight: 800;
-            color: #000000; /* Black Fonts */
+            color: #000000;
             line-height: 1.2;
             word-break: break-word;
         }
@@ -227,7 +327,6 @@
             margin-top: 4px;
         }
 
-        /* Lever Mechanism */
         .arm-container {
             width: 30px;
             height: 120px;
@@ -272,7 +371,7 @@
             transform: rotateX(150deg) scaleY(0.6);
         }
 
-        /* ==================== 2. WHEEL OF FORTUNE (POST-SPIN REVEAL LENS) ==================== */
+        /* WHEEL OF FORTUNE STYLES */
         .wheel-wrapper {
             position: relative;
             width: 260px;
@@ -303,33 +402,42 @@
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
         }
 
-        /* Frame lens: Reveals song ONLY when stopped */
         .wheel-magnifier {
             position: absolute;
             top: 2px;
             left: 50%;
             transform: translateX(-50%);
-            width: 130px;
-            height: 48px;
-            background: rgba(18, 18, 18, 0.85);
-            backdrop-filter: blur(4px);
+            width: 150px;
+            height: 50px;
+            background: rgba(18, 18, 18, 0.95);
             border: 3px solid var(--primary);
             border-radius: 12px;
-            box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
-            z-index: 11;
-            pointer-events: none;
-            display: flex;
+            box-shadow: 0 0 20px rgba(255, 69, 0, 0.8);
+            z-index: 15;
+            cursor: pointer;
+            display: none;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            animation: popup 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .wheel-magnifier:hover {
+            transform: translateX(-50%) scale(1.05);
+            border-color: #ffffff;
+        }
+
+        @keyframes popup {
+            0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+            100% { transform: translateX(-50%) scale(1); opacity: 1; }
         }
 
         .magnifier-text {
             color: #ffffff;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 800;
             text-align: center;
-            padding: 2px 6px;
+            padding: 0 8px;
             word-break: break-word;
             line-height: 1.1;
         }
@@ -347,11 +455,75 @@
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: bold;
         }
 
-        /* YouTube Footer Link */
+        /* BATTLE ROYALE STYLES */
+        .battle-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .battle-status {
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .battle-arena {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .battle-card {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .battle-card:hover {
+            border-color: var(--primary);
+            background: #222;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 69, 0, 0.2);
+        }
+
+        .battle-card .title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.3;
+        }
+
+        .battle-card .artist {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .battle-vs {
+            text-align: center;
+            font-weight: 900;
+            font-style: italic;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
         .yt-container {
             padding: 0 20px 20px 20px;
         }
@@ -384,77 +556,119 @@
             opacity: 0.4;
             pointer-events: none;
         }
+
+        @media (max-width: 768px) {
+            .layout-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            .played-panel {
+                width: 100%;
+                max-width: 460px;
+                max-height: 300px;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <!-- Header -->
-        <div class="header">
-            <h1><i class="fa-solid fa-guitar"></i> Baba Rock</h1>
-            <div class="nav-tabs">
-                <button class="tab-btn active" onclick="switchSlide(0)">
-                    <i class="fa-solid fa-cubes"></i> Slot
-                </button>
-                <button class="tab-btn" onclick="switchSlide(1)">
-                    <i class="fa-solid fa-dharmachakra"></i> Wheel
-                </button>
+    <div class="layout-wrapper">
+        <!-- Main Application Box -->
+        <div class="app-container">
+            <div class="header">
+                <h1><i class="fa-solid fa-guitar"></i> Baba Rock</h1>
+                <div class="pool-badge">Kalan Havuz: <span id="poolCounter">0</span></div>
+                <div class="nav-tabs">
+                    <button class="tab-btn active" onclick="switchSlide(0)">
+                        <i class="fa-solid fa-cubes"></i> Slot
+                    </button>
+                    <button class="tab-btn" onclick="switchSlide(1)">
+                        <i class="fa-solid fa-dharmachakra"></i> Çark
+                    </button>
+                    <button class="tab-btn" onclick="switchSlide(2)">
+                        <i class="fa-solid fa-fire"></i> Düello
+                    </button>
+                </div>
+            </div>
+
+            <!-- Slider Viewport -->
+            <div class="slider-viewport" id="sliderViewport">
+                <div class="slider-track" id="sliderTrack">
+                    
+                    <!-- PANEL 1: SLOT MACHINE -->
+                    <div class="slide-panel">
+                        <div class="slot-machine">
+                            <div class="slot-frame">
+                                <div class="single-reel">
+                                    <div class="reel-container" id="singleReel"></div>
+                                </div>
+                            </div>
+                            <div class="arm-container" id="slotArm" onclick="spinWheelOrSlot('slot')">
+                                <div class="arm-stick">
+                                    <div class="arm-knob"></div>
+                                </div>
+                                <div class="arm-base"></div>
+                            </div>
+                        </div>
+                        <button class="trigger-btn" id="slotBtn" onclick="spinWheelOrSlot('slot')">
+                            <i class="fa-solid fa-sliders"></i> KOLU ÇEK
+                        </button>
+                    </div>
+
+                    <!-- PANEL 2: WHEEL OF FORTUNE -->
+                    <div class="slide-panel">
+                        <div class="wheel-wrapper">
+                            <div class="wheel-pointer"></div>
+                            <div class="wheel-magnifier" id="wheelMagnifier" onclick="handleLyricsFetch(selectedSong)">
+                                <div class="magnifier-text" id="magnifierText"></div>
+                            </div>
+                            <canvas id="wheelCanvas" width="260" height="260"></canvas>
+                            <div class="wheel-center-cap" onclick="spinWheelOrSlot('wheel')">ÇEVİR</div>
+                        </div>
+                        <button class="trigger-btn" id="wheelBtn" onclick="spinWheelOrSlot('wheel')">
+                            <i class="fa-solid fa-rotate-right"></i> ÇARKI ÇEVİR
+                        </button>
+                    </div>
+
+                    <!-- PANEL 3: BATTLE ROYALE / DÜELLO -->
+                    <div class="slide-panel">
+                        <div class="battle-container">
+                            <div class="battle-status" id="battleStatus">Düelloyu Başlatın</div>
+                            <div class="battle-arena" id="battleArena">
+                                <div class="battle-card" onclick="startBattle()">
+                                    <div class="title"><i class="fa-solid fa-play"></i> Turnuvayı Başlat</div>
+                                    <div class="artist">Seçmek için tıkla</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="trigger-btn" id="battleBtn" onclick="startBattle()">
+                            <i class="fa-solid fa-shuffle"></i> YENİ DÜELLO
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- YouTube Link Footer -->
+            <div class="yt-container">
+                <a href="#" target="_blank" rel="noopener noreferrer" class="yt-btn disabled" id="ytBtn">
+                    <i class="fa-brands fa-youtube"></i> YouTube'da Ara
+                </a>
             </div>
         </div>
 
-        <!-- Slider Viewport -->
-        <div class="slider-viewport" id="sliderViewport">
-            <div class="slider-track" id="sliderTrack">
-                
-                <!-- PANEL 1: SINGLE-ROW REALISTIC SLOT MACHINE -->
-                <div class="slide-panel">
-                    <div class="slot-machine">
-                        <div class="slot-frame">
-                            <div class="single-reel">
-                                <div class="reel-container" id="singleReel"></div>
-                            </div>
-                        </div>
-                        <div class="arm-container" id="slotArm" onclick="pullSlotLever()">
-                            <div class="arm-stick">
-                                <div class="arm-knob"></div>
-                            </div>
-                            <div class="arm-base"></div>
-                        </div>
-                    </div>
-                    <button class="trigger-btn" onclick="pullSlotLever()">
-                        <i class="fa-solid fa-sliders"></i> PULL LEVER
-                    </button>
-                </div>
-
-                <!-- PANEL 2: WHEEL OF FORTUNE -->
-                <div class="slide-panel">
-                    <div class="wheel-wrapper">
-                        <div class="wheel-pointer"></div>
-                        <!-- Red frame lens displays song ONLY upon stopping -->
-                        <div class="wheel-magnifier">
-                            <div class="magnifier-text" id="magnifierText">SPIN ME!</div>
-                        </div>
-                        <canvas id="wheelCanvas" width="260" height="260"></canvas>
-                        <div class="wheel-center-cap" onclick="spinWheel()">SPIN</div>
-                    </div>
-                    <button class="trigger-btn" onclick="spinWheel()">
-                        <i class="fa-solid fa-rotate-right"></i> SPIN WHEEL
-                    </button>
-                </div>
-
+        <!-- Right Side Panel: Played Songs List -->
+        <div class="played-panel">
+            <h2><i class="fa-solid fa-list-check"></i> Çalınan Şarkılar</h2>
+            <div class="hint-text">
+                <i class="fa-solid fa-circle-info"></i> Sözler için tıklayın.<br>
+                Havuza döndürmek için çift tıklayın.
             </div>
-        </div>
-
-        <!-- YouTube Link Footer -->
-        <div class="yt-container">
-            <a href="#" target="_blank" rel="noopener noreferrer" class="yt-btn disabled" id="ytBtn">
-                <i class="fa-brands fa-youtube"></i> Search on YouTube
-            </a>
+            <ul class="played-list" id="playedList"></ul>
         </div>
     </div>
 
     <script>
-        // Fallback playlist
         const defaultPlaylist = [
             { title: "Cambaz", artist: "mor ve ötesi" },
             { title: "Bir Derdim Var", artist: "mor ve ötesi" },
@@ -466,13 +680,21 @@
             { title: "Araf", artist: "manga" }
         ];
 
-        let playlist = [];
+        let playlist = [];          // Active pool
+        let playedList = [];         // Extracted pool (Most recent on top)
+        let pendingExtraction = null; // Song waiting to be removed from pool on next spin
         let isBusy = false;
         let currentSlide = 0;
+        let selectedSong = null;
 
-        // Wheel State
         let wheelAngle = 0;
         let wheelSpinning = false;
+        let clickTimer = null;
+
+        // Battle Royale State
+        let battlePool = [];
+        let battleContenderA = null;
+        let battleContenderB = null;
 
         async function init() {
             try {
@@ -480,18 +702,23 @@
                 if (!res.ok) throw new Error("Local json fetch failed");
                 playlist = await res.json();
             } catch (err) {
-                playlist = defaultPlaylist;
+                playlist = [...defaultPlaylist];
             }
+            updatePoolCounter();
             initSlotMachine();
             drawWheel();
             setupTouchSwipe();
+            initBattleState();
         }
 
-        /* ================= NAVIGATION SLIDER ================= */
+        function updatePoolCounter() {
+            document.getElementById('poolCounter').textContent = playlist.length;
+        }
+
         function switchSlide(index) {
             if (isBusy) return;
             currentSlide = index;
-            document.getElementById("sliderTrack").style.transform = `translateX(-${index * 50}%)`;
+            document.getElementById("sliderTrack").style.transform = `translateX(-${index * (100 / 3)}%)`;
             
             const tabs = document.querySelectorAll('.tab-btn');
             tabs.forEach((tab, i) => {
@@ -507,31 +734,183 @@
             viewport.addEventListener('touchend', e => {
                 const diff = startX - e.changedTouches[0].clientX;
                 if (Math.abs(diff) > 50) {
-                    if (diff > 0 && currentSlide < 1) switchSlide(currentSlide + 1);
+                    if (diff > 0 && currentSlide < 2) switchSlide(currentSlide + 1);
                     if (diff < 0 && currentSlide > 0) switchSlide(currentSlide - 1);
                 }
             }, {passive: true});
         }
 
-        /* ================= YOUTUBE LINK UPDATER ================= */
+        /* ================= POOL MANAGEMENT & PLAYED LIST UI ================= */
+        function extractSong(song) {
+            const index = playlist.findIndex(s => s.title === song.title && s.artist === song.artist);
+            if (index !== -1) {
+                playlist.splice(index, 1);
+                playedList.unshift(song);
+                renderPlayedList();
+                updatePoolCounter();
+            }
+        }
+
+        function returnSongToPool(song) {
+            const index = playedList.findIndex(s => s.title === song.title && s.artist === song.artist);
+            if (index !== -1) {
+                playedList.splice(index, 1);
+                playlist.push(song);
+                renderPlayedList();
+                updatePoolCounter();
+                refreshGameViews();
+            }
+        }
+
+        function renderPlayedList() {
+            const container = document.getElementById('playedList');
+            container.innerHTML = playedList.map((song, i) => `
+                <li class="played-item" onclick="onPlayedItemClick(event, ${i})" ondblclick="onPlayedItemDblClick(event, ${i})">
+                    <div class="title">${song.title}</div>
+                    <div class="artist">${song.artist}</div>
+                </li>
+            `).join('');
+        }
+
+        function onPlayedItemClick(e, index) {
+            clearTimeout(clickTimer);
+            clickTimer = setTimeout(() => {
+                const song = playedList[index];
+                if (song) handleLyricsFetch(song);
+            }, 250);
+        }
+
+        function onPlayedItemDblClick(e, index) {
+            clearTimeout(clickTimer);
+            const song = playedList[index];
+            if (song) returnSongToPool(song);
+        }
+
+        function refreshGameViews() {
+            initSlotMachine();
+            drawWheel();
+            initBattleState();
+
+            const slotBtn = document.getElementById('slotBtn');
+            const wheelBtn = document.getElementById('wheelBtn');
+            const battleBtn = document.getElementById('battleBtn');
+            const empty = playlist.length === 0;
+
+            slotBtn.disabled = empty;
+            wheelBtn.disabled = empty;
+            battleBtn.disabled = empty && battlePool.length < 2;
+
+            if (empty && !pendingExtraction) {
+                document.getElementById('magnifierText').textContent = "HAVUZ BOŞ";
+            }
+        }
+
+        /* ================= LYRIC FETCHING ENGINE ================= */
+        function sanitizeSegment(str) {
+            const map = {
+                'ç':'c', 'Ç':'C', 'ğ':'g', 'Ğ':'G', 'ı':'i', 'İ':'I',
+                'ö':'o', 'Ö':'O', 'ş':'s', 'Ş':'S', 'ü':'u', 'Ü':'U'
+            };
+            const mapped = str.replace(/[çÇğĞıİöÖşŞüÜ]/g, match => map[match] || match);
+            return mapped
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '');
+        }
+
+        async function handleLyricsFetch(song) {
+            if (!song) return;
+
+            const cleanArtist = sanitizeSegment(song.artist);
+            const cleanTitle = sanitizeSegment(song.title);
+            const lyricFileName = `${cleanArtist}-${cleanTitle}.txt`;
+            const lyricPath = `./songs/${lyricFileName}`;
+
+            let lyricsContent = "";
+
+            try {
+                const res = await fetch(lyricPath);
+                if (!res.ok) throw new Error(`File not found: ${lyricPath}`);
+                lyricsContent = await res.text();
+            } catch (err) {
+                lyricsContent = `Şarkı sözü dosyası bulunamadı: "${song.artist} - ${song.title}".\n\nBeklenen Dosya Yolu:\n${lyricPath}`;
+            }
+
+            const lyricsWin = window.open("", "_blank");
+            if (lyricsWin) {
+                lyricsWin.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="tr">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>${song.artist} - ${song.title} (Şarkı Sözleri)</title>
+                        <style>
+                            body {
+                                background-color: #000000;
+                                color: #ffffff;
+                                font-family: 'Courier New', Courier, monospace;
+                                font-size: 2em;
+                                padding: 40px;
+                                margin: 0;
+                                line-height: 1.5;
+                                white-space: pre-wrap;
+                                word-break: break-word;
+                            }
+                        </style>
+                    </head>
+                    <body>${lyricsContent}</body>
+                    </html>
+                `);
+                lyricsWin.document.close();
+            }
+        }
+
         function updateYouTubeBtn(song) {
             const ytBtn = document.getElementById("ytBtn");
+            if (!song) {
+                ytBtn.classList.add("disabled");
+                return;
+            }
             const query = encodeURIComponent(`${song.title} ${song.artist}`);
             ytBtn.href = `https://www.youtube.com/results?search_query=${query}`;
             ytBtn.classList.remove("disabled");
         }
 
         function getRandomSong() {
+            if (playlist.length === 0) return null;
             return playlist[Math.floor(Math.random() * playlist.length)];
         }
 
-        /* ================= 1. SLOT MACHINE (PHYSICS DECELERATION) ================= */
+        /* ================= MASTER DISPATCHER ================= */
+        function spinWheelOrSlot(type) {
+            if (pendingExtraction) {
+                extractSong(pendingExtraction);
+                pendingExtraction = null;
+                refreshGameViews();
+            }
+
+            if (type === 'slot') {
+                pullSlotLever();
+            } else {
+                spinWheel();
+            }
+        }
+
+        /* ================= SLOT MACHINE ================= */
+        let currentReelSourceList = [];
+
         function initSlotMachine() {
             const reel = document.getElementById('singleReel');
-            // Duplicate the list enough times to allow smooth scrolling
-            const displayList = [...playlist, ...playlist, ...playlist, ...playlist];
-            reel.innerHTML = displayList.map(song => `
-                <div class="reel-item">
+            if (playlist.length === 0) {
+                reel.innerHTML = `<div class="reel-item"><div class="title">ŞARKI YOK</div></div>`;
+                reel.style.top = '0px';
+                currentReelSourceList = [];
+                return;
+            }
+            currentReelSourceList = [...playlist, ...playlist, ...playlist, ...playlist];
+            reel.innerHTML = currentReelSourceList.map((song, i) => `
+                <div class="reel-item" id="reel-item-${i}">
                     <div class="title">${song.title}</div>
                     <div class="artist">${song.artist}</div>
                 </div>
@@ -540,7 +919,14 @@
 
         function pullSlotLever() {
             if (isBusy) return;
+            if (playlist.length === 0) return;
+
             isBusy = true;
+
+            document.querySelectorAll('.reel-item').forEach(el => {
+                el.classList.remove('interactive');
+                el.onclick = null;
+            });
 
             const arm = document.getElementById('slotArm');
             arm.classList.add('pulled');
@@ -548,25 +934,35 @@
 
             const reel = document.getElementById('singleReel');
             const itemHeight = 100;
-            const targetSong = getRandomSong();
-            const targetIndex = playlist.findIndex(s => s.title === targetSong.title);
             
-            // Calculate stopping point in 3rd loop iteration
-            const stopIndex = playlist.length * 2 + (targetIndex >= 0 ? targetIndex : 0);
+            const targetSong = getRandomSong();
+            const matchIndexInPool = playlist.findIndex(s => s.title === targetSong.title && s.artist === targetSong.artist);
+            
+            const targetBlockOffset = playlist.length * 2;
+            const stopIndex = targetBlockOffset + (matchIndexInPool >= 0 ? matchIndexInPool : 0);
+            
+            selectedSong = currentReelSourceList[stopIndex];
             const targetPos = stopIndex * itemHeight;
 
             let currentPos = 0;
-            let velocity = 50; // Initial high speed
-            const friction = 0.965; // Exponential deceleration factor
+            let velocity = 50;
+            const friction = 0.965;
 
             function animateReel() {
                 velocity *= friction;
                 currentPos += velocity;
 
-                // When velocity drops significantly, snap cleanly to target
                 if (velocity < 1.5 || currentPos >= targetPos) {
                     reel.style.top = `-${targetPos}px`;
-                    updateYouTubeBtn(targetSong);
+                    
+                    const finalItem = document.getElementById(`reel-item-${stopIndex}`);
+                    if (finalItem) {
+                        finalItem.classList.add('interactive');
+                        finalItem.onclick = () => handleLyricsFetch(selectedSong);
+                    }
+
+                    updateYouTubeBtn(selectedSong);
+                    pendingExtraction = selectedSong;
                     isBusy = false;
                 } else {
                     reel.style.top = `-${currentPos % (playlist.length * itemHeight * 3)}px`;
@@ -577,15 +973,26 @@
             requestAnimationFrame(animateReel);
         }
 
-        /* ================= 2. WHEEL OF FORTUNE (REVEAL ON STOP) ================= */
+        /* ================= WHEEL OF FORTUNE ================= */
         function drawWheel() {
             const canvas = document.getElementById('wheelCanvas');
             const ctx = canvas.getContext('2d');
             const totalSongs = playlist.length;
-            if (totalSongs === 0) return;
+            ctx.clearRect(0, 0, 260, 260);
+
+            if (totalSongs === 0) {
+                ctx.beginPath();
+                ctx.fillStyle = '#222222';
+                ctx.arc(130, 130, 125, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("HAVUZ BOŞ", 130, 135);
+                return;
+            }
 
             const sliceAngle = (2 * Math.PI) / totalSongs;
-            ctx.clearRect(0, 0, 260, 260);
 
             for (let i = 0; i < totalSongs; i++) {
                 const angle = wheelAngle + i * sliceAngle;
@@ -612,11 +1019,13 @@
 
         function spinWheel() {
             if (isBusy || wheelSpinning) return;
+            if (playlist.length === 0) return;
+
             isBusy = true;
             wheelSpinning = true;
 
-            const magnifierText = document.getElementById('magnifierText');
-            magnifierText.textContent = "???"; // Hide text while spinning
+            const magnifier = document.getElementById('wheelMagnifier');
+            magnifier.style.display = 'none';
 
             let velocity = Math.random() * 0.25 + 0.35;
             const friction = 0.985;
@@ -632,20 +1041,117 @@
                     wheelSpinning = false;
                     isBusy = false;
 
-                    // Calculate winning song index at marker (12 o'clock = -PI/2)
                     const sliceAngle = (2 * Math.PI) / playlist.length;
-                    let normalizedAngle = (Math.PI / 2 - (wheelAngle % (2 * Math.PI))) % (2 * Math.PI);
-                    if (normalizedAngle < 0) normalizedAngle += 2 * Math.PI;
-                    
-                    const finalIndex = Math.floor(normalizedAngle / sliceAngle) % playlist.length;
-                    const selectedSong = playlist[finalIndex];
+                    let currentRotation = wheelAngle % (2 * Math.PI);
+                    if (currentRotation < 0) currentRotation += 2 * Math.PI;
 
-                    // Reveal ONLY once stopped
-                    magnifierText.textContent = selectedSong.title;
+                    let relativePointerAngle = (3 * Math.PI / 2 - currentRotation) % (2 * Math.PI);
+                    if (relativePointerAngle < 0) relativePointerAngle += 2 * Math.PI;
+
+                    const selectedIndex = Math.floor(relativePointerAngle / sliceAngle) % playlist.length;
+                    selectedSong = playlist[selectedIndex];
+
+                    document.getElementById('magnifierText').textContent = selectedSong.title;
+                    magnifier.style.display = 'flex';
+
                     updateYouTubeBtn(selectedSong);
+                    pendingExtraction = selectedSong;
                 }
             }
             requestAnimationFrame(animate);
+        }
+
+        /* ================= BATTLE ROYALE / DÜELLO MODE ================= */
+        function initBattleState() {
+            battlePool = [...playlist];
+            battleContenderA = null;
+            battleContenderB = null;
+            document.getElementById('battleStatus').textContent = "Düelloyu Başlatın";
+            document.getElementById('battleArena').innerHTML = `
+                <div class="battle-card" onclick="startBattle()">
+                    <div class="title"><i class="fa-solid fa-play"></i> Turnuvayı Başlat</div>
+                    <div class="artist">Seçmek için tıkla</div>
+                </div>
+            `;
+        }
+
+        function startBattle() {
+            if (playlist.length === 0) {
+                document.getElementById('battleStatus').textContent = "HAVUZ BOŞ";
+                document.getElementById('battleArena').innerHTML = `<div class="battle-card"><div class="title">Şarkı Kalmadı</div></div>`;
+                return;
+            }
+
+            // Extract any pending slots/wheel items first
+            if (pendingExtraction) {
+                extractSong(pendingExtraction);
+                pendingExtraction = null;
+                refreshGameViews();
+            }
+
+            battlePool = [...playlist];
+            nextBattleRound();
+        }
+
+        function nextBattleRound() {
+            if (battlePool.length === 1) {
+                // Grand Champion Crowned!
+                const champion = battlePool[0];
+                selectedSong = champion;
+                updateYouTubeBtn(champion);
+
+                document.getElementById('battleStatus').textContent = "🏆 ŞAMPİYON SEÇİLDİ!";
+                document.getElementById('battleArena').innerHTML = `
+                    <div class="battle-card" style="border-color: var(--primary); background: #1f120e;" onclick="handleLyricsFetch(selectedSong)">
+                        <div class="title">${champion.title}</div>
+                        <div class="artist">${champion.artist} (Sözler için tıkla)</div>
+                    </div>
+                `;
+                // Extract champion to played list immediately
+                extractSong(champion);
+                refreshGameViews();
+                return;
+            }
+
+            if (battlePool.length < 2) {
+                initBattleState();
+                return;
+            }
+
+            // Pick two random distinct contestants from the active battle pool
+            const idx1 = Math.floor(Math.random() * battlePool.length);
+            let idx2 = Math.floor(Math.random() * battlePool.length);
+            while (idx2 === idx1) {
+                idx2 = Math.floor(Math.random() * battlePool.length);
+            }
+
+            battleContenderA = battlePool[idx1];
+            battleContenderB = battlePool[idx2];
+
+            document.getElementById('battleStatus').textContent = `Kalan Aday: ${battlePool.length} Şarkı`;
+            document.getElementById('battleArena').innerHTML = `
+                <div class="battle-card" onclick="chooseWinner('A')">
+                    <div class="title">${battleContenderA.title}</div>
+                    <div class="artist">${battleContenderA.artist}</div>
+                </div>
+                <div class="battle-vs">VS</div>
+                <div class="battle-card" onclick="chooseWinner('B')">
+                    <div class="title">${battleContenderB.title}</div>
+                    <div class="artist">${battleContenderB.artist}</div>
+                </div>
+            `;
+            selectedSong = battleContenderA;
+            updateYouTubeBtn(selectedSong);
+        }
+
+        function chooseWinner(winnerChoice) {
+            const loser = winnerChoice === 'A' ? battleContenderB : battleContenderA;
+            // Remove loser from battle pool
+            const loserIdx = battlePool.findIndex(s => s.title === loser.title && s.artist === loser.artist);
+            if (loserIdx !== -1) {
+                battlePool.splice(loserIdx, 1);
+            }
+            nextBattleRound();
         }
 
         window.onload = init;
