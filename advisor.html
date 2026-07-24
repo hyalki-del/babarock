@@ -37,7 +37,6 @@
             overflow-x: hidden;
         }
 
-        /* Outer Layout Container accommodating main app + right played list */
         .layout-wrapper {
             display: flex;
             gap: 20px;
@@ -60,7 +59,6 @@
             position: relative;
         }
 
-        /* Right Side Played List Panel */
         .played-panel {
             width: 280px;
             background: var(--card-bg);
@@ -127,7 +125,6 @@
             margin-top: 3px;
         }
 
-        /* Header Navigation & Slider Tabs */
         .header {
             padding: 20px 20px 10px 20px;
             text-align: center;
@@ -190,7 +187,6 @@
             box-shadow: 0 0 10px rgba(255, 69, 0, 0.4);
         }
 
-        /* Viewport & Slider Track */
         .slider-viewport {
             width: 100%;
             overflow: hidden;
@@ -213,7 +209,6 @@
             min-height: 380px;
         }
 
-        /* Action Trigger Buttons */
         .trigger-btn {
             margin-top: 25px;
             background: var(--primary);
@@ -242,7 +237,6 @@
             box-shadow: none;
         }
 
-        /* ==================== 1. SLOT MACHINE ==================== */
         .slot-machine {
             display: flex;
             align-items: center;
@@ -305,7 +299,6 @@
             text-align: center;
             padding: 0 15px;
             border-bottom: 1px dashed #ccc;
-            transition: background-color 0.2s ease;
         }
 
         .reel-item.interactive {
@@ -324,7 +317,6 @@
             color: #000000;
             line-height: 1.2;
             word-break: break-word;
-            transition: color 0.2s ease;
         }
 
         .reel-item .artist {
@@ -378,7 +370,6 @@
             transform: rotateX(150deg) scaleY(0.6);
         }
 
-        /* ==================== 2. WHEEL OF FORTUNE ==================== */
         .wheel-wrapper {
             position: relative;
             width: 260px;
@@ -434,10 +425,6 @@
             border-color: #ffffff;
         }
 
-        .wheel-magnifier:hover .magnifier-text {
-            color: var(--primary);
-        }
-
         @keyframes popup {
             0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
             100% { transform: translateX(-50%) scale(1); opacity: 1; }
@@ -451,7 +438,6 @@
             padding: 0 8px;
             word-break: break-word;
             line-height: 1.1;
-            transition: color 0.2s ease;
         }
 
         .wheel-center-cap {
@@ -471,7 +457,6 @@
             font-weight: bold;
         }
 
-        /* Footer Link */
         .yt-container {
             padding: 0 20px 20px 20px;
         }
@@ -609,16 +594,15 @@
             { title: "Araf", artist: "manga" }
         ];
 
-        let playlist = [];             // Active pool
-        let playedList = [];           // Extracted pool
-        let pendingExtraction = null;  // Song waiting to be extracted on NEXT draw
+        let playlist = [];          // Active pool
+        let playedList = [];         // Extracted pool (Most recent on top)
         let isBusy = false;
         let currentSlide = 0;
         let selectedSong = null;
 
         let wheelAngle = 0;
         let wheelSpinning = false;
-        let clickTimer = null; // Debouncer for single vs double click
+        let clickTimer = null;
 
         async function init() {
             try {
@@ -664,16 +648,13 @@
         }
 
         /* ================= POOL MANAGEMENT & PLAYED LIST UI ================= */
-        function processPendingExtraction() {
-            if (pendingExtraction) {
-                const index = playlist.findIndex(s => s.title === pendingExtraction.title && s.artist === pendingExtraction.artist);
-                if (index !== -1) {
-                    playlist.splice(index, 1);
-                    playedList.push(pendingExtraction);
-                    renderPlayedList();
-                    updatePoolCounter();
-                }
-                pendingExtraction = null;
+        function extractSong(song) {
+            const index = playlist.findIndex(s => s.title === song.title && s.artist === song.artist);
+            if (index !== -1) {
+                playlist.splice(index, 1);
+                playedList.unshift(song); // Prepend so last picked is on top
+                renderPlayedList();
+                updatePoolCounter();
             }
         }
 
@@ -723,12 +704,12 @@
             slotBtn.disabled = empty;
             wheelBtn.disabled = empty;
 
-            if (empty && !pendingExtraction) {
+            if (empty) {
                 document.getElementById('magnifierText').textContent = "HAVUZ BOŞ";
             }
         }
 
-        /* ================= LYRIC FETCHING ENGINE (artist-name-song-name.txt) ================= */
+        /* ================= LYRIC FETCHING ENGINE ================= */
         function sanitizeSegment(str) {
             const map = {
                 'ç':'c', 'Ç':'C', 'ğ':'g', 'Ğ':'G', 'ı':'i', 'İ':'I',
@@ -823,15 +804,7 @@
         }
 
         function pullSlotLever() {
-            if (isBusy) return;
-            
-            // Extract previously drawn song on NEW user click
-            processPendingExtraction();
-
-            if (playlist.length === 0) {
-                refreshGameViews();
-                return;
-            }
+            if (isBusy || playlist.length === 0) return;
 
             isBusy = true;
 
@@ -847,7 +820,7 @@
             const reel = document.getElementById('singleReel');
             const itemHeight = 100;
             selectedSong = getRandomSong();
-            const targetIndex = playlist.findIndex(s => s.title === selectedSong.title);
+            const targetIndex = playlist.findIndex(s => s.title === selectedSong.title && s.artist === selectedSong.artist);
             
             const stopIndex = playlist.length * 2 + (targetIndex >= 0 ? targetIndex : 0);
             const targetPos = stopIndex * itemHeight;
@@ -869,9 +842,10 @@
                         finalItem.onclick = () => handleLyricsFetch(selectedSong);
                     }
 
+                    extractSong(selectedSong);
                     updateYouTubeBtn(selectedSong);
-                    pendingExtraction = selectedSong; // Schedule extraction for NEXT draw
                     isBusy = false;
+                    refreshGameViews();
                 } else {
                     reel.style.top = `-${currentPos % (playlist.length * itemHeight * 3)}px`;
                     requestAnimationFrame(animateReel);
@@ -926,15 +900,7 @@
         }
 
         function spinWheel() {
-            if (isBusy || wheelSpinning) return;
-
-            // Extract previously drawn song on NEW user click
-            processPendingExtraction();
-
-            if (playlist.length === 0) {
-                refreshGameViews();
-                return;
-            }
+            if (isBusy || wheelSpinning || playlist.length === 0) return;
 
             isBusy = true;
             wheelSpinning = true;
@@ -969,8 +935,9 @@
                     document.getElementById('magnifierText').textContent = selectedSong.title;
                     magnifier.style.display = 'flex';
 
+                    extractSong(selectedSong);
                     updateYouTubeBtn(selectedSong);
-                    pendingExtraction = selectedSong; // Schedule extraction for NEXT draw
+                    refreshGameViews();
                 }
             }
             requestAnimationFrame(animate);
