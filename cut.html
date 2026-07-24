@@ -798,7 +798,7 @@
 
             slotBtn.disabled = empty;
             wheelBtn.disabled = empty;
-            battleBtn.disabled = empty && battlePool.length < 2;
+            battleBtn.disabled = empty;
 
             if (empty && !pendingExtraction) {
                 document.getElementById('magnifierText').textContent = "HAVUZ BOŞ";
@@ -1082,7 +1082,6 @@
                 return;
             }
 
-            // Extract any pending slots/wheel items first
             if (pendingExtraction) {
                 extractSong(pendingExtraction);
                 pendingExtraction = null;
@@ -1095,7 +1094,6 @@
 
         function nextBattleRound() {
             if (battlePool.length === 1) {
-                // Grand Champion Crowned!
                 const champion = battlePool[0];
                 selectedSong = champion;
                 updateYouTubeBtn(champion);
@@ -1104,10 +1102,11 @@
                 document.getElementById('battleArena').innerHTML = `
                     <div class="battle-card" style="border-color: var(--primary); background: #1f120e;" onclick="handleLyricsFetch(selectedSong)">
                         <div class="title">${champion.title}</div>
-                        <div class="artist">${champion.artist} (Sözler için tıkla)</div>
+                        <div class="artist">${champion.artist} (Sözler için yeni sekmede aç)</div>
                     </div>
                 `;
-                // Extract champion to played list immediately
+                
+                // Immediately deduct champion from active pool and add to played list
                 extractSong(champion);
                 refreshGameViews();
                 return;
@@ -1118,7 +1117,6 @@
                 return;
             }
 
-            // Pick two random distinct contestants from the active battle pool
             const idx1 = Math.floor(Math.random() * battlePool.length);
             let idx2 = Math.floor(Math.random() * battlePool.length);
             while (idx2 === idx1) {
@@ -1146,7 +1144,6 @@
 
         function chooseWinner(winnerChoice) {
             const loser = winnerChoice === 'A' ? battleContenderB : battleContenderA;
-            // Remove loser from battle pool
             const loserIdx = battlePool.findIndex(s => s.title === loser.title && s.artist === loser.artist);
             if (loserIdx !== -1) {
                 battlePool.splice(loserIdx, 1);
