@@ -1,88 +1,280 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Band Poster Face-Off</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Grup Poster Düellosu</title>
     <style>
         :root {
-            --primary: #4f46e5;
-            --success: #10b981;
-            --bg: #f3f4f6;
+            --apple-blue: #0071e3;
+            --apple-blue-hover: #0077ed;
+            --bg-color: #f5f5f7;
+            --card-bg: #ffffff;
+            --text-main: #1d1d1f;
+            --text-secondary: #86868b;
+            --border-color: #d2d2d7;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .card { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 750px; text-align: center; box-sizing: border-box; }
-        h1, h2 { color: #1f2937; margin-top: 0; }
+        
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif; 
+            background: var(--bg-color); 
+            color: var(--text-main);
+            margin: 0; 
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            width: 100vw;
+            overflow-x: hidden;
+        }
+
+        .card { 
+            background: var(--card-bg); 
+            padding: 1.5rem; 
+            border-radius: 24px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); 
+            width: 92%; 
+            max-width: 720px; 
+            text-align: center; 
+            border: 1px solid rgba(0,0,0,0.04);
+            margin: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .card { padding: 2.5rem; }
+        }
+
+        h2 { 
+            color: var(--text-main); 
+            font-weight: 600;
+            font-size: 1.5rem;
+            letter-spacing: -0.015em;
+            margin-top: 0; 
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1.2rem;
+        }
+
         .hidden { display: none !important; }
-        select { width: 100%; padding: 0.75rem; margin: 0.5rem 0 1rem 0; border: 1px solid #d1d5db; border-radius: 0.5rem; box-sizing: border-box; }
-        button { padding: 0.75rem 1.5rem; border: none; border-radius: 0.5rem; font-weight: bold; cursor: pointer; color: white; transition: transform 0.1s; }
-        button:active { transform: scale(0.98); }
-        .btn-primary { background: var(--primary); width: 100%; }
-        .battle-arena { display: flex; gap: 1rem; justify-content: center; margin: 1rem 0; flex-wrap: wrap; }
-        .poster-card { flex: 1; min-width: 250px; background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; }
-        .poster-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); }
-        .poster-img-box { height: 280px; width: 100%; display: flex; justify-content: center; align-items: center; margin-bottom: 1rem; }
-        .poster-img-box img { max-height: 100%; max-width: 100%; object-fit: contain; border-radius: 0.25rem; }
-        .counter { font-weight: bold; color: #4b5563; margin-bottom: 0.5rem; font-size: 1.1rem; }
-        .action-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
-        .btn-back { background: #6b7280; padding: 0.5rem 1rem; font-size: 0.9rem; }
-        .btn-tie { background: #d97706; padding: 0.5rem 1rem; font-size: 0.9rem; }
-        .podium-item { display: flex; align-items: center; justify-content: space-between; background: #f9fafb; padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 0.5rem; border: 1px solid #e5e7eb; text-align: left; }
-        .podium-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 0.25rem; margin-left: 1rem; }
-        .reset-link { margin-top: 1.5rem; font-size: 0.8rem; color: #9ca3af; cursor: pointer; text-decoration: underline; }
+
+        select { 
+            width: 100%; 
+            padding: 1rem; 
+            margin: 0.5rem 0 1.2rem 0; 
+            border: 1.5px solid var(--border-color); 
+            border-radius: 14px; 
+            font-size: 1rem;
+            background: #fff;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.36%22%20height%3D%22292.36%22%3E%3Cpath%20fill%3D%22%2386868b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 12px;
+        }
+        select:focus { border-color: var(--apple-blue); }
+
+        button { 
+            padding: 0.9rem 1.2rem; 
+            border: none; 
+            border-radius: 14px; 
+            font-weight: 600; 
+            font-size: 0.95rem;
+            cursor: pointer; 
+            transition: transform 0.1s ease, background 0.2s; 
+            touch-action: manipulation;
+        }
+        button:active { transform: scale(0.97); }
+
+        .btn-primary { 
+            background: var(--apple-blue); 
+            color: white; 
+            width: 100%; 
+        }
+        .btn-primary:active { background: var(--apple-blue-hover); }
+
+        /* Responsive Battle Arena: stacks vertically on small phones, side-by-side on iPad / Desktop */
+        .battle-arena { 
+            display: flex; 
+            flex-direction: column;
+            gap: 1rem; 
+            justify-content: center; 
+            margin: 1rem 0; 
+        }
+
+        @media (min-width: 600px) {
+            .battle-arena { 
+                flex-direction: row; 
+                gap: 1.2rem; 
+            }
+        }
+
+        .poster-card { 
+            flex: 1; 
+            background: #fbfbfd; 
+            border: 2px solid var(--border-color); 
+            border-radius: 18px; 
+            padding: 1rem; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+        .poster-card:active { 
+            border-color: var(--apple-blue); 
+            background: #f0f7ff;
+            transform: scale(0.99); 
+        }
+
+        .poster-img-box { 
+            height: 240px; 
+            width: 100%; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            margin-bottom: 0.8rem; 
+        }
+
+        @media (min-width: 600px) {
+            .poster-img-box { height: 280px; }
+        }
+
+        .poster-img-box img { 
+            max-height: 100%; 
+            max-width: 100%; 
+            object-fit: contain; 
+            border-radius: 10px; 
+        }
+
+        .counter { 
+            font-weight: 600; 
+            color: var(--text-main); 
+            margin-bottom: 0.2rem; 
+            font-size: 1rem; 
+        }
+
+        .action-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-top: 1.2rem; 
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+            gap: 0.5rem;
+        }
+
+        /* Distinct, well-distinguished secondary buttons */
+        .btn-back { 
+            background: #e5e5ea; 
+            color: #1c1c1e; 
+            padding: 0.75rem 1rem; 
+            font-size: 0.85rem; 
+            flex: 1;
+        }
+        .btn-back:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .btn-tie { 
+            background: #f2f2f7; 
+            color: #3a3a3c; 
+            border: 1.5px solid var(--border-color);
+            padding: 0.75rem 1rem; 
+            font-size: 0.85rem; 
+            flex: 1.5;
+        }
+
+        .podium-item { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            background: #fbfbfd; 
+            padding: 0.8rem 1rem; 
+            margin: 0.6rem 0; 
+            border-radius: 14px; 
+            border: 1px solid var(--border-color);
+            text-align: left; 
+        }
+        .podium-item img { 
+            width: 48px; 
+            height: 48px; 
+            object-fit: cover; 
+            border-radius: 8px; 
+            margin-left: 0.8rem; 
+            flex-shrink: 0;
+        }
+
+        .reset-link { 
+            margin-top: 1.5rem; 
+            font-size: 0.75rem; 
+            color: var(--text-secondary); 
+            cursor: pointer; 
+            text-decoration: underline; 
+        }
     </style>
 </head>
 <body>
 
-    <!-- Login Screen -->
+    <!-- Giriş Ekranı -->
     <div class="card" id="login-screen">
-        <h2>🎸 Band Poster Face-Off</h2>
-        <p>Pick your favorite in each head-to-head matchup!</p>
-        <p>Select your initials:</p>
+        <h2>🎸 Grup Poster Düellosu</h2>
+        <p>Her ikili eşleşmede favorini seç!</p>
+        <div style="text-align: left; margin-bottom: 0.3rem; font-size: 0.85rem; font-weight: 500; color: var(--text-main);">Baş Harfin:</div>
         <select id="initials-select">
-            <option value="" disabled selected>-- Choose Initials --</option>
+            <option value="" disabled selected>-- Seçiniz --</option>
             <option value="S.A.">S.A.</option>
             <option value="O.E.">O.E.</option>
             <option value="O.G.">O.G.</option>
             <option value="I.O.">I.O.</option>
             <option value="H.Y.">H.Y.</option>
         </select>
-        <button class="btn-primary" onclick="startGame()">Start Battles</button>
-        <div class="reset-link" onclick="triggerReset()">Reset All System Votes</div>
+        <button class="btn-primary" onclick="startGame()">Düelloyu Başlat</button>
+        <div class="reset-link" onclick="triggerReset()">Sistem Oylarını Sıfırla</div>
     </div>
 
-    <!-- Game Screen -->
-    <div class="card hidden" id="game-screen" style="max-width: 750px;">
-        <div class="counter" id="counter">Battle 1 / 10</div>
-        <p style="color: #6b7280; margin-top: 0;">Which poster do you prefer?</p>
+    <!-- Oyunu Oynama Ekranı -->
+    <div class="card hidden" id="game-screen">
+        <div class="counter" id="counter">Düello 1 / 10</div>
+        <p>Hangi poster daha iyi?</p>
         
         <div class="battle-arena">
             <div class="poster-card" onclick="submitChoice('left')">
                 <div class="poster-img-box">
                     <img id="poster-left" src="" alt="Poster A">
                 </div>
-                <button class="btn-primary" style="pointer-events: none;">👉 Choose This One</button>
+                <button class="btn-primary" style="pointer-events: none; padding: 0.6rem; font-size: 0.85rem;">👉 Bunu Seç</button>
             </div>
             
             <div class="poster-card" onclick="submitChoice('right')">
                 <div class="poster-img-box">
                     <img id="poster-right" src="" alt="Poster B">
                 </div>
-                <button class="btn-primary" style="pointer-events: none;">👉 Choose This One</button>
+                <button class="btn-primary" style="pointer-events: none; padding: 0.6rem; font-size: 0.85rem;">👉 Bunu Seç</button>
             </div>
         </div>
 
         <div class="action-row">
-            <button class="btn-back" id="back-btn" onclick="prevMatchup()" disabled>⬅️ Back</button>
-            <button class="btn-tie" onclick="submitChoice('tie')">🤝 It's a Tie / Skip</button>
+            <button class="btn-back" id="back-btn" onclick="prevMatchup()" disabled>⬅️ Geri</button>
+            <button class="btn-tie" onclick="submitChoice('tie')">🤝 Kararsız / Geç</button>
         </div>
     </div>
 
-    <!-- Result Screen -->
+    <!-- Sonuç Ekranı -->
     <div class="card hidden" id="result-screen">
-        <h2>🏆 Top 3 Band Champions</h2>
-        <div id="podium-container"><p>Calculating rational consensus...</p></div>
-        <button class="btn-primary" style="margin-top: 1rem;" onclick="location.reload()">Play Again / Switch User</button>
+        <h2>🏆 Grubun İlk 3'ü</h2>
+        <p>Ortak akıl istatistikleri:</p>
+        <div id="podium-container"><p>Yükleniyor...</p></div>
+        <button class="btn-primary" style="margin-top: 1rem;" onclick="location.reload()">Tekrar Oyna / Kullanıcı Değiştir</button>
     </div>
 
     <script>
@@ -96,7 +288,7 @@
         async function startGame() {
             const select = document.getElementById("initials-select");
             if (!select.value) {
-                alert("Please select your initials first!");
+                alert("Lütfen baş harfinizi seçin!");
                 return;
             }
             selectedInitials = select.value;
@@ -106,7 +298,7 @@
                 posters = await response.json();
                 
                 if (posters.length < 2) {
-                    alert("You need at least 2 JPEG posters in Google Drive!");
+                    alert("Google Drive klasöründe en az 2 JPEG poster olmalı!");
                     return;
                 }
                 
@@ -115,7 +307,7 @@
                 document.getElementById("game-screen").classList.remove("hidden");
                 renderMatchup();
             } catch (err) {
-                alert("Failed to load posters. Check your Apps Script URL.");
+                alert("Posterler yüklenemedi. URL adresini kontrol edin.");
                 console.error(err);
             }
         }
@@ -124,11 +316,9 @@
             matchups = [];
             let shuffled = [...posters].sort(() => Math.random() - 0.5);
             
-            // Create up to 10 randomized matchups per session to keep it fast and fun
             for (let i = 0; i < shuffled.length - 1; i += 2) {
                 matchups.push({ left: shuffled[i], right: shuffled[i+1] });
             }
-            // Limit session to max 10 battles so band members don't get exhausted
             if (matchups.length > 10) {
                 matchups = matchups.slice(0, 10);
             }
@@ -136,7 +326,7 @@
 
         function renderMatchup() {
             let current = matchups[currentMatchIndex];
-            document.getElementById("counter").innerText = `Battle ${currentMatchIndex + 1} / ${matchups.length}`;
+            document.getElementById("counter").innerText = `Düello ${currentMatchIndex + 1} / ${matchups.length}`;
             document.getElementById("poster-left").src = current.left.url;
             document.getElementById("poster-right").src = current.right.url;
             document.getElementById("back-btn").disabled = currentMatchIndex === 0;
@@ -162,7 +352,6 @@
 
             historyStack.push({ currentMatchIndex, winnerId, loserId, resultType });
 
-            // Post vote to Google Sheets asynchronously
             fetch(API_URL, {
                 method: "POST",
                 body: JSON.stringify({
@@ -202,34 +391,34 @@
                 container.innerHTML = "";
                 
                 if(topThree.length === 0) {
-                    container.innerHTML = "<p>No matches recorded yet.</p>";
+                    container.innerHTML = "<p>Henüz oy kaydedilmemiş.</p>";
                     return;
                 }
 
                 topThree.forEach((item, index) => {
                     container.innerHTML += `
                         <div class="podium-item">
-                            <div>
-                                <b>#${index + 1}</b> — <b>${item.name}</b><br>
-                                <small style="color: #6b7280;">Rating Score: ${item.score} (${item.wins} wins / ${item.matches} battles)</small>
+                            <div style="overflow: hidden;">
+                                <b style="font-size: 1rem; color: var(--apple-blue);">#${index + 1}</b> — <b style="font-size: 0.9rem;">${item.name}</b><br>
+                                <small style="color: var(--text-secondary); font-size: 0.75rem;">Puan: ${item.score} (${item.wins} galibiyet)</small>
                             </div>
                             <img src="${item.url}" alt="Poster">
                         </div>
                     `;
                 });
             } catch (err) {
-                document.getElementById("podium-container").innerHTML = "<p>Error loading results.</p>";
+                document.getElementById("podium-container").innerHTML = "<p>Sonuçlar yüklenemedi.</p>";
             }
         }
 
         async function triggerReset() {
-            let pin = prompt("Security Check: Type 'RESET' to wipe all match data from the sheet:");
+            let pin = prompt("Tüm verileri sıfırlamak için 'RESET' yazın:");
             if (pin === "RESET") {
                 await fetch(API_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "resetVotes" })
                 });
-                alert("All records have been successfully cleared!");
+                alert("Sıfırlama başarılı!");
             }
         }
     </script>
