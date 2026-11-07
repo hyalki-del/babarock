@@ -103,9 +103,9 @@
             }
             document.getElementById("counter").innerText = `${currentIndex + 1} / ${images.length}`;
             
-            // Load PNG image dynamically straight from Google Drive
+            // Güncellenmiş ve en kararlı Google Drive doğrudan görüntüleme linki
             let imgData = images[currentIndex];
-            document.getElementById("current-image").src = `https://lh3.googleusercontent.com/d/${imgData.id}`;
+            document.getElementById("current-image").src = `https://drive.google.com/uc?export=view&id=${imgData.id}`;
             
             if (currentIndex > 0) {
                 document.getElementById("back-btn").classList.remove("hidden");
