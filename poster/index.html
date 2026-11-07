@@ -60,7 +60,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbynVTwJR2t5k2JKHUWDmL7Uep9An64SS68fOXevHqsKjNmaiOwCbvQipWA9JBD01MnQGg/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxhqSpvcL3Beqy923F2SRRuPnCiwKn7Ag2-HSxqGNShdauDMoSp9WG1VqvWLFYPa_LyWw/exec";
         const initialsList = ["S.A.", "O.E.", "O.G.", "I.O.", "H.Y."];
         
         let images = [];
@@ -86,7 +86,7 @@
                 let res = await fetch(`${SCRIPT_URL}?action=getImages`);
                 images = await res.json();
                 if(images.length === 0) {
-                    alert("No images found in the Google Drive folder!");
+                    alert("No PNG images found in the Google Drive folder!");
                     return;
                 }
                 document.getElementById("voting-screen").classList.remove("hidden");
@@ -103,7 +103,7 @@
             }
             document.getElementById("counter").innerText = `${currentIndex + 1} / ${images.length}`;
             
-            // Load image dynamically straight from Google Drive
+            // Load PNG image dynamically straight from Google Drive
             let imgData = images[currentIndex];
             document.getElementById("current-image").src = `https://lh3.googleusercontent.com/d/${imgData.id}`;
             
