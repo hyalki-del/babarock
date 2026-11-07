@@ -7,386 +7,176 @@
     <style>
         :root {
             --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-color: #1e293b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f3f4f6;
         }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-        }
-        .container {
-            width: 100%;
-            max-width: 700px;
-            background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            box-sizing: border-box;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            max-height: 95vh;
-        }
-        /* Screen Management */
-        .screen {
-            display: none;
-            flex-direction: column;
-            flex: 1;
-            overflow-y: auto;
-        }
-        .screen.active {
-            display: flex;
-        }
-        /* Initials Screen */
-        #initials-screen h1 { margin-bottom: 10px; color: var(--primary); }
-        .initials-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 15px;
-            margin: 25px 0;
-        }
-        .initial-btn {
-            padding: 15px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border: 2px solid var(--primary);
-            background: white;
-            color: var(--primary);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .initial-btn:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateY(-2px);
-        }
-        /* Game Screen */
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-weight: 600;
-            color: #64748b;
-        }
-        .poster-container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            background: #0f172a;
-            border-radius: 12px;
-            overflow: hidden;
-            min-height: 350px;
-            max-height: 450px;
-        }
-        .poster-container img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        .game-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .vote-btn {
-            padding: 15px;
-            font-size: 1rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            color: white;
-            transition: opacity 0.2s;
-        }
-        .btn-guzel { background-color: #10b981; }
-        .btn-kararsiz { background-color: #f59e0b; }
-        .btn-kotu { background-color: #ef4444; }
-        .vote-btn:hover { opacity: 0.9; }
-        
-        .nav-footer {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-        }
-        .secondary-btn {
-            background: #e2e8f0;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #475569;
-        }
-        .secondary-btn:hover { background: #cbd5e1; }
-        
-        /* Popup Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
-        }
-        .modal-content h2 { color: var(--primary); margin-top: 0; }
-        .podium-item {
-            background: #f1f5f9;
-            margin: 10px 0;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-        }
-        .reset-section {
-            margin-top: 20px;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 15px;
-        }
-        .btn-reset {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fca5a5;
-            padding: 8px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-        .btn-reset:hover { background: #fecaca; }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .card { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; box-sizing: border-box; }
+        h1, h2 { color: #1f2937; margin-top: 0; }
+        .hidden { display: none !important; }
+        .btn-group { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap; }
+        button { padding: 0.75rem 1.2rem; border: none; border-radius: 0.5rem; font-weight: bold; cursor: pointer; color: white; transition: transform 0.1s; }
+        button:active { transform: scale(0.98); }
+        .btn-guzel { background: var(--success); }
+        .btn-kararsiz { background: var(--warning); }
+        .btn-kotu { background: var(--danger); }
+        .btn-primary { background: var(--primary); width: 100%; }
+        .btn-back { background: #6b7280; }
+        select { width: 100%; padding: 0.75rem; margin: 0.5rem 0 1rem 0; border: 1px solid #d1d5db; border-radius: 0.5rem; box-sizing: border-box; }
+        .poster-container { margin: 1rem 0; height: 320px; display: flex; justify-content: center; align-items: center; background: #e5e7eb; border-radius: 0.5rem; overflow: hidden; }
+        .poster-container img { max-height: 100%; max-width: 100%; object-fit: contain; }
+        .counter { font-weight: bold; color: #4b5563; margin-bottom: 0.5rem; }
+        .podium-item { display: flex; align-items: center; justify-content: space-between; background: #f9fafb; padding: 0.5rem 1rem; margin: 0.5rem 0; border-radius: 0.5rem; border: 1px solid #e5e7eb; }
+        .podium-item img { width: 45px; height: 45px; object-fit: cover; border-radius: 0.25rem; }
+        .reset-link { margin-top: 1.5rem; font-size: 0.8rem; color: #9ca3af; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <!-- SCREEN 1: Choose Initials -->
-        <div id="initials-screen" class="screen active">
-            <h1>Poster Voting Game</h1>
-            <p>Please select your initials to start:</p>
-            <div class="loader" id="main-loader"></div>
-            <div class="initials-grid" id="initials-grid" style="display:none;">
-                <button class="initial-btn" onclick="selectUser('S.A.')">S.A.</button>
-                <button class="initial-btn" onclick="selectUser('O.E.')">O.E.</button>
-                <button class="initial-btn" onclick="selectUser('O.G.')">O.G.</button>
-                <button class="initial-btn" onclick="selectUser('I.O.')">I.O.</button>
-                <button class="initial-btn" onclick="selectUser('H.Y.')">H.Y.</button>
-            </div>
-            
-            <div class="reset-section">
-                <button class="btn-reset" onclick="triggerReset()">Reset All Votes in Database</button>
-            </div>
+    <!-- Login Screen -->
+    <div class="card" id="login-screen">
+        <h2>🎨 Poster Voting Game</h2>
+        <p>Please select your initials to start:</p>
+        <select id="initials-select">
+            <option value="" disabled selected>-- Choose Initials --</option>
+            <option value="S.A.">S.A.</option>
+            <option value="O.E.">O.E.</option>
+            <option value="O.G.">O.G.</option>
+            <option value="I.O.">I.O.</option>
+            <option value="H.Y.">H.Y.</option>
+        </select>
+        <button class="btn-primary" onclick="startVoting()">Start Game</button>
+        <div class="reset-link" onclick="triggerReset()">Reset All System Votes</div>
+    </div>
+
+    <!-- Game Screen -->
+    <div class="card hidden" id="game-screen">
+        <div class="counter" id="counter">Loading...</div>
+        <div class="poster-container">
+            <img id="poster-img" src="" alt="Poster">
         </div>
-
-        <!-- SCREEN 2: Voting Game -->
-        <div id="game-screen" class="screen">
-            <div class="game-header">
-                <span id="counter-text">1 / 17</span>
-                <span id="user-tag">Voter: </span>
-            </div>
-            
-            <div class="poster-container">
-                <img id="poster-image" src="" alt="Poster">
-            </div>
-
-            <div class="game-controls">
-                <button class="vote-btn btn-guzel" onclick="submitVote('Güzel')">Güzel 😍</button>
-                <button class="vote-btn btn-kararsiz" onclick="submitVote('Kararsız')">Kararsız 🤔</button>
-                <button class="vote-btn btn-kotu" onclick="submitVote('Kötü')">Kötü ❌</button>
-            </div>
-
-            <div class="nav-footer">
-                <button class="secondary-btn" id="back-btn" onclick="goBack()" style="visibility:hidden;">← Back</button>
-                <button class="secondary-btn" onclick="location.reload()">Switch User</button>
-            </div>
+        <div class="btn-group">
+            <button class="btn-back" id="back-btn" onclick="prevPoster()" disabled>Back</button>
+            <button class="btn-guzel" onclick="vote('güzel')">Güzel</button>
+            <button class="btn-kararsiz" onclick="vote('kararsız')">Kararsız</button>
+            <button class="btn-kotu" onclick="vote('kötü')">Kötü</button>
         </div>
     </div>
 
-    <!-- POPUP MODAL FOR TOP 3 -->
-    <div id="results-modal" class="modal">
-        <div class="modal-content">
-            <h2>🎉 Voting Complete!</h2>
-            <p>Here are the Top 3 Posters based on total "Güzel" votes:</p>
-            <div id="podium-list">
-                <!-- Injected via JS -->
-            </div>
-            <button class="initial-btn" style="width:100%; margin-top:15px;" onclick="location.reload()">Play Again / Home</button>
-        </div>
+    <!-- Result Popup/Screen -->
+    <div class="card hidden" id="result-screen">
+        <h2>🏆 Top 3 Posters</h2>
+        <div id="podium-container"><p>Calculating top posters...</p></div>
+        <button class="btn-primary" style="margin-top: 1rem;" onclick="location.reload()">Play Again / Switch User</button>
     </div>
 
     <script>
-        // REPLACE WITH YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzdGFoTg7Yrop_0i6NFvYPru3o75p8OsJ2wEkw3UYxrcjM_2tmuZttWHFctkSCzju9huw/exec";
-        
-        let imagesList = [];
+        const API_URL = "https://script.google.com/macros/s/AKfycbxpGViY5zHqdkFF8yNNGcUU2eqdspqvnKFmwoYbM1_gvgRnfmd3hXcMugLr0zxZM05V8w/exec";
+        let posters = [];
         let currentIndex = 0;
-        let currentUser = "";
-        // Keep a history stack of votes made in this session to allow "Back"
-        let sessionHistory = []; // stores {imageName, previousVote}
+        let selectedInitials = "";
 
-        // Fetch list of image names on load
-        window.addEventListener('DOMContentLoaded', async () => {
+        async function startVoting() {
+            const select = document.getElementById("initials-select");
+            if (!select.value) {
+                alert("Please select your initials first!");
+                return;
+            }
+            selectedInitials = select.value;
+
             try {
-                let response = await fetch(`${WEB_APP_URL}?action=getData`);
-                let data = await response.json();
-                imagesList = data.images; // Names retrieved from 'Images' tab
+                let response = await fetch(`${API_URL}?action=getPosters`);
+                posters = await response.json();
                 
-                document.getElementById('main-loader').style.display = 'none';
-                document.getElementById('initials-grid').style.display = 'grid';
-            } catch (e) {
-                console.error("Failed to load images from Google Sheets", e);
-                document.getElementById('main-loader').outerHTML = '<p style="color:red;">Error loading configuration. Check your Web App URL setup.</p>';
+                if (posters.length === 0) {
+                    alert("No JPEG posters found in your Google Drive folder!");
+                    return;
+                }
+                
+                document.getElementById("login-screen").classList.add("hidden");
+                document.getElementById("game-screen").classList.remove("hidden");
+                renderPoster();
+            } catch (err) {
+                alert("Failed to load posters from API. Check your Apps Script URL.");
+                console.error(err);
             }
-        });
-
-        function selectUser(initials) {
-            currentUser = initials;
-            if(imagesList.length === 0) {
-                alert("No images found in the Google Sheet 'Images' tab!");
-                return;
-            }
-            document.getElementById('user-tag').innerText = `Voter: ${currentUser}`;
-            document.getElementById('initials-screen').classList.remove('active');
-            document.getElementById('game-screen').classList.add('active');
-            loadPoster();
         }
 
-        function getDriveDirectLink(filename) {
-            // Converts standard filename references safely to Google Drive direct display items or matches files securely
-            // If your files inside the Google Drive folder match exact file names listed in the sheet:
-            // Since direct URLs require permanent File IDs, it is easiest to map file names or embed standard direct links.
-            // Alternatively, you can store full direct thumbnail links directly in the Google Sheet column.
-            return filename; 
+        function renderPoster() {
+            document.getElementById("counter").innerText = `${currentIndex + 1} / ${posters.length}`;
+            document.getElementById("poster-img").src = posters[currentIndex].url;
+            document.getElementById("back-btndisabled", currentIndex === 0);
+            document.getElementById("back-btn").disabled = currentIndex === 0;
         }
 
-        function loadPoster() {
-            if (currentIndex >= imagesList.length) {
-                showFinalResults();
-                return;
-            }
-            
-            document.getElementById('counter-text').innerText = `${currentIndex + 1} / ${imagesList.length}`;
-            let currentImageName = imagesList[currentIndex];
-            
-            // Render image. 
-            // Note: Ensure your 'Images' sheet lists either public direct image links or 
-            // exact filenames if mapped to a public folder source.
-            let imgElement = document.getElementById('poster-image');
-            imgElement.src = currentImageName; 
+        async function vote(choice) {
+            let currentPoster = posters[currentIndex];
 
-            // Handle back button visibility
-            document.getElementById('back-btn').style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
-        }
-
-        async function submitVote(voteType) {
-            let imageName = imagesList[currentIndex];
-            
-            // Track for session history back capability
-            sessionHistory.push({ index: currentIndex, image: imageName, vote: voteType });
-
-            // Send vote asynchronously to Google Sheets backend
-            fetch(`${WEB_APP_URL}?action=vote&voter=${encodeURIComponent(currentUser)}&image=${encodeURIComponent(imageName)}&vote=${encodeURIComponent(voteType)}`)
-                .catch(err => console.error("Error saving vote:", err));
+            // Send vote to Google Sheets asynchronously in the background
+            fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "submitVote",
+                    initials: selectedInitials,
+                    posterId: currentPoster.id,
+                    vote: choice
+                })
+            });
 
             currentIndex++;
-            loadPoster();
-        }
-
-        function goBack() {
-            if (currentIndex > 0 && sessionHistory.length > 0) {
-                sessionHistory.pop(); // remove last record entry
-                currentIndex--;
-                loadPoster();
+            if (currentIndex < posters.length) {
+                renderPoster();
+            } else {
+                showResults();
             }
         }
 
-        async function showFinalResults() {
-            // Fetch overall aggregate results from sheet data
+        function prevPoster() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderPoster();
+            }
+        }
+
+        async function showResults() {
+            document.getElementById("game-screen").classList.add("hidden");
+            document.getElementById("result-screen").classList.remove("hidden");
+
             try {
-                let response = await fetch(`${WEB_APP_URL}?action=getData`);
-                let data = await response.json();
-                let votes = data.votes;
-
-                // Calculate points: Count "Güzel" votes per image name
-                let scoreMap = {};
-                imagesList.forEach(img => scoreMap[img] = 0);
+                let response = await fetch(`${API_URL}?action=getResults`);
+                let topThree = await response.json();
                 
-                votes.forEach(v => {
-                    if (v.vote === 'Güzel' && scoreMap[v.image] !== undefined) {
-                        scoreMap[v.image]++;
-                    }
-                });
-
-                // Sort descending by score
-                let sortedPosters = Object.keys(scoreMap).map(img => {
-                    return { name: img, score: scoreMap[img] };
-                }).sort((a, b) => b.score - a.score);
-
-                let top3 = sortedPosters.slice(0, 3);
+                let container = document.getElementById("podium-container");
+                container.innerHTML = "";
                 
-                let podiumHtml = "";
-                top3.forEach((item, idx) => {
-                    podiumHtml += `<div class="podium-item"><span>#${idx+1} ${item.name}</span> <span>⭐ ${item.score} Güzel</span></div>`;
-                });
-                
-                if(top3.length === 0 || top3[0].score === 0) {
-                    podiumHtml = "<p>No 'Güzel' votes recorded yet!</p>";
+                if(topThree.length === 0) {
+                    container.innerHTML = "<p>No votes recorded yet.</p>";
+                    return;
                 }
 
-                document.getElementById('podium-list').innerHTML = podiumHtml;
-                document.getElementById('results-modal').style.display = 'flex';
-
-            } catch(e) {
-                document.getElementById('podium-list').innerHTML = "<p>Could not calculate results.</p>";
-                document.getElementById('results-modal').style.display = 'flex';
+                topThree.forEach((item, index) => {
+                    container.innerHTML += `
+                        <div class="podium-item">
+                            <span><b>#${index + 1}</b> (Score: ${item.score})</span>
+                            <img src="${item.url}" alt="Poster">
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                document.getElementById("podium-container").innerHTML = "<p>Error loading results.</p>";
             }
         }
 
         async function triggerReset() {
-            if (confirm("Are you sure you want to wipe ALL vote records from the Google Sheet?")) {
-                try {
-                    let res = await fetch(`${WEB_APP_URL}?action=reset`);
-                    let json = await res.json();
-                    if(json.status === "reset_success") {
-                        alert("Database successfully reset!");
-                        location.reload();
-                    }
-                } catch(e) {
-                    alert("Reset failed. Check connection.");
-                }
+            let pin = prompt("Security Check: Type 'RESET' to wipe all vote data from the sheet:");
+            if (pin === "RESET") {
+                await fetch(API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "resetVotes" })
+                });
+                alert("All votes have been successfully cleared!");
             }
         }
     </script>
