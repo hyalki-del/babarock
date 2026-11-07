@@ -3,33 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poster Voting Game</title>
+    <title>Band Poster Face-Off</title>
     <style>
         :root {
             --primary: #4f46e5;
             --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
             --bg: #f3f4f6;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .card { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 750px; text-align: center; box-sizing: border-box; }
         h1, h2 { color: #1f2937; margin-top: 0; }
         .hidden { display: none !important; }
-        .btn-group { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap; }
-        button { padding: 0.75rem 1.2rem; border: none; border-radius: 0.5rem; font-weight: bold; cursor: pointer; color: white; transition: transform 0.1s; }
-        button:active { transform: scale(0.98); }
-        .btn-guzel { background: var(--success); }
-        .btn-kararsiz { background: var(--warning); }
-        .btn-kotu { background: var(--danger); }
-        .btn-primary { background: var(--primary); width: 100%; }
-        .btn-back { background: #6b7280; }
         select { width: 100%; padding: 0.75rem; margin: 0.5rem 0 1rem 0; border: 1px solid #d1d5db; border-radius: 0.5rem; box-sizing: border-box; }
-        .poster-container { margin: 1rem 0; height: 320px; display: flex; justify-content: center; align-items: center; background: #e5e7eb; border-radius: 0.5rem; overflow: hidden; }
-        .poster-container img { max-height: 100%; max-width: 100%; object-fit: contain; }
-        .counter { font-weight: bold; color: #4b5563; margin-bottom: 0.5rem; }
-        .podium-item { display: flex; align-items: center; justify-content: space-between; background: #f9fafb; padding: 0.5rem 1rem; margin: 0.5rem 0; border-radius: 0.5rem; border: 1px solid #e5e7eb; }
-        .podium-item img { width: 45px; height: 45px; object-fit: cover; border-radius: 0.25rem; }
+        button { padding: 0.75rem 1.5rem; border: none; border-radius: 0.5rem; font-weight: bold; cursor: pointer; color: white; transition: transform 0.1s; }
+        button:active { transform: scale(0.98); }
+        .btn-primary { background: var(--primary); width: 100%; }
+        .battle-arena { display: flex; gap: 1rem; justify-content: center; margin: 1rem 0; flex-wrap: wrap; }
+        .poster-card { flex: 1; min-width: 250px; background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; }
+        .poster-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); }
+        .poster-img-box { height: 280px; width: 100%; display: flex; justify-content: center; align-items: center; margin-bottom: 1rem; }
+        .poster-img-box img { max-height: 100%; max-width: 100%; object-fit: contain; border-radius: 0.25rem; }
+        .counter { font-weight: bold; color: #4b5563; margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .action-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+        .btn-back { background: #6b7280; padding: 0.5rem 1rem; font-size: 0.9rem; }
+        .btn-tie { background: #d97706; padding: 0.5rem 1rem; font-size: 0.9rem; }
+        .podium-item { display: flex; align-items: center; justify-content: space-between; background: #f9fafb; padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 0.5rem; border: 1px solid #e5e7eb; text-align: left; }
+        .podium-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 0.25rem; margin-left: 1rem; }
         .reset-link { margin-top: 1.5rem; font-size: 0.8rem; color: #9ca3af; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
@@ -37,8 +36,9 @@
 
     <!-- Login Screen -->
     <div class="card" id="login-screen">
-        <h2>🎨 Poster Voting Game</h2>
-        <p>Please select your initials to start:</p>
+        <h2>🎸 Band Poster Face-Off</h2>
+        <p>Pick your favorite in each head-to-head matchup!</p>
+        <p>Select your initials:</p>
         <select id="initials-select">
             <option value="" disabled selected>-- Choose Initials --</option>
             <option value="S.A.">S.A.</option>
@@ -47,38 +47,53 @@
             <option value="I.O.">I.O.</option>
             <option value="H.Y.">H.Y.</option>
         </select>
-        <button class="btn-primary" onclick="startVoting()">Start Game</button>
+        <button class="btn-primary" onclick="startGame()">Start Battles</button>
         <div class="reset-link" onclick="triggerReset()">Reset All System Votes</div>
     </div>
 
     <!-- Game Screen -->
-    <div class="card hidden" id="game-screen">
-        <div class="counter" id="counter">Loading...</div>
-        <div class="poster-container">
-            <img id="poster-img" src="" alt="Poster">
+    <div class="card hidden" id="game-screen" style="max-width: 750px;">
+        <div class="counter" id="counter">Battle 1 / 10</div>
+        <p style="color: #6b7280; margin-top: 0;">Which poster do you prefer?</p>
+        
+        <div class="battle-arena">
+            <div class="poster-card" onclick="submitChoice('left')">
+                <div class="poster-img-box">
+                    <img id="poster-left" src="" alt="Poster A">
+                </div>
+                <button class="btn-primary" style="pointer-events: none;">👉 Choose This One</button>
+            </div>
+            
+            <div class="poster-card" onclick="submitChoice('right')">
+                <div class="poster-img-box">
+                    <img id="poster-right" src="" alt="Poster B">
+                </div>
+                <button class="btn-primary" style="pointer-events: none;">👉 Choose This One</button>
+            </div>
         </div>
-        <div class="btn-group">
-            <button class="btn-back" id="back-btn" onclick="prevPoster()" disabled>Back</button>
-            <button class="btn-guzel" onclick="vote('güzel')">Güzel</button>
-            <button class="btn-kararsiz" onclick="vote('kararsız')">Kararsız</button>
-            <button class="btn-kotu" onclick="vote('kötü')">Kötü</button>
+
+        <div class="action-row">
+            <button class="btn-back" id="back-btn" onclick="prevMatchup()" disabled>⬅️ Back</button>
+            <button class="btn-tie" onclick="submitChoice('tie')">🤝 It's a Tie / Skip</button>
         </div>
     </div>
 
-    <!-- Result Popup/Screen -->
+    <!-- Result Screen -->
     <div class="card hidden" id="result-screen">
-        <h2>🏆 Top 3 Posters</h2>
-        <div id="podium-container"><p>Calculating top posters...</p></div>
+        <h2>🏆 Top 3 Band Champions</h2>
+        <div id="podium-container"><p>Calculating rational consensus...</p></div>
         <button class="btn-primary" style="margin-top: 1rem;" onclick="location.reload()">Play Again / Switch User</button>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyB5RNIFDCzr5wEBX9gdf0rvR18Bi5cwXN07bNVPmfHym9fMWKiA1X0kg-BHGFfVPZKXw/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbype6U8aQDzPyD0UgKsFe9hee2gXIInM_8Z9wc-l7sbDEV__WVkNrU9kpGRR92hTwNRhQ/exec";
         let posters = [];
-        let currentIndex = 0;
+        let matchups = [];
+        let currentMatchIndex = 0;
         let selectedInitials = "";
+        let historyStack = [];
 
-        async function startVoting() {
+        async function startGame() {
             const select = document.getElementById("initials-select");
             if (!select.value) {
                 alert("Please select your initials first!");
@@ -90,53 +105,88 @@
                 let response = await fetch(`${API_URL}?action=getPosters`);
                 posters = await response.json();
                 
-                if (posters.length === 0) {
-                    alert("No JPEG posters found in your Google Drive folder!");
+                if (posters.length < 2) {
+                    alert("You need at least 2 JPEG posters in Google Drive!");
                     return;
                 }
                 
+                generateMatchups();
                 document.getElementById("login-screen").classList.add("hidden");
                 document.getElementById("game-screen").classList.remove("hidden");
-                renderPoster();
+                renderMatchup();
             } catch (err) {
-                alert("Failed to load posters from API. Check your Apps Script URL.");
+                alert("Failed to load posters. Check your Apps Script URL.");
                 console.error(err);
             }
         }
 
-        function renderPoster() {
-            document.getElementById("counter").innerText = `${currentIndex + 1} / ${posters.length}`;
-            document.getElementById("poster-img").src = posters[currentIndex].url;
-            document.getElementById("back-btndisabled", currentIndex === 0);
-            document.getElementById("back-btn").disabled = currentIndex === 0;
+        function generateMatchups() {
+            matchups = [];
+            let shuffled = [...posters].sort(() => Math.random() - 0.5);
+            
+            // Create up to 10 randomized matchups per session to keep it fast and fun
+            for (let i = 0; i < shuffled.length - 1; i += 2) {
+                matchups.push({ left: shuffled[i], right: shuffled[i+1] });
+            }
+            // Limit session to max 10 battles so band members don't get exhausted
+            if (matchups.length > 10) {
+                matchups = matchups.slice(0, 10);
+            }
         }
 
-        async function vote(choice) {
-            let currentPoster = posters[currentIndex];
+        function renderMatchup() {
+            let current = matchups[currentMatchIndex];
+            document.getElementById("counter").innerText = `Battle ${currentMatchIndex + 1} / ${matchups.length}`;
+            document.getElementById("poster-left").src = current.left.url;
+            document.getElementById("poster-right").src = current.right.url;
+            document.getElementById("back-btn").disabled = currentMatchIndex === 0;
+        }
 
-            // Send vote to Google Sheets asynchronously in the background
+        async function submitChoice(choice) {
+            let current = matchups[currentMatchIndex];
+            let winnerId, loserId, resultType;
+
+            if (choice === 'left') {
+                winnerId = current.left.id;
+                loserId = current.right.id;
+                resultType = "win";
+            } else if (choice === 'right') {
+                winnerId = current.right.id;
+                loserId = current.left.id;
+                resultType = "win";
+            } else {
+                winnerId = current.left.id;
+                loserId = current.right.id;
+                resultType = "tie";
+            }
+
+            historyStack.push({ currentMatchIndex, winnerId, loserId, resultType });
+
+            // Post vote to Google Sheets asynchronously
             fetch(API_URL, {
                 method: "POST",
                 body: JSON.stringify({
-                    action: "submitVote",
+                    action: "submitMatchup",
                     initials: selectedInitials,
-                    posterId: currentPoster.id,
-                    vote: choice
+                    winnerId: winnerId,
+                    loserId: loserId,
+                    resultType: resultType
                 })
             });
 
-            currentIndex++;
-            if (currentIndex < posters.length) {
-                renderPoster();
+            currentMatchIndex++;
+            if (currentMatchIndex < matchups.length) {
+                renderMatchup();
             } else {
                 showResults();
             }
         }
 
-        function prevPoster() {
-            if (currentIndex > 0) {
-                currentIndex--;
-                renderPoster();
+        function prevMatchup() {
+            if (historyStack.length > 0 && currentMatchIndex > 0) {
+                historyStack.pop();
+                currentMatchIndex--;
+                renderMatchup();
             }
         }
 
@@ -152,14 +202,17 @@
                 container.innerHTML = "";
                 
                 if(topThree.length === 0) {
-                    container.innerHTML = "<p>No votes recorded yet.</p>";
+                    container.innerHTML = "<p>No matches recorded yet.</p>";
                     return;
                 }
 
                 topThree.forEach((item, index) => {
                     container.innerHTML += `
                         <div class="podium-item">
-                            <span><b>#${index + 1}</b> (Score: ${item.score})</span>
+                            <div>
+                                <b>#${index + 1}</b> — <b>${item.name}</b><br>
+                                <small style="color: #6b7280;">Rating Score: ${item.score} (${item.wins} wins / ${item.matches} battles)</small>
+                            </div>
                             <img src="${item.url}" alt="Poster">
                         </div>
                     `;
@@ -170,13 +223,13 @@
         }
 
         async function triggerReset() {
-            let pin = prompt("Security Check: Type 'RESET' to wipe all vote data from the sheet:");
+            let pin = prompt("Security Check: Type 'RESET' to wipe all match data from the sheet:");
             if (pin === "RESET") {
                 await fetch(API_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "resetVotes" })
                 });
-                alert("All votes have been successfully cleared!");
+                alert("All records have been successfully cleared!");
             }
         }
     </script>
