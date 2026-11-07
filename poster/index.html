@@ -8,11 +8,11 @@
         :root {
             --apple-blue: #0071e3;
             --apple-blue-hover: #0077ed;
-            --bg-color: #f5f5f7;
-            --card-bg: #ffffff;
+            --bg-color: #ffffff;
             --text-main: #1d1d1f;
             --text-secondary: #86868b;
             --border-color: #d2d2d7;
+            --error-red: #ff3b30;
         }
         
         * {
@@ -25,7 +25,7 @@
             background: var(--bg-color); 
             color: var(--text-main);
             margin: 0; 
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            padding: env(safe-area-inset-top) 1rem env(safe-area-inset-bottom) 1rem;
             display: flex; 
             justify-content: center; 
             align-items: center; 
@@ -34,65 +34,72 @@
             overflow-x: hidden;
         }
 
-        .card { 
-            background: var(--card-bg); 
-            padding: 1.5rem; 
-            border-radius: 24px; 
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); 
-            width: 92%; 
-            max-width: 720px; 
+        /* Immersive container with no background box */
+        .container { 
+            width: 100%; 
+            max-width: 900px; 
             text-align: center; 
-            border: 1px solid rgba(0,0,0,0.04);
-            margin: 1rem;
-        }
-
-        @media (min-width: 768px) {
-            .card { padding: 2.5rem; }
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         h2 { 
             color: var(--text-main); 
-            font-weight: 600;
-            font-size: 1.5rem;
-            letter-spacing: -0.015em;
+            font-weight: 700;
+            font-size: 2rem;
+            letter-spacing: -0.02em;
             margin-top: 0; 
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
         }
 
         p {
             color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: 1.2rem;
+            font-size: 1rem;
+            margin-bottom: 2rem;
         }
 
         .hidden { display: none !important; }
 
+        .notice-box {
+            background: #fff5f5;
+            color: var(--error-red);
+            padding: 0.85rem 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            width: 100%;
+            max-width: 400px;
+            font-weight: 500;
+        }
+
         select { 
             width: 100%; 
-            padding: 1rem; 
-            margin: 0.5rem 0 1.2rem 0; 
+            max-width: 400px;
+            padding: 1rem 1.2rem; 
+            margin: 0.5rem 0 1.5rem 0; 
             border: 1.5px solid var(--border-color); 
-            border-radius: 14px; 
-            font-size: 1rem;
-            background: #fff;
+            border-radius: 16px; 
+            font-size: 1.1rem;
+            background: #fbfbfd;
             outline: none;
             appearance: none;
             -webkit-appearance: none;
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.36%22%20height%3D%22292.36%22%3E%3Cpath%20fill%3D%22%2386868b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
             background-repeat: no-repeat;
-            background-position: right 1rem center;
-            background-size: 12px;
+            background-position: right 1.2rem center;
+            background-size: 14px;
         }
-        select:focus { border-color: var(--apple-blue); }
+        select:focus { border-color: var(--apple-blue); background: #fff; }
 
         button { 
-            padding: 0.9rem 1.2rem; 
+            padding: 1rem 1.5rem; 
             border: none; 
-            border-radius: 14px; 
+            border-radius: 16px; 
             font-weight: 600; 
-            font-size: 0.95rem;
+            font-size: 1rem;
             cursor: pointer; 
-            transition: transform 0.1s ease, background 0.2s; 
+            transition: transform 0.1s ease, background 0.2s, opacity 0.2s; 
             touch-action: manipulation;
         }
         button:active { transform: scale(0.97); }
@@ -101,97 +108,122 @@
             background: var(--apple-blue); 
             color: white; 
             width: 100%; 
+            max-width: 400px;
         }
-        .btn-primary:active { background: var(--apple-blue-hover); }
+        .btn-primary:hover { background: var(--apple-blue-hover); }
 
-        /* Responsive Battle Arena: stacks vertically on small phones, side-by-side on iPad / Desktop */
+        /* Modern Giant Battle Arena */
         .battle-arena { 
             display: flex; 
             flex-direction: column;
-            gap: 1rem; 
+            gap: 1.5rem; 
             justify-content: center; 
+            align-items: center;
+            width: 100%;
             margin: 1rem 0; 
         }
 
-        @media (min-width: 600px) {
+        @media (min-width: 768px) {
             .battle-arena { 
                 flex-direction: row; 
-                gap: 1.2rem; 
+                gap: 2rem; 
             }
         }
 
         .poster-card { 
             flex: 1; 
-            background: #fbfbfd; 
-            border: 2px solid var(--border-color); 
-            border-radius: 18px; 
-            padding: 1rem; 
+            width: 100%;
+            max-width: 420px;
+            background: transparent; 
+            border: none;
+            padding: 0; 
             cursor: pointer; 
-            transition: all 0.2s ease; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
+            transition: transform 0.2s ease;
+        }
+        .poster-card:hover {
+            transform: translateY(-6px);
         }
         .poster-card:active { 
-            border-color: var(--apple-blue); 
-            background: #f0f7ff;
-            transform: scale(0.99); 
+            transform: scale(0.98); 
         }
 
+        /* Maximized Giant Poster Image Box */
         .poster-img-box { 
-            height: 240px; 
+            height: 420px; 
             width: 100%; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
-            margin-bottom: 0.8rem; 
+            background: #f5f5f7;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1.2rem;
+            border: 1px solid rgba(0,0,0,0.04);
         }
 
-        @media (min-width: 600px) {
-            .poster-img-box { height: 280px; }
+        @media (min-width: 768px) {
+            .poster-img-box { height: 480px; }
         }
 
         .poster-img-box img { 
-            max-height: 100%; 
-            max-width: 100%; 
-            object-fit: contain; 
-            border-radius: 10px; 
+            height: 100%; 
+            width: 100%; 
+            object-fit: cover; 
         }
 
         .counter { 
             font-weight: 600; 
-            color: var(--text-main); 
-            margin-bottom: 0.2rem; 
-            font-size: 1rem; 
+            color: var(--text-secondary); 
+            margin-bottom: 0.5rem; 
+            font-size: 0.95rem; 
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
 
         .action-row { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            margin-top: 1.2rem; 
-            padding-top: 1rem;
-            border-top: 1px solid #eee;
-            gap: 0.5rem;
+            width: 100%;
+            max-width: 500px;
+            margin-top: 1.5rem; 
+            gap: 1rem;
         }
 
-        /* Distinct, well-distinguished secondary buttons */
+        /* Distinct Secondary Buttons */
         .btn-back { 
-            background: #e5e5ea; 
-            color: #1c1c1e; 
-            padding: 0.75rem 1rem; 
-            font-size: 0.85rem; 
+            background: #f2f2f7; 
+            color: var(--text-main); 
+            padding: 0.85rem 1.2rem; 
+            font-size: 0.9rem; 
             flex: 1;
+            border-radius: 12px;
         }
         .btn-back:disabled { opacity: 0.3; cursor: not-allowed; }
 
         .btn-tie { 
             background: #f2f2f7; 
-            color: #3a3a3c; 
-            border: 1.5px solid var(--border-color);
-            padding: 0.75rem 1rem; 
-            font-size: 0.85rem; 
+            color: var(--text-secondary); 
+            padding: 0.85rem 1.2rem; 
+            font-size: 0.9rem; 
             flex: 1.5;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .btn-tie:hover { background: #e5e5ea; color: var(--text-main); }
+
+        /* Modern Result Podium */
+        .podium-list {
+            width: 100%;
+            max-width: 550px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 1.5rem 0;
         }
 
         .podium-item { 
@@ -199,96 +231,138 @@
             align-items: center; 
             justify-content: space-between; 
             background: #fbfbfd; 
-            padding: 0.8rem 1rem; 
-            margin: 0.6rem 0; 
-            border-radius: 14px; 
+            padding: 1rem 1.2rem; 
+            border-radius: 16px; 
             border: 1px solid var(--border-color);
             text-align: left; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
         }
         .podium-item img { 
-            width: 48px; 
-            height: 48px; 
+            width: 60px; 
+            height: 60px; 
             object-fit: cover; 
-            border-radius: 8px; 
-            margin-left: 0.8rem; 
+            border-radius: 12px; 
+            margin-left: 1rem; 
             flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
         .reset-link { 
-            margin-top: 1.5rem; 
-            font-size: 0.75rem; 
+            margin-top: 2.5rem; 
+            font-size: 0.8rem; 
             color: var(--text-secondary); 
             cursor: pointer; 
             text-decoration: underline; 
         }
+        .reset-link:hover { color: var(--text-main); }
     </style>
 </head>
 <body>
 
-    <!-- Giriş Ekranı -->
-    <div class="card" id="login-screen">
-        <h2>🎸 Grup Poster Düellosu</h2>
-        <p>Her ikili eşleşmede favorini seç!</p>
-        <div style="text-align: left; margin-bottom: 0.3rem; font-size: 0.85rem; font-weight: 500; color: var(--text-main);">Baş Harfin:</div>
-        <select id="initials-select">
-            <option value="" disabled selected>-- Seçiniz --</option>
-            <option value="S.A.">S.A.</option>
-            <option value="O.E.">O.E.</option>
-            <option value="O.G.">O.G.</option>
-            <option value="I.O.">I.O.</option>
-            <option value="H.Y.">H.Y.</option>
-        </select>
-        <button class="btn-primary" onclick="startGame()">Düelloyu Başlat</button>
-        <div class="reset-link" onclick="triggerReset()">Sistem Oylarını Sıfırla</div>
-    </div>
+    <div class="container">
 
-    <!-- Oyunu Oynama Ekranı -->
-    <div class="card hidden" id="game-screen">
-        <div class="counter" id="counter">Düello 1 / 10</div>
-        <p>Hangi poster daha iyi?</p>
-        
-        <div class="battle-arena">
-            <div class="poster-card" onclick="submitChoice('left')">
-                <div class="poster-img-box">
-                    <img id="poster-left" src="" alt="Poster A">
-                </div>
-                <button class="btn-primary" style="pointer-events: none; padding: 0.6rem; font-size: 0.85rem;">👉 Bunu Seç</button>
-            </div>
+        <!-- Giriş Ekranı -->
+        <div id="login-screen" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <h2>Grup Poster Düellosu</h2>
+            <p>Favori posterini seçmek için baş harfini seç ve başla.</p>
             
-            <div class="poster-card" onclick="submitChoice('right')">
-                <div class="poster-img-box">
-                    <img id="poster-right" src="" alt="Poster B">
+            <div id="voted-warning" class="notice-box hidden">⚠️ Bu baş harf ile daha önce oy kullanılmış!</div>
+
+            <select id="initials-select" onchange="checkVotedStatus()">
+                <option value="" disabled selected>-- Baş Harfini Seç --</option>
+                <option value="S.A.">S.A.</option>
+                <option value="O.E.">O.E.</option>
+                <option value="O.G.">O.G.</option>
+                <option value="I.O.">I.O.</option>
+                <option value="H.Y.">H.Y.</option>
+            </select>
+            <button class="btn-primary" id="start-btn" onclick="startGame()" disabled style="opacity: 0.5;">Düelloyu Başlat</button>
+            <div class="reset-link" onclick="triggerReset()">Sistem Oylarını Sıfırla</div>
+        </div>
+
+        <!-- Oyunu Oynama Ekranı -->
+        <div class="hidden" id="game-screen" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="counter" id="counter">Düello 1 / N</div>
+            <h2>Hangisi Daha İyi?</h2>
+            
+            <div class="battle-arena">
+                <div class="poster-card" onclick="submitChoice('left')">
+                    <div class="poster-img-box">
+                        <img id="poster-left" src="" alt="Poster A">
+                    </div>
+                    <button class="btn-primary" style="pointer-events: none; padding: 0.8rem; font-size: 0.95rem; max-width: 100%;">👉 Bunu Seç</button>
                 </div>
-                <button class="btn-primary" style="pointer-events: none; padding: 0.6rem; font-size: 0.85rem;">👉 Bunu Seç</button>
+                
+                <div class="poster-card" onclick="submitChoice('right')">
+                    <div class="poster-img-box">
+                        <img id="poster-right" src="" alt="Poster B">
+                    </div>
+                    <button class="btn-primary" style="pointer-events: none; padding: 0.8rem; font-size: 0.95rem; max-width: 100%;">👉 Bunu Seç</button>
+                </div>
+            </div>
+
+            <div class="action-row">
+                <button class="btn-back" id="back-btn" onclick="prevMatchup()" disabled>⬅️ Geri Dön</button>
+                <button class="btn-tie" onclick="submitChoice('tie')">🤝 Kararsız / Geç</button>
             </div>
         </div>
 
-        <div class="action-row">
-            <button class="btn-back" id="back-btn" onclick="prevMatchup()" disabled>⬅️ Geri</button>
-            <button class="btn-tie" onclick="submitChoice('tie')">🤝 Kararsız / Geç</button>
+        <!-- Sonuç Ekranı -->
+        <div class="hidden" id="result-screen" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <h2>Grubun İlk 3'ü</h2>
+            <p>Ortak akıl ve istatistiksel sonuçlar:</p>
+            <div class="podium-list" id="podium-container"><p>Yükleniyor...</p></div>
+            <button class="btn-primary" style="margin-top: 1rem; max-width: 300px;" onclick="location.reload()">Kapat</button>
         </div>
-    </div>
 
-    <!-- Sonuç Ekranı -->
-    <div class="card hidden" id="result-screen">
-        <h2>🏆 Grubun İlk 3'ü</h2>
-        <p>Ortak akıl istatistikleri:</p>
-        <div id="podium-container"><p>Yükleniyor...</p></div>
-        <button class="btn-primary" style="margin-top: 1rem;" onclick="location.reload()">Tekrar Oyna / Kullanıcı Değiştir</button>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbype6U8aQDzPyD0UgKsFe9hee2gXIInM_8Z9wc-l7sbDEV__WVkNrU9kpGRR92hTwNRhQ/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbyRFMEDt83BR4SNdaLoPHwbdpk91P7Or9fYJLWw5HEla-En8ekjHsLJ-VJxhQ6qetQgQA/exec";
         let posters = [];
         let matchups = [];
         let currentMatchIndex = 0;
         let selectedInitials = "";
         let historyStack = [];
 
+        async function checkVotedStatus() {
+            let initials = document.getElementById("initials-select").value;
+            let warningBox = document.getElementById("voted-warning");
+            let startBtn = document.getElementById("start-btn");
+
+            if (!initials) return;
+
+            startBtn.innerText = "Kontrol ediliyor...";
+            startBtn.disabled = true;
+
+            try {
+                let response = await fetch(`${API_URL}?action=checkUser&initials=${initials}`);
+                let data = await response.json();
+
+                if (data.hasVoted) {
+                    warningBox.innerText = `⚠️ "${initials}" baş harfi ile daha önce oy kullanılmış!`;
+                    warningBox.classList.remove("hidden");
+                    startBtn.disabled = true;
+                    startBtn.style.opacity = "0.5";
+                    startBtn.innerText = "Zaten Oy Kullanıldı";
+                } else {
+                    warningBox.classList.add("hidden");
+                    startBtn.disabled = false;
+                    startBtn.style.opacity = "1";
+                    startBtn.innerText = "Düelloyu Başlat";
+                }
+            } catch (err) {
+                alert("Kullanıcı durumu kontrol edilemedi.");
+                console.error(err);
+                startBtn.disabled = false;
+                startBtn.innerText = "Düelloyu Başlat";
+            }
+        }
+
         async function startGame() {
             const select = document.getElementById("initials-select");
             if (!select.value) {
-                alert("Lütfen baş harfinizi seçin!");
+                alert("Lütfen baş harfini seç!");
                 return;
             }
             selectedInitials = select.value;
@@ -302,7 +376,7 @@
                     return;
                 }
                 
-                generateMatchups();
+                generateGuaranteedMatchups();
                 document.getElementById("login-screen").classList.add("hidden");
                 document.getElementById("game-screen").classList.remove("hidden");
                 renderMatchup();
@@ -312,16 +386,32 @@
             }
         }
 
-        function generateMatchups() {
+        function generateGuaranteedMatchups() {
             matchups = [];
-            let shuffled = [...posters].sort(() => Math.random() - 0.5);
-            
-            for (let i = 0; i < shuffled.length - 1; i += 2) {
-                matchups.push({ left: shuffled[i], right: shuffled[i+1] });
+            let n = posters.length;
+            let pool = [...posters];
+
+            pool.sort(() => Math.random() - 0.5);
+            let round1 = [];
+            for (let i = 0; i < n; i += 2) {
+                if (i + 1 < n) {
+                    round1.push({ left: pool[i], right: pool[i+1] });
+                } else {
+                    round1.push({ left: pool[i], right: pool[0] });
+                }
             }
-            if (matchups.length > 10) {
-                matchups = matchups.slice(0, 10);
+
+            pool.push(pool.shift());
+            let round2 = [];
+            for (let i = 0; i < n; i += 2) {
+                if (i + 1 < n) {
+                    round2.push({ left: pool[i], right: pool[i+1] });
+                } else {
+                    round2.push({ left: pool[i], right: pool[0] });
+                }
             }
+
+            matchups = [...round1.sort(() => Math.random() - 0.5), ...round2.sort(() => Math.random() - 0.5)];
         }
 
         function renderMatchup() {
@@ -399,8 +489,8 @@
                     container.innerHTML += `
                         <div class="podium-item">
                             <div style="overflow: hidden;">
-                                <b style="font-size: 1rem; color: var(--apple-blue);">#${index + 1}</b> — <b style="font-size: 0.9rem;">${item.name}</b><br>
-                                <small style="color: var(--text-secondary); font-size: 0.75rem;">Puan: ${item.score} (${item.wins} galibiyet)</small>
+                                <b style="font-size: 1.1rem; color: var(--apple-blue);">#${index + 1}</b> — <b style="font-size: 1rem; color: var(--text-main);">${item.name}</b><br>
+                                <small style="color: var(--text-secondary); font-size: 0.8rem;">Puan: ${item.score} (${item.wins} galibiyet)</small>
                             </div>
                             <img src="${item.url}" alt="Poster">
                         </div>
@@ -412,13 +502,14 @@
         }
 
         async function triggerReset() {
-            let pin = prompt("Tüm verileri sıfırlamak için 'RESET' yazın:");
+            let pin = prompt("Tüm oyları ve kullanıcı kilitlerini sıfırlamak için 'RESET' yazın:");
             if (pin === "RESET") {
                 await fetch(API_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "resetVotes" })
                 });
-                alert("Sıfırlama başarılı!");
+                alert("Sıfırlama başarılı! Herkes yeniden oy kullanabilir.");
+                location.reload();
             }
         }
     </script>
