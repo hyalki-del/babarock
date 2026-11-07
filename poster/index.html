@@ -34,7 +34,6 @@
             overflow-x: hidden;
         }
 
-        /* Immersive container with no background box */
         .container { 
             width: 100%; 
             max-width: 900px; 
@@ -56,7 +55,7 @@
         p {
             color: var(--text-secondary);
             font-size: 1rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .hidden { display: none !important; }
@@ -112,7 +111,6 @@
         }
         .btn-primary:hover { background: var(--apple-blue-hover); }
 
-        /* Modern Giant Battle Arena */
         .battle-arena { 
             display: flex; 
             flex-direction: column;
@@ -143,14 +141,9 @@
             align-items: center; 
             transition: transform 0.2s ease;
         }
-        .poster-card:hover {
-            transform: translateY(-6px);
-        }
-        .poster-card:active { 
-            transform: scale(0.98); 
-        }
+        .poster-card:hover { transform: translateY(-6px); }
+        .poster-card:active { transform: scale(0.98); }
 
-        /* Maximized Giant Poster Image Box */
         .poster-img-box { 
             height: 420px; 
             width: 100%; 
@@ -194,7 +187,6 @@
             gap: 1rem;
         }
 
-        /* Distinct Secondary Buttons */
         .btn-back { 
             background: #f2f2f7; 
             color: var(--text-main); 
@@ -216,7 +208,6 @@
         }
         .btn-tie:hover { background: #e5e5ea; color: var(--text-main); }
 
-        /* Modern Result Podium */
         .podium-list {
             width: 100%;
             max-width: 550px;
@@ -245,6 +236,39 @@
             margin-left: 1rem; 
             flex-shrink: 0;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Modal Popup Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-card {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 450px;
+            text-align: left;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .modal-card h3 { margin-top: 0; color: var(--text-main); }
+        .modal-card p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem; }
+        
+        .info-link {
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: var(--apple-blue);
+            cursor: pointer;
+            text-decoration: underline;
+            display: inline-block;
         }
 
         .reset-link { 
@@ -277,6 +301,8 @@
                 <option value="H.Y.">H.Y.</option>
             </select>
             <button class="btn-primary" id="start-btn" onclick="startGame()" disabled style="opacity: 0.5;">Düelloyu Başlat</button>
+            
+            <span class="info-link" onclick="openInfoModal()">📊 Sonuçlar Nasıl Hesaplanıyor?</span>
             <div class="reset-link" onclick="triggerReset()">Sistem Oylarını Sıfırla</div>
         </div>
 
@@ -312,9 +338,21 @@
             <h2>Grubun İlk 3'ü</h2>
             <p>Ortak akıl ve istatistiksel sonuçlar:</p>
             <div class="podium-list" id="podium-container"><p>Yükleniyor...</p></div>
-            <button class="btn-primary" style="margin-top: 1rem; max-width: 300px;" onclick="location.reload()">Kapat</button>
+            <span class="info-link" onclick="openInfoModal()" style="margin-top: 0.5rem;">📊 Puanlama Mantığı Nedir?</span>
+            <button class="btn-primary" style="margin-top: 1.5rem; max-width: 300px;" onclick="location.reload()">Kapat</button>
         </div>
 
+    </div>
+
+    <!-- Bilgi Modalı (Popup) -->
+    <div id="info-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3>📊 Hesaplama Mantığı Nedir?</h3>
+            <p><b>1. İkili Düellolar:</b> Her grup üyesi rastgele eşleşen iki posterden beğendiğini seçer. Sonuçlar Google Sheets'e anlık işlenir.</p>
+            <p><b>2. Kazanma Oranı:</b> Her posterin kazandığı galibiyetler ve katıldığı toplam maç sayısı oranlanır.</p>
+            <p><b>3. Bayesian Düzeltmesi:</b> Sadece 1 maça çıkıp şans eseri kazanan posterlerin sistemi manipüle etmesini önlemek için her postere sanal nötr oylar eklenir (<b>(Galibiyet + 1) / (Toplam Maç + 2)</b>). Böylece çok maç yapıp istikrarla kazananlar zirveye çıkar.</p>
+            <button class="btn-primary" style="margin-top: 0.5rem; padding: 0.7rem;" onclick="closeInfoModal()">Anladım</button>
+        </div>
     </div>
 
     <script>
@@ -324,6 +362,14 @@
         let currentMatchIndex = 0;
         let selectedInitials = "";
         let historyStack = [];
+
+        function openInfoModal() {
+            document.getElementById("info-modal").classList.remove("hidden");
+        }
+
+        function closeInfoModal() {
+            document.getElementById("info-modal").classList.add("hidden");
+        }
 
         async function checkVotedStatus() {
             let initials = document.getElementById("initials-select").value;
@@ -502,14 +548,16 @@
         }
 
         async function triggerReset() {
-            let pin = prompt("Tüm oyları ve kullanıcı kilitlerini sıfırlamak için 'RESET' yazın:");
-            if (pin === "RESET") {
+            let password = prompt("Sistemi sıfırlamak için yönetici şifresini girin:");
+            if (password === "8977") {
                 await fetch(API_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "resetVotes" })
                 });
-                alert("Sıfırlama başarılı! Herkes yeniden oy kullanabilir.");
+                alert("Sıfırlama başarılı! Tüm veriler silindi, herkes yeniden oynayabilir.");
                 location.reload();
+            } else if (password !== null) {
+                alert("Hatalı şifre!");
             }
         }
     </script>
