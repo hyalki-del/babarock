@@ -111,7 +111,15 @@
         }
         .btn-primary:hover { background: var(--apple-blue-hover); }
 
-        /* Modern Battle Arena */
+        .btn-secondary {
+            background: #f2f2f7;
+            color: var(--text-main);
+            width: 100%;
+            max-width: 400px;
+            margin-top: 0.8rem;
+        }
+        .btn-secondary:hover { background: #e5e5ea; }
+
         .battle-arena { 
             display: flex; 
             flex-direction: column;
@@ -150,11 +158,8 @@
             transform: translateY(-4px);
             box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
         }
-        .poster-card:active { 
-            transform: scale(0.98); 
-        }
+        .poster-card:active { transform: scale(0.98); }
 
-        /* Poster Box with Contain (No crop / fully visible) */
         .poster-img-box { 
             height: 480px; 
             width: 100%; 
@@ -172,10 +177,9 @@
         .poster-img-box img { 
             max-height: 100%; 
             max-width: 100%; 
-            object-fit: contain; /* Çerçeve dışına çıkmaz, tamamı görünür */
+            object-fit: contain; 
         }
 
-        /* Semi-transparent Overlay Button on top of the Poster */
         .floating-select-btn {
             position: absolute;
             bottom: 20px;
@@ -190,7 +194,7 @@
             font-size: 0.95rem;
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             transition: all 0.2s ease;
-            pointer-events: none; /* Tıklama üst karta iletilir */
+            pointer-events: none;
         }
 
         .poster-card:hover .floating-select-btn {
@@ -268,9 +272,12 @@
             margin-left: 1rem; 
             flex-shrink: 0;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: zoom-in;
+            transition: transform 0.2s;
         }
+        .podium-item img:hover { transform: scale(1.08); }
 
-        /* Modal Popup Styles */
+        /* Modal & Lightbox Styles */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -293,6 +300,27 @@
         }
         .modal-card h3 { margin-top: 0; color: var(--text-main); }
         .modal-card p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem; }
+
+        /* Fullscreen Image Lightbox */
+        .lightbox-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            cursor: zoom-out;
+            padding: 2rem;
+        }
+        .lightbox-overlay img {
+            max-width: 90%;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
         
         .info-link {
             margin-top: 1rem;
@@ -304,7 +332,7 @@
         }
 
         .reset-link { 
-            margin-top: 2.5rem; 
+            margin-top: 2rem; 
             font-size: 0.8rem; 
             color: var(--text-secondary); 
             cursor: pointer; 
@@ -333,6 +361,7 @@
                 <option value="H.Y.">H.Y.</option>
             </select>
             <button class="btn-primary" id="start-btn" onclick="startGame()" disabled style="opacity: 0.5;">Düelloyu Başlat</button>
+            <button class="btn-secondary" onclick="showResults(true)">🏆 Mevcut Sonuçları Göster</button>
             
             <span class="info-link" onclick="openInfoModal()">📊 Sonuçlar Nasıl Hesaplanıyor?</span>
             <div class="reset-link" onclick="triggerReset()">Sistem Oylarını Sıfırla</div>
@@ -371,20 +400,25 @@
             <p>Ortak akıl ve istatistiksel sonuçlar:</p>
             <div class="podium-list" id="podium-container"><p>Yükleniyor...</p></div>
             <span class="info-link" onclick="openInfoModal()" style="margin-top: 0.5rem;">📊 Puanlama Mantığı Nedir?</span>
-            <button class="btn-primary" style="margin-top: 1.5rem; max-width: 300px;" onclick="location.reload()">Kapat</button>
+            <button class="btn-primary" style="margin-top: 1.5rem; max-width: 300px;" onclick="location.reload()">Ana Ekrana Dön</button>
         </div>
 
     </div>
 
     <!-- Bilgi Modalı (Popup) -->
-    <div id="info-modal" class="modal-overlay hidden">
-        <div class="modal-card">
+    <div id="info-modal" class="modal-overlay hidden" onclick="closeInfoModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
             <h3>📊 Hesaplama Mantığı Nedir?</h3>
             <p><b>1. İkili Düellolar:</b> Her grup üyesi rastgele eşleşen iki posterden beğendiğini seçer. Sonuçlar Google Sheets'e anlık işlenir.</p>
             <p><b>2. Kazanma Oranı:</b> Her posterin kazandığı galibiyetler ve katıldığı toplam maç sayısı oranlanır.</p>
             <p><b>3. Bayesian Düzeltmesi:</b> Sadece 1 maça çıkıp şans eseri kazanan posterlerin sistemi manipüle etmesini önlemek için her postere sanal nötr oylar eklenir (<b>(Galibiyet + 1) / (Toplam Maç + 2)</b>). Böylece çok maç yapıp istikrarla kazananlar zirveye çıkar.</p>
             <button class="btn-primary" style="margin-top: 0.5rem; padding: 0.7rem;" onclick="closeInfoModal()">Anladım</button>
         </div>
+    </div>
+
+    <!-- Resim Büyütme (Lightbox) Alanı -->
+    <div id="lightbox" class="lightbox-overlay hidden" onclick="closeLightbox()">
+        <img id="lightbox-img" src="" alt="Büyük Poster">
     </div>
 
     <script>
@@ -401,6 +435,15 @@
 
         function closeInfoModal() {
             document.getElementById("info-modal").classList.add("hidden");
+        }
+
+        function openLightbox(url) {
+            document.getElementById("lightbox-img").src = url;
+            document.getElementById("lightbox").classList.remove("hidden");
+        }
+
+        function closeLightbox() {
+            document.getElementById("lightbox").classList.add("hidden");
         }
 
         async function checkVotedStatus() {
@@ -547,7 +590,8 @@
             }
         }
 
-        async function showResults() {
+        async function showResults(fromHome = false) {
+            document.getElementById("login-screen").classList.add("hidden");
             document.getElementById("game-screen").classList.add("hidden");
             document.getElementById("result-screen").classList.remove("hidden");
 
@@ -570,7 +614,7 @@
                                 <b style="font-size: 1.1rem; color: var(--apple-blue);">#${index + 1}</b> — <b style="font-size: 1rem; color: var(--text-main);">${item.name}</b><br>
                                 <small style="color: var(--text-secondary); font-size: 0.8rem;">Puan: ${item.score} (${item.wins} galibiyet)</small>
                             </div>
-                            <img src="${item.url}" alt="Poster">
+                            <img src="${item.url}" alt="Poster" onclick="openLightbox('${item.url}')" title="Büyütmek için tıklayın">
                         </div>
                     `;
                 });
