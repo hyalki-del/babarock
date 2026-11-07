@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Hızlı Poster Oylaması</title>
+    <style>
+        :root {
+            --success-green: #34c759;
+            --error-red: #ff3b30;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            background: #000000;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Fullscreen Poster Container */
+        .poster-fullscreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .poster-fullscreen img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* Top 3-Second Timer Bar */
+        .timer-bar-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            z-index: 10;
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            transform-origin: left;
+            animation: countdown 3s linear infinite;
+        }
+
+        @keyframes countdown {
+            0% { transform: scaleX(1); }
+            100% { transform: scaleX(0); }
+        }
+
+        /* Middle Right Floating Controls */
+        .controls-deck {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 20;
+        }
+
+        .circle-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            transition: transform 0.1s ease, filter 0.2s;
+            touch-action: manipulation;
+        }
+
+        .circle-btn:active {
+            transform: scale(0.9);
+        }
+
+        .btn-thumbs-up {
+            background-color: var(--success-green);
+            color: white;
+            font-size: 32px;
+        }
+
+        .btn-cross {
+            background-color: var(--error-red);
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        /* Login / Completion Overlays */
+        .overlay-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        .overlay-screen h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .overlay-screen p {
+            color: #86868b;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        select {
+            width: 100%;
+            max-width: 320px;
+            padding: 1rem;
+            border-radius: 14px;
+            border: 1px solid #3a3a3c;
+            background: #1c1c1e;
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            outline: none;
+        }
+
+        .btn-start {
+            background: #0071e3;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <!-- Başlangıç Ekranı -->
+    <div id="login-screen" class="overlay-screen">
+        <h2>⚡ Hızlı Akış Modu</h2>
+        <p>Her poster için 3 saniyen var. Beğen ya da geç!</p>
+        <select id="initials-select">
+            <option value="" disabled selected>-- Baş Harfini Seç --</option>
+            <option value="S.A.">S.A.</option>
+            <option value="O.E.">O.E.</option>
+            <option value="O.G.">O.G.</option>
+            <option value="I.O.">I.O.</option>
+            <option value="H.Y.">H.Y.</option>
+        </select>
+        <button class="btn-start" onclick="startFastGame()">Hızlı Oyunu Başlat</button>
+    </div>
+
+    <!-- Oyun Ekranı -->
+    <div class="timer-bar-container hidden" id="timer-container">
+        <div class="timer-bar" id="timer-bar"></div>
+    </div>
+
+    <div class="poster-fullscreen">
+        <img id="current-poster" src="" alt="Poster">
+    </div>
+
+    <div class="controls-deck hidden" id="controls">
+        <button class="circle-btn btn-thumbs-up" onclick="castVote('güzel')" title="Beğen">👍</button>
+        <button class="circle-btn btn-cross" onclick="castVote('kötü')" title="Geç">✕</button>
+    </div>
+
+    <!-- Bitiş Ekranı -->
+    <div id="end-screen" class="overlay-screen hidden">
+        <h2>🎉 Harika İş!</h2>
+        <p>Tüm posterleri hızlı akışta oyladın.</p>
+        <button class="btn-start" onclick="location.reload()">Başa Dön</button>
+    </div>
+
+    <script>
+        const API_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+        let posters = [];
+        let currentIndex = 0;
+        let selectedInitials = "";
+        let timerInterval = null;
+
+        async function startFastGame() {
+            const select = document.getElementById("initials-select");
+            if (!select.value) {
+                alert("Lütfen baş harfini seç!");
+                return;
+            }
+            selectedInitials = select.value;
+
+            try {
+                let response = await fetch(`${API_URL}?action=getPosters`);
+                posters = await response.json();
+                
+                if (posters.length === 0) {
+                    alert("Poster bulunamadı!");
+                    return;
+                }
+
+                // Karıştır ki her seferinde farklı sırayla gelsin
+                posters.sort(() => Math.random() - 0.5);
+
+                document.getElementById("login-screen").classList.add("hidden");
+                document.getElementById("timer-container").classList.remove("hidden");
+                document.getElementById("controls").classList.remove("hidden");
+
+                renderNextPoster();
+            } catch (err) {
+                alert("Posterler yüklenemedi.");
+            }
+        }
+
+        function renderNextPoster() {
+            if (currentIndex >= posters.length) {
+                endGame();
+                return;
+            }
+
+            // Resmi göster
+            document.getElementById("current-poster").src = posters[currentIndex].url;
+
+            // Timer bar'ı sıfırdan başlat
+            resetTimer();
+
+            // 3 saniye dolunca otomatik 'kötü' (pas geçildi) olarak kaydet ve sonrakine geç
+            timerInterval = setTimeout(() => {
+                castVote('kötü', true); // Otomatik geçiş
+            }, 3000);
+        }
+
+        function resetTimer() {
+            clearTimeout(timerInterval);
+            let bar = document.getElementById("timer-bar");
+            bar.style.animation = 'none';
+            bar.offsetHeight; // trigger reflow
+            bar.style.animation = 'countdown 3s linear infinite';
+        }
+
+        function castVote(voteType, isAuto = false) {
+            clearTimeout(timerInterval);
+            let currentPoster = posters[currentIndex];
+
+            // Oyu arka planda Google Sheets'e gönder
+            fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "submitVote", // Veya mevcut votes tablosu yapınıza uygun action
+                    initials: selectedInitials,
+                    posterId: currentPoster.id,
+                    vote: voteType
+                })
+            });
+
+            currentIndex++;
+            renderNextPoster();
+        }
+
+        function endGame() {
+            clearTimeout(timerInterval);
+            document.getElementById("timer-container").classList.add("hidden");
+            document.getElementById("controls").classList.add("hidden");
+            document.querySelector(".poster-fullscreen").classList.add("hidden");
+            document.getElementById("end-screen").classList.remove("hidden");
+        }
+    </script>
+</body>
+</html>
