@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poster Voting Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 400px; text-align: center; }
+        .hidden { display: none !important; }
+        .initials-grid { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary:hover { background: #0056b3; }
+        .img-container { margin: 15px 0; height: 300px; display: flex; justify-content: center; align-items: center; background: #eee; border-radius: 8px; overflow: hidden; }
+        .img-container img { max-height: 100%; max-width: 100%; object-fit: contain; }
+        .vote-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+        .btn-güzel { background: #28a745; color: white; }
+        .btn-kararsız { background: #ffc107; color: black; }
+        .btn-kötü { background: #dc3545; color: white; }
+        .btn-back { background: #6c757d; color: white; margin-top: 10px; }
+        /* Popup Modal */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 10px; width: 320px; text-align: center; }
+        .top-podium { margin: 15px 0; text-align: left; }
+    </style>
+</head>
+<body>
+
+    <!-- Step 1: Choose Initials -->
+    <div id="initials-screen" class="card">
+        <h2>Poster Voting</h2>
+        <p>Please select your initials to start:</p>
+        <div class="initials-grid" id="initials-container"></div>
+    </div>
+
+    <!-- Step 2: Voting Game Screen -->
+    <div id="voting-screen" class="card hidden">
+        <div id="counter" style="font-weight: bold; color: #555;">1/17</div>
+        <div class="img-container">
+            <img id="current-image" src="" alt="Poster">
+        </div>
+        <div class="vote-buttons">
+            <button class="btn btn-güzel" onclick="castVote('güzel')">Güzel</button>
+            <button class="btn btn-kararsız" onclick="castVote('kararsız')">Kararsız</button>
+            <button class="btn btn-kötü" onclick="castVote('kötü')">Kötü</button>
+        </div>
+        <div>
+            <button id="back-btn" class="btn btn-back hidden" onclick="goBack()">Go Back</button>
+        </div>
+    </div>
+
+    <!-- Step 3: Top 3 Popup Modal -->
+    <div id="results-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>🏆 Top 3 Results</h2>
+            <div id="podium-list" class="top-podium">Loading...</div>
+            <button class="btn btn-primary" onclick="location.reload()">Vote Again</button>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+        const initialsList = ["S.A.", "O.E.", "O.G.", "I.O.", "H.Y."];
+        
+        let images = [];
+        let currentIndex = 0;
+        let voterInitials = "";
+        let voteHistory = [];
+
+        // Initialize Initials Screen
+        const container = document.getElementById("initials-container");
+        initialsList.forEach(init => {
+            let btn = document.createElement("button");
+            btn.className = "btn btn-primary";
+            btn.innerText = init;
+            btn.onclick = () => selectInitials(init);
+            container.appendChild(btn);
+        });
+
+        async function selectInitials(init) {
+            voterInitials = init;
+            document.getElementById("initials-screen").classList.add("hidden");
+            
+            try {
+                let res = await fetch(`${SCRIPT_URL}?action=getImages`);
+                images = await res.json();
+                if(images.length === 0) {
+                    alert("No images found in Google Sheets database!");
+                    return;
+                }
+                document.getElementById("voting-screen").classList.remove("hidden");
+                loadPoster();
+            } catch (err) {
+                alert("Error connecting to database.");
+            }
+        }
+
+        function loadPoster() {
+            if (currentIndex >= images.length) {
+                showResults();
+                return;
+            }
+            document.getElementById("counter").innerText = `${currentIndex + 1} / ${images.length}`;
+            
+            // Images point back to the /images/ folder structure
+            document.getElementById("current-image").src = `images/${images[currentIndex]}`;
+            
+            if (currentIndex > 0) {
+                document.getElementById("back-btn").classList.remove("hidden");
+            } else {
+                document.getElementById("back-btn").classList.add("hidden");
+            }
+        }
+
+        async function castVote(voteType) {
+            let imageName = images[currentIndex];
+            
+            voteHistory.push({ index: currentIndex, imageName: imageName, vote: voteType });
+
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ initials: voterInitials, imageName: imageName, vote: voteType })
+            });
+
+            currentIndex++;
+            loadPoster();
+        }
+
+        function goBack() {
+            if (voteHistory.length > 0) {
+                let lastVote = voteHistory.pop();
+                currentIndex = lastVote.index;
+                loadPoster();
+            }
+        }
+
+        async function showResults() {
+            document.getElementById("voting-screen").classList.add("hidden");
+            document.getElementById("results-modal").classList.remove("hidden");
+            
+            let podiumDiv = document.getElementById("podium-list");
+            podiumDiv.innerHTML = "Calculating final results...";
+
+            try {
+                let res = await fetch(`${SCRIPT_URL}?action=getResults`);
+                let top3 = await res.json();
+                
+                let html = "";
+                top3.forEach((item, index) => {
+                    html += `<p><b>#${index + 1}:</b> ${item.image} <br><small>Score: ${item.score} (😊 ${item.güzel} | 😐 ${item.kararsız} | ❌ ${item.kötü})</small></p>`;
+                });
+                podiumDiv.innerHTML = html || "<p>No votes recorded.</p>";
+            } catch (err) {
+                podiumDiv.innerHTML = "<p>Failed to load results.</p>";
+            }
+        }
+    </script>
+</body>
+</html>
