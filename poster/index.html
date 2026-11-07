@@ -5,159 +5,388 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Poster Voting Game</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 400px; text-align: center; }
-        .hidden { display: none !important; }
-        .initials-grid { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
-        .btn-primary { background: #007bff; color: white; }
-        .btn-primary:hover { background: #0056b3; }
-        .img-container { margin: 15px 0; height: 300px; display: flex; justify-content: center; align-items: center; background: #eee; border-radius: 8px; overflow: hidden; position: relative; }
-        .img-container img { max-height: 100%; max-width: 100%; object-fit: contain; }
-        .vote-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
-        .btn-güzel { background: #28a745; color: white; }
-        .btn-kararsız { background: #ffc107; color: black; }
-        .btn-kötü { background: #dc3545; color: white; }
-        .btn-back { background: #6c757d; color: white; margin-top: 10px; }
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            box-sizing: border-box;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            max-height: 95vh;
+        }
+        /* Screen Management */
+        .screen {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            overflow-y: auto;
+        }
+        .screen.active {
+            display: flex;
+        }
+        /* Initials Screen */
+        #initials-screen h1 { margin-bottom: 10px; color: var(--primary); }
+        .initials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+        .initial-btn {
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .initial-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+        /* Game Screen */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #64748b;
+        }
+        .poster-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: #0f172a;
+            border-radius: 12px;
+            overflow: hidden;
+            min-height: 350px;
+            max-height: 450px;
+        }
+        .poster-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .game-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .vote-btn {
+            padding: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            transition: opacity 0.2s;
+        }
+        .btn-guzel { background-color: #10b981; }
+        .btn-kararsiz { background-color: #f59e0b; }
+        .btn-kotu { background-color: #ef4444; }
+        .vote-btn:hover { opacity: 0.9; }
+        
+        .nav-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        .secondary-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #475569;
+        }
+        .secondary-btn:hover { background: #cbd5e1; }
+        
         /* Popup Modal */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 10px; width: 320px; text-align: center; }
-        .top-podium { margin: 15px 0; text-align: left; }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
+        }
+        .modal-content h2 { color: var(--primary); margin-top: 0; }
+        .podium-item {
+            background: #f1f5f9;
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+        .reset-section {
+            margin-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 15px;
+        }
+        .btn-reset {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-reset:hover { background: #fecaca; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <!-- Step 1: Choose Initials -->
-    <div id="initials-screen" class="card">
-        <h2>Poster Voting</h2>
-        <p>Please select your initials to start:</p>
-        <div class="initials-grid" id="initials-container"></div>
+    <div class="container">
+        <!-- SCREEN 1: Choose Initials -->
+        <div id="initials-screen" class="screen active">
+            <h1>Poster Voting Game</h1>
+            <p>Please select your initials to start:</p>
+            <div class="loader" id="main-loader"></div>
+            <div class="initials-grid" id="initials-grid" style="display:none;">
+                <button class="initial-btn" onclick="selectUser('S.A.')">S.A.</button>
+                <button class="initial-btn" onclick="selectUser('O.E.')">O.E.</button>
+                <button class="initial-btn" onclick="selectUser('O.G.')">O.G.</button>
+                <button class="initial-btn" onclick="selectUser('I.O.')">I.O.</button>
+                <button class="initial-btn" onclick="selectUser('H.Y.')">H.Y.</button>
+            </div>
+            
+            <div class="reset-section">
+                <button class="btn-reset" onclick="triggerReset()">Reset All Votes in Database</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: Voting Game -->
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <span id="counter-text">1 / 17</span>
+                <span id="user-tag">Voter: </span>
+            </div>
+            
+            <div class="poster-container">
+                <img id="poster-image" src="" alt="Poster">
+            </div>
+
+            <div class="game-controls">
+                <button class="vote-btn btn-guzel" onclick="submitVote('Güzel')">Güzel 😍</button>
+                <button class="vote-btn btn-kararsiz" onclick="submitVote('Kararsız')">Kararsız 🤔</button>
+                <button class="vote-btn btn-kotu" onclick="submitVote('Kötü')">Kötü ❌</button>
+            </div>
+
+            <div class="nav-footer">
+                <button class="secondary-btn" id="back-btn" onclick="goBack()" style="visibility:hidden;">← Back</button>
+                <button class="secondary-btn" onclick="location.reload()">Switch User</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Step 2: Voting Game Screen -->
-    <div id="voting-screen" class="card hidden">
-        <div id="counter" style="font-weight: bold; color: #555;">Loading...</div>
-        <div class="img-container">
-            <img id="current-image" src="" alt="Poster">
-        </div>
-        <div class="vote-buttons">
-            <button class="btn btn-güzel" onclick="castVote('güzel')">Güzel</button>
-            <button class="btn btn-kararsız" onclick="castVote('kararsız')">Kararsız</button>
-            <button class="btn btn-kötü" onclick="castVote('kötü')">Kötü</button>
-        </div>
-        <div>
-            <button id="back-btn" class="btn btn-back hidden" onclick="goBack()">Go Back</button>
-        </div>
-    </div>
-
-    <!-- Step 3: Top 3 Popup Modal -->
-    <div id="results-modal" class="modal hidden">
+    <!-- POPUP MODAL FOR TOP 3 -->
+    <div id="results-modal" class="modal">
         <div class="modal-content">
-            <h2>🏆 Top 3 Results</h2>
-            <div id="podium-list" class="top-podium">Loading...</div>
-            <button class="btn btn-primary" onclick="location.reload()">Vote Again</button>
+            <h2>🎉 Voting Complete!</h2>
+            <p>Here are the Top 3 Posters based on total "Güzel" votes:</p>
+            <div id="podium-list">
+                <!-- Injected via JS -->
+            </div>
+            <button class="initial-btn" style="width:100%; margin-top:15px;" onclick="location.reload()">Play Again / Home</button>
         </div>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwiMqzKnDsRyr2UVHyXebsNkeS9PuTm4gMAxVla7Y0Y97Kzoq6Q6tTsru3Vm8dSUJfd6g/exec";
-        const initialsList = ["S.A.", "O.E.", "O.G.", "I.O.", "H.Y."];
+        // REPLACE WITH YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzNhCnAR3wVNmm4ucYwu5dLfY51gOIpsvOIIFL0T_PedRoizAsXn149Jpy_rdDJ6ER-CQ/exec";
         
-        let images = [];
+        let imagesList = [];
         let currentIndex = 0;
-        let voterInitials = "";
-        let voteHistory = [];
+        let currentUser = "";
+        // Keep a history stack of votes made in this session to allow "Back"
+        let sessionHistory = []; // stores {imageName, previousVote}
 
-        // Initialize Initials Screen
-        const container = document.getElementById("initials-container");
-        initialsList.forEach(init => {
-            let btn = document.createElement("button");
-            btn.className = "btn btn-primary";
-            btn.innerText = init;
-            btn.onclick = () => selectInitials(init);
-            container.appendChild(btn);
+        // Fetch list of image names on load
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                let response = await fetch(`${WEB_APP_URL}?action=getData`);
+                let data = await response.json();
+                imagesList = data.images; // Names retrieved from 'Images' tab
+                
+                document.getElementById('main-loader').style.display = 'none';
+                document.getElementById('initials-grid').style.display = 'grid';
+            } catch (e) {
+                console.error("Failed to load images from Google Sheets", e);
+                document.getElementById('main-loader').outerHTML = '<p style="color:red;">Error loading configuration. Check your Web App URL setup.</p>';
+            }
         });
 
-        async function selectInitials(init) {
-            voterInitials = init;
-            document.getElementById("initials-screen").classList.add("hidden");
-            
-            try {
-                let res = await fetch(`${SCRIPT_URL}?action=getImages`);
-                images = await res.json();
-                if(images.error) {
-                    alert("Database Error: " + images.error);
-                    return;
-                }
-                if(!images || images.length === 0) {
-                    alert("No PNG images found in the Google Drive folder!");
-                    return;
-                }
-                document.getElementById("voting-screen").classList.remove("hidden");
-                loadPoster();
-            } catch (err) {
-                alert("Error connecting to database.");
+        function selectUser(initials) {
+            currentUser = initials;
+            if(imagesList.length === 0) {
+                alert("No images found in the Google Sheet 'Images' tab!");
+                return;
             }
+            document.getElementById('user-tag').innerText = `Voter: ${currentUser}`;
+            document.getElementById('initials-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            loadPoster();
+        }
+
+        function getDriveDirectLink(filename) {
+            // Converts standard filename references safely to Google Drive direct display items or matches files securely
+            // If your files inside the Google Drive folder match exact file names listed in the sheet:
+            // Since direct URLs require permanent File IDs, it is easiest to map file names or embed standard direct links.
+            // Alternatively, you can store full direct thumbnail links directly in the Google Sheet column.
+            return filename; 
         }
 
         function loadPoster() {
-            if (currentIndex >= images.length) {
-                showResults();
+            if (currentIndex >= imagesList.length) {
+                showFinalResults();
                 return;
             }
-            document.getElementById("counter").innerText = `${currentIndex + 1} / ${images.length}`;
             
-            let imgData = images[currentIndex];
-            // Stream directly from Google Drive
-            document.getElementById("current-image").src = `https://lh3.googleusercontent.com/d/${imgData.id}`;
+            document.getElementById('counter-text').innerText = `${currentIndex + 1} / ${imagesList.length}`;
+            let currentImageName = imagesList[currentIndex];
             
-            if (currentIndex > 0) {
-                document.getElementById("back-btn").classList.remove("hidden");
-            } else {
-                document.getElementById("back-btn").classList.add("hidden");
-            }
+            // Render image. 
+            // Note: Ensure your 'Images' sheet lists either public direct image links or 
+            // exact filenames if mapped to a public folder source.
+            let imgElement = document.getElementById('poster-image');
+            imgElement.src = currentImageName; 
+
+            // Handle back button visibility
+            document.getElementById('back-btn').style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
         }
 
-        async function castVote(voteType) {
-            let imgData = images[currentIndex];
+        async function submitVote(voteType) {
+            let imageName = imagesList[currentIndex];
             
-            voteHistory.push({ index: currentIndex, imageName: imgData.name, vote: voteType });
+            // Track for session history back capability
+            sessionHistory.push({ index: currentIndex, image: imageName, vote: voteType });
 
-            fetch(SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify({ initials: voterInitials, imageName: imgData.name, vote: voteType })
-            });
+            // Send vote asynchronously to Google Sheets backend
+            fetch(`${WEB_APP_URL}?action=vote&voter=${encodeURIComponent(currentUser)}&image=${encodeURIComponent(imageName)}&vote=${encodeURIComponent(voteType)}`)
+                .catch(err => console.error("Error saving vote:", err));
 
             currentIndex++;
             loadPoster();
         }
 
         function goBack() {
-            if (voteHistory.length > 0) {
-                let lastVote = voteHistory.pop();
-                currentIndex = lastVote.index;
+            if (currentIndex > 0 && sessionHistory.length > 0) {
+                sessionHistory.pop(); // remove last record entry
+                currentIndex--;
                 loadPoster();
             }
         }
 
-        async function showResults() {
-            document.getElementById("voting-screen").classList.add("hidden");
-            document.getElementById("results-modal").classList.remove("hidden");
-            
-            let podiumDiv = document.getElementById("podium-list");
-            podiumDiv.innerHTML = "Calculating final results...";
-
+        async function showFinalResults() {
+            // Fetch overall aggregate results from sheet data
             try {
-                let res = await fetch(`${SCRIPT_URL}?action=getResults`);
-                let top3 = await res.json();
+                let response = await fetch(`${WEB_APP_URL}?action=getData`);
+                let data = await response.json();
+                let votes = data.votes;
+
+                // Calculate points: Count "Güzel" votes per image name
+                let scoreMap = {};
+                imagesList.forEach(img => scoreMap[img] = 0);
                 
-                let html = "";
-                top3.forEach((item, index) => {
-                    html += `<p><b>#${index + 1}:</b> ${item.image} <br><small>Score: ${item.score} (😊 ${item.güzel} | 😐 ${item.kararsız} | ❌ ${item.kötü})</small></p>`;
+                votes.forEach(v => {
+                    if (v.vote === 'Güzel' && scoreMap[v.image] !== undefined) {
+                        scoreMap[v.image]++;
+                    }
                 });
-                podiumDiv.innerHTML = html || "<p>No votes recorded.</p>";
-            } catch (err) {
-                podiumDiv.innerHTML = "<p>Failed to load results.</p>";
+
+                // Sort descending by score
+                let sortedPosters = Object.keys(scoreMap).map(img => {
+                    return { name: img, score: scoreMap[img] };
+                }).sort((a, b) => b.score - a.score);
+
+                let top3 = sortedPosters.slice(0, 3);
+                
+                let podiumHtml = "";
+                top3.forEach((item, idx) => {
+                    podiumHtml += `<div class="podium-item"><span>#${idx+1} ${item.name}</span> <span>⭐ ${item.score} Güzel</span></div>`;
+                });
+                
+                if(top3.length === 0 || top3[0].score === 0) {
+                    podiumHtml = "<p>No 'Güzel' votes recorded yet!</p>";
+                }
+
+                document.getElementById('podium-list').innerHTML = podiumHtml;
+                document.getElementById('results-modal').style.display = 'flex';
+
+            } catch(e) {
+                document.getElementById('podium-list').innerHTML = "<p>Could not calculate results.</p>";
+                document.getElementById('results-modal').style.display = 'flex';
+            }
+        }
+
+        async function triggerReset() {
+            if (confirm("Are you sure you want to wipe ALL vote records from the Google Sheet?")) {
+                try {
+                    let res = await fetch(`${WEB_APP_URL}?action=reset`);
+                    let json = await res.json();
+                    if(json.status === "reset_success") {
+                        alert("Database successfully reset!");
+                        location.reload();
+                    }
+                } catch(e) {
+                    alert("Reset failed. Check connection.");
+                }
             }
         }
     </script>
